@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Retro 60s dial artwork: the STATIC layer only (bezel, cream face, graduations,
-  numerals, labels, glass glint). The needle, peak flag, hub, "NO LINK" and the
-  optional badge are drawn live by RetroLook. Scale: -15..25 psi over 270 deg,
-  starting at 135 deg (bottom left), clockwise.
+  Retro 60s dial artwork TEMPLATE: the STATIC layer only (bezel, cream face, graduations,
+  numerals, labels, glass glint). The needle, peak flag, hub, "NO LINK" and the optional
+  badge are drawn live by RetroLook.
 
-  Render + convert:  python tools/make_look.py dial looks/retro/dial.svg src/looks/RetroDial.h
+  The graduations, numerals and red band are generated from spec.json, the single source
+  of truth for the scale geometry (the C++ reads the same numbers), so edit those values
+  there, not here.
+
+  Build:  python tools/make_look.py retro
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
   <defs>
@@ -42,23 +45,15 @@
   <circle cx="120" cy="120" r="106.5" fill="url(#cream)"/>
   <circle cx="120" cy="120" r="106.5" fill="url(#age)"/>
 
-  <!-- 20..25 psi red band -->
-  <path d="M221.02 140.09A103 103 0 0 1 192.83 192.83" fill="none" stroke="#c0261c" stroke-width="4.6"/>
+  <!-- red band: from redFromPsi to maxPsi -->
+  <path d="@RED_BAND@" fill="none" stroke="#c0261c" stroke-width="4.6"/>
 
   <!-- graduations: major every 5 psi, minor every 1 psi -->
-  <path d="M21.92 139.51L36.63 136.58M27.61 81.73L41.47 87.47M64.44 36.85L72.78 49.33M120 20L120 35M175.56 36.85L167.22 49.33M212.39 81.73L198.53 87.47M218.08 139.51L203.37 136.58M49.29 190.71L59.9 180.1M190.71 190.71L180.1 180.1" fill="none" stroke="#1c1a16" stroke-width="2.2"/>
-  <path d="M41.47 181.91L45.39 178.81M34.74 172.25L39 169.64M29.19 161.87L33.73 159.77M24.89 150.9L29.65 149.36M20.31 127.85L25.29 127.45M20.08 116.07L25.07 116.27M21.23 104.36L26.17 105.14M23.75 92.86L28.57 94.21M32.75 71.14L37.11 73.58M39.1 61.22L43.14 64.16M46.57 52.12L50.24 55.51M55.06 43.96L58.3 47.76M74.6 30.9L76.87 35.35M85.39 26.18L87.12 30.87M96.66 22.76L97.82 27.62M108.25 20.69L108.83 25.66M131.75 20.69L131.17 25.66M143.34 22.76L142.18 27.62M154.61 26.18L152.88 30.87M165.4 30.9L163.13 35.35M184.94 43.96L181.7 47.76M193.43 52.12L189.76 55.51M200.9 61.22L196.86 64.16M207.25 71.14L202.89 73.58M216.25 92.86L211.43 94.21M218.77 104.36L213.83 105.14M219.92 116.07L214.93 116.27M219.69 127.85L214.71 127.45M215.11 150.9L210.35 149.36M210.81 161.87L206.27 159.77M205.26 172.25L201 169.64M198.53 181.91L194.61 178.81" fill="none" stroke="#1c1a16" stroke-width="0.9"/>
+  <path d="@MAJOR_TICKS@" fill="none" stroke="#1c1a16" stroke-width="2.2"/>
+  <path d="@MINOR_TICKS@" fill="none" stroke="#1c1a16" stroke-width="0.9"/>
 
   <g font-family="Jost" font-size="18" font-weight="500" text-anchor="middle" dominant-baseline="central" fill="#1c1a16">
-    <text x="69.1" y="170.9">-15</text>
-    <text x="49.4" y="134">-10</text>
-    <text x="53.5" y="92.4">-5</text>
-    <text x="80" y="60.1">0</text>
-    <text x="120" y="48">5</text>
-    <text x="160" y="60.1">10</text>
-    <text x="186.5" y="92.4">15</text>
-    <text x="190.6" y="134" fill="#a11d14">20</text>
-    <text x="170.9" y="170.9" fill="#a11d14">25</text>
+    @NUMERALS@
   </g>
 
   <text x="120" y="108" font-family="Jost" font-size="12" font-weight="500" letter-spacing="4.5" text-anchor="middle" fill="#1c1a16">BOOST</text>

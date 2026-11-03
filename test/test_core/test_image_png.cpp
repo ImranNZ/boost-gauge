@@ -1,32 +1,15 @@
-#include <doctest.h>
+// The Image bitmap and the PNG writer.
 
-#include <algorithm>
+#include "test_support.h"
+
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
-#include <string>
-#include <vector>
 
-#include "Image.h"
-#include "SoftCanvas.h"
-
-using namespace gauge;
+using namespace support;
 
 namespace {
-
-constexpr Color kBlack{0, 0, 0};
-constexpr Color kWhite{255, 255, 255};
-
-bool same(Color a, Color b) { return a.r == b.r && a.g == b.g && a.b == b.b; }
-
-int countNonBlack(const Image& img) {
-  int n = 0;
-  for (int y = 0; y < img.height(); ++y)
-    for (int x = 0; x < img.width(); ++x)
-      if (!same(img.get(x, y), kBlack)) ++n;
-  return n;
-}
 
 // ---- minimal PNG reader used to verify the writer ------------------------
 
@@ -105,8 +88,6 @@ std::string tempPng(const char* name) {
 
 }  // namespace
 
-// ------------------------------------------------------------------ Image --
-
 TEST_CASE("image: bounds-checked set/get, fill and blit") {
   Image img(4, 3);
   CHECK(img.width() == 4);
@@ -172,103 +153,4 @@ TEST_CASE("png writer: tiny single-block image") {
 TEST_CASE("png writer: reports I/O failure") {
   Image img(2, 2);
   CHECK_FALSE(writePng(img, "Z:/definitely/not/a/real/dir/x.png"));
-}
-
-// ------------------------------------------------------------- SoftCanvas --
-
-TEST_CASE("softcanvas: size, clear, present counter") {
-  SoftCanvas c(32, 16);
-  CHECK(c.width() == 32);
-  CHECK(c.height() == 16);
-  c.clear(Color{9, 8, 7});
-  CHECK(c.image().get(31, 15).r == 9);
-  CHECK(c.framesPresented() == 0);
-  c.present();
-  CHECK(c.framesPresented() == 1);
-}
-
-TEST_CASE("softcanvas: circle") {
-  SoftCanvas c(40, 40);
-  c.fillCircle(20, 20, 5, kWhite);
-  CHECK(same(c.image().get(20, 20), kWhite));
-  CHECK(same(c.image().get(25, 20), kWhite));
-  CHECK_FALSE(same(c.image().get(26, 20), kWhite));
-  CHECK_FALSE(same(c.image().get(25, 25), kWhite));
-}
-
-TEST_CASE("softcanvas: arc quadrants, negative start and wrap-around") {
-  SoftCanvas c(100, 100);
-
-  c.fillArc(50, 50, 10, 20, -90.0f, 0.0f, kWhite);  // top-right quadrant
-  CHECK(same(c.image().get(60, 40), kWhite));
-  CHECK_FALSE(same(c.image().get(40, 60), kWhite));
-  CHECK_FALSE(same(c.image().get(50, 50), kWhite));  // inside the hole
-
-  c.clear(kBlack);
-  c.fillArc(50, 50, 10, 20, 350.0f, 10.0f, kWhite);  // wraps through 0 degrees
-  CHECK(same(c.image().get(65, 50), kWhite));
-  CHECK_FALSE(same(c.image().get(50, 65), kWhite));
-
-  c.clear(kBlack);
-  c.fillArc(50, 50, 10, 20, 90.0f, 180.0f, kWhite);  // bottom-left (y grows down)
-  CHECK(same(c.image().get(40, 60), kWhite));
-  CHECK_FALSE(same(c.image().get(60, 40), kWhite));
-}
-
-TEST_CASE("softcanvas: lines, thickness clamp and zero length") {
-  SoftCanvas c(40, 40);
-  c.drawLine(5, 20, 35, 20, 1, kWhite);
-  CHECK(same(c.image().get(20, 20), kWhite));
-  CHECK_FALSE(same(c.image().get(20, 18), kWhite));
-
-  c.clear(kBlack);
-  c.drawLine(5, 20, 35, 20, 0, kWhite);  // clamped up to 1px
-  CHECK(same(c.image().get(20, 20), kWhite));
-
-  c.clear(kBlack);
-  c.drawLine(5, 20, 35, 20, 7, kWhite);
-  CHECK(same(c.image().get(20, 17), kWhite));
-
-  c.clear(kBlack);
-  c.drawLine(10, 10, 10, 10, 3, kWhite);  // degenerate segment
-  CHECK(same(c.image().get(10, 10), kWhite));
-}
-
-TEST_CASE("softcanvas: text alignment, scale and unknown glyphs") {
-  // '-' draws a 5px bar on glyph row 3.
-  SoftCanvas left(60, 20);
-  left.drawText(20, 0, "-", 1, TextAlign::Left, kWhite);
-  CHECK(same(left.image().get(20, 3), kWhite));
-  CHECK(same(left.image().get(24, 3), kWhite));
-  CHECK_FALSE(same(left.image().get(25, 3), kWhite));
-
-  SoftCanvas right(60, 20);
-  right.drawText(20, 0, "-", 1, TextAlign::Right, kWhite);  // cell is 6 wide
-  CHECK(same(right.image().get(14, 3), kWhite));
-  CHECK_FALSE(same(right.image().get(20, 3), kWhite));
-
-  SoftCanvas centre(60, 20);
-  centre.drawText(20, 0, "-", 1, TextAlign::Center, kWhite);
-  CHECK(same(centre.image().get(17, 3), kWhite));
-  CHECK_FALSE(same(centre.image().get(16, 3), kWhite));
-
-  SoftCanvas scaled(60, 20);
-  scaled.drawText(0, 0, "-", 3, TextAlign::Left, kWhite);
-  CHECK(same(scaled.image().get(14, 9), kWhite));  // 5*3 wide, row 3 * 3 tall
-  CHECK(same(scaled.image().get(0, 11), kWhite));
-
-  SoftCanvas unknown(60, 20);
-  unknown.drawText(0, 0, "Z~", 2, TextAlign::Left, kWhite);
-  CHECK(countNonBlack(unknown.image()) == 0);
-}
-
-TEST_CASE("softcanvas: every glyph the gauge uses renders something") {
-  const std::string used = "0123456789-+.ABEFIKLNOPST";
-  for (char ch : used) {
-    SoftCanvas c(10, 10);
-    const char text[2] = {ch, 0};
-    c.drawText(0, 0, text, 1, TextAlign::Left, kWhite);
-    CAPTURE(ch);
-    CHECK(countNonBlack(c.image()) > 0);
-  }
 }

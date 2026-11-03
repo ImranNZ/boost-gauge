@@ -10,7 +10,7 @@ description: Run the full verification for the boost gauge (unit tests, 100% cov
    `0 test cases`, ignore that; read doctest's own summary.
    - If a command isn't found on Windows, prepend the WinLibs `mingw64/bin` and
      the Python `Scripts` directories to `PATH` for that command.
-2. If any gauge drawing code changed (`GaugeView`, `SoftCanvas`, `ICanvas`), run
+2. If any gauge drawing code changed (a look, `FrameRenderer`, `SoftCanvas`, `IDrawSurface`), run
    `pio run -e sim -t exec`, then open `out/sheet.png` and `out/no_link.png`
    and look: needle direction, readout not overlapping scale labels, zone
    colours, NO LINK banner. For motion, run `python tools/preview.py --no-browser`

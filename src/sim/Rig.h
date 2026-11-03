@@ -7,7 +7,7 @@
 #include "FakeCanBus.h"
 #include "FakeEcu.h"
 #include "GaugeApp.h"
-#include "GaugeView.h"
+#include "ClassicLook.h"
 #include "ManualClock.h"
 #include "ReadingSource.h"
 #include "RetroLook.h"
@@ -34,7 +34,7 @@ struct Rig {
   gauge::ThrottledSource link{polling, clock, 40};
   gauge::SoftCanvas canvas{kScreen, kScreen, kSupersample};
 
-  gauge::GaugeView classic;
+  gauge::ClassicLook classic;
   gauge::RetroLook retro{looks::makeRetro()};
   gauge::GaugeApp app{link, canvas, clock, retro, gauge::GaugeApp::Options{}};
 

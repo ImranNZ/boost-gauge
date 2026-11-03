@@ -106,13 +106,8 @@ void LgfxCanvas::fillArc(int cx, int cy, int innerRadius, int outerRadius, float
         frame_.drawPixel(x, y, rgb(color));
         continue;
       }
-      const auto under = frame_.readPixelRGB(x, y);
-      const auto mix = [coverage](uint8_t over, uint8_t base) {
-        return static_cast<uint8_t>(base + (over - base) * coverage);
-      };
-      frame_.drawPixel(x, y,
-                       frame_.color565(mix(color.r, under.R8()), mix(color.g, under.G8()),
-                                       mix(color.b, under.B8())));
+      const int alpha = static_cast<int>(coverage * 255.0f + 0.5f);
+      frame_.drawPixel(x, y, rgb(gauge::blend(readColor(x, y), color, alpha)));
     }
   }
 }
@@ -155,13 +150,7 @@ void LgfxCanvas::drawImage(const gauge::ImageView& image, int x, int y) {
         frame_.drawPixel(px, py, rgb(src));
         continue;
       }
-      const auto under = frame_.readPixelRGB(px, py);
-      const auto mix = [alpha](int over, int base) {
-        return static_cast<uint8_t>((base * (255 - alpha) + over * alpha + 127) / 255);
-      };
-      frame_.drawPixel(px, py,
-                       frame_.color565(mix(src.r, under.R8()), mix(src.g, under.G8()),
-                                       mix(src.b, under.B8())));
+      frame_.drawPixel(px, py, rgb(gauge::blend(readColor(px, py), src, alpha)));
     }
   }
 }

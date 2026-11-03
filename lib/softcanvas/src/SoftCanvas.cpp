@@ -188,11 +188,7 @@ void SoftCanvas::drawImage(const ImageView& image, int x, int y) {
             hi_.set(hx, hy, src);
             continue;
           }
-          const Color bg = hi_.get(hx, hy);
-          const auto mix = [alpha](int over, int under) {
-            return static_cast<uint8_t>((under * (255 - alpha) + over * alpha + 127) / 255);
-          };
-          hi_.set(hx, hy, Color{mix(src.r, bg.r), mix(src.g, bg.g), mix(src.b, bg.b)});
+          hi_.set(hx, hy, blend(hi_.get(hx, hy), src, alpha));
         }
       }
     }

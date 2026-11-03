@@ -38,6 +38,10 @@ class LgfxCanvas : public gauge::ICanvas {
   class Panel;  // LovyanGFX device config for this board (defined in the .cpp)
 
   uint16_t rgb(gauge::Color c) { return frame_.color565(c.r, c.g, c.b); }
+  gauge::Color readColor(int x, int y) {
+    const auto p = frame_.readPixelRGB(x, y);
+    return gauge::Color{p.R8(), p.G8(), p.B8()};
+  }
 
   Panel* panel_;
   lgfx::LGFX_Sprite frame_;  // what we draw into; internal RAM for speed

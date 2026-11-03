@@ -1,13 +1,14 @@
 #pragma once
 
+#include "Color.h"
 #include "GaugeScale.h"
 #include "GaugeState.h"
-#include "ICanvas.h"
+#include "IDrawSurface.h"
 #include "ILook.h"
 
 namespace gauge {
 
-struct GaugeConfig {
+struct ClassicLookConfig {
   float minPsi = -15.0f;
   float maxPsi = 25.0f;
   float majorStepPsi = 5.0f;
@@ -18,30 +19,29 @@ struct GaugeConfig {
 
 /// The "Classic" look: a dark dial drawn entirely in code, with coloured zones
 /// and a big digital readout. Pure presentation; knows nothing about OBD or hardware.
-class GaugeView : public DialCachingLook {
+class ClassicLook : public ILook {
  public:
   static constexpr Color kBackground{0, 0, 0};
   static constexpr Color kNeedle{255, 74, 28};
   static constexpr float kStartDeg = GaugeScale::kStartDeg;
   static constexpr float kSweepDeg = GaugeScale::kSweepDeg;
 
-  explicit GaugeView(GaugeConfig config = {}) : config_(config) {}
+  explicit ClassicLook(ClassicLookConfig config = {}) : config_(config) {}
+
+  void drawDial(IDrawSurface& c) const override;
+  void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
 
   /// Screen angle (degrees, 0 = 3 o'clock, clockwise) for a pressure.
   float angleFor(float psi) const;
 
- protected:
-  void drawDial(ICanvas& c) const override;
-  void drawDynamic(ICanvas& c, const GaugeState& state) const override;
-
  private:
-  void drawZones(ICanvas& c, int cx, int cy) const;
-  void drawScale(ICanvas& c, int cx, int cy) const;
-  void drawPeakMarker(ICanvas& c, int cx, int cy, float peakPsi) const;
-  void drawNeedle(ICanvas& c, int cx, int cy, float psi) const;
-  void drawReadout(ICanvas& c, int cx, const GaugeState& state) const;
+  void drawZones(IDrawSurface& c, int cx, int cy) const;
+  void drawScale(IDrawSurface& c, int cx, int cy) const;
+  void drawPeakMarker(IDrawSurface& c, int cx, int cy, float peakPsi) const;
+  void drawNeedle(IDrawSurface& c, int cx, int cy, float psi) const;
+  void drawReadout(IDrawSurface& c, int cx, const GaugeState& state) const;
 
-  GaugeConfig config_;
+  ClassicLookConfig config_;
 };
 
 }  // namespace gauge

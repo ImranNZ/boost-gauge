@@ -55,7 +55,7 @@ python tools/preview.py
 
 Builds the simulator, opens <http://127.0.0.1:8765> and shows the gauge animating
 in real time (~30 fps) against the mock ECU. It runs the real gauge code
-(`GaugeView`, `GaugeApp`, the OBD client) with a fake ECU on the other end. The
+(the looks, `GaugeApp`, the OBD client) with a fake ECU on the other end. The
 page has controls to drive the mock:
 
 * **Drive cycle**: the scripted 20 s loop (idle vacuum, full-boost pull, lift-off, cruise)
@@ -115,7 +115,7 @@ read-only mode 01 requests are sent.
 
 All pins, the BLE dongle name hint, WiFi SSID and the dongle address live in
 [`src/config.h`](src/config.h). Gauge range, zones and tick spacing are
-`GaugeConfig` in [`lib/core/src/GaugeView.h`](lib/core/src/GaugeView.h).
+`ClassicLookConfig` in [`lib/core/src/ClassicLook.h`](lib/core/src/ClassicLook.h).
 
 ## How the repo is organised
 
@@ -127,7 +127,7 @@ src/device      ESP32-only adapters: LgfxCanvas, TwaiBus, BleElmStream, WifiElmS
 src/sim         PC simulator: `Rig` (stack wired to mocks), stills and live streaming
 tools/preview.* Live browser preview (Python server + page) over the sim's frame stream
 tools/make_look.py  Turns look artwork (SVG, PNG) into the headers the firmware and sim compile in
-looks/          Look artwork sources (retro/dial.svg and its font)
+looks/          Look artwork sources (retro/: spec.json, dial.svg.in, its font)
 src/looks/      Generated artwork headers + the factory that builds the Retro look
                 (src/looks/local/ is git-ignored: brand artwork lives only there)
 src/main.cpp    Composition root: wires concrete classes, picks transport
@@ -136,30 +136,45 @@ test/test_core  doctest suites
 tools/          coverage.sh and its PlatformIO helper
 ```
 
-The design is a small set of interfaces with the hardware behind them:
+The design is a small set of narrow interfaces with the hardware behind them:
 
 ```
-IClock  IByteStream  ICanBus  IObdClient  ICanvas        <- the seams
+IClock  IByteStream  ICanBus  IObdClient            <- talking to the car
+IReadingSource                                      <- handing readings to the screen
+IDrawSurface  IFrameCache  (ICanvas = both + present)  <- drawing
+ILook                                               <- a visual style
 ```
 
-`Elm327Client` turns any `IByteStream` (BLE, WiFi, fake) into an `IObdClient`;
-`CanObdClient` does the same for any `ICanBus`. `BoostSampler` computes boost
-and handles reconnects. On the device a `SamplerTask` (core 0) calls
-`SamplerLoop::step()` forever and publishes into a lock-free `ReadingMailbox`;
-`GaugeApp` (core 1, in `loop()`) takes the newest reading from that mailbox
-(`IReadingSource`), eases the needle toward it and draws. `main.cpp` is the only
-place that names concrete classes. If you know .NET or TypeScript: interfaces are
-abstract classes, DI is constructor injection, and doctest is your xUnit/Jest.
+Each class has one job:
+
+| Class | Job |
+| ----- | --- |
+| `Elm327Client` / `CanObdClient` | Speak ELM327 or CAN OBD over any `IByteStream` / `ICanBus` |
+| `LinkSupervisor` | Connect, retry and notice a dead link |
+| `AmbientPressure` | Barometric pressure, cached, with throttled retries |
+| `BoostSampler` | Coordinate the above: MAP minus ambient = boost |
+| `SamplerLoop` + `ReadingMailbox` | Publish readings from the sampler task to the screen (lock-free) |
+| `GaugeModel` | Readings -> what to show: eased value, peak, link state, fps (pure logic) |
+| `FrameRenderer` | Draw a frame: restore or cache the dial, draw the moving parts, present |
+| `ILook` (`ClassicLook`, `RetroLook`) | Describe the drawing only: the dial and the moving parts |
+| `GaugeApp` | Thin coordinator: source -> model -> renderer |
+
+On the device a `SamplerTask` (core 0) runs `SamplerLoop::step()` forever; the render
+loop (`loop()`, core 1) runs `GaugeApp::tick()`. They share only the mailbox.
+`main.cpp` is the composition root, the only place that names concrete classes, and
+`device/Transport.h` is the only place that knows which link to the car this build
+uses. If you know .NET or TypeScript: interfaces are abstract classes, DI is
+constructor injection, and doctest is your xUnit/Jest.
 
 ## Rendering and frame rate
 
 * The panel is a fixed 240x240. Shapes are anti-aliased: the PC sim draws at 4x
   and averages down; on the device LovyanGFX does smooth lines/circles and
   `ArcCoverage` blends the dial arcs.
-* The **dial** (zones, ticks, labels) never changes, so `GaugeView` draws it once
-  and the canvas caches it (`saveBackground` / `restoreBackground`; on the device
-  the cache lives in PSRAM). Each frame only draws the needle and readout. If
-  the cache is unavailable the view just redraws the dial every frame.
+* The **dial** (zones, ticks, labels) never changes, so `FrameRenderer` has the look
+  draw it once and the canvas caches it (`IFrameCache`; on the device the cache lives
+  in PSRAM). Each frame only draws the needle and readout. A look never knows about
+  the cache. If the cache is unavailable the dial is simply redrawn every frame.
 * Text drawn live (the Classic look's readout, NO LINK, fps) still uses the built-in
   5x7 bitmap font. The Retro look's numerals and labels are part of its dial
   picture, so they are proper Jost lettering.
@@ -185,26 +200,30 @@ state each frame and it draws. Two exist today:
 
 | Look | What it is |
 | ---- | ---------- |
-| **Classic** (`GaugeView`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
+| **Classic** (`ClassicLook`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
 | **Retro 60s** (`RetroLook`) | Cream dial that is a pre-rendered picture, slim red needle with a counterweight tail, a peak flag and a chrome-ringed hub. Purely analog. |
 
 Pick one for the firmware with `config::kUseRetroLook` in `src/config.h`. In the
 preview, use the **Look** menu to switch live (that is the switcher the board
 will get once it has an input method).
 
-**How the Retro look is built.** The static dial is `looks/retro/dial.svg`. A script
-renders it with resvg, dithers it to RGB565 and writes `src/looks/RetroDial.h`
-(a 115 KB array that lives in flash). At run time `RetroLook` copies that picture
-to the screen once, the canvas caches it, and each frame only the needle, flag and
-hub are drawn on top.
+**How the Retro look is built.** `looks/retro/spec.json` is the single source of truth
+for the scale and pointer geometry (scale range, tick radii, needle length, hub size).
+`tools/make_look.py retro` uses it twice: it fills the graduations, numerals and red
+band into `looks/retro/dial.svg.in`, renders that with resvg and dithers it to RGB565
+(`src/looks/RetroDial.h`, a 115 KB array in flash), and it writes the same numbers
+to `src/looks/RetroSpec.h`, which `RetroLook` draws the needle with. So the picture
+and the code cannot drift apart; a `static_assert` in the factory also checks the
+start angle and sweep against `GaugeScale`. At run time the picture is drawn once, the
+canvas caches it, and each frame only the needle, flag and hub are drawn on top.
 
 ```bash
 pip install resvg-py pillow fonttools
-python tools/make_look.py dial looks/retro/dial.svg src/looks/RetroDial.h
+python tools/make_look.py retro
 ```
 
-Edit the SVG, re-run the command, and the sim preview and firmware both pick up
-the change. The design mockups the SVG came from are on the design canvas
+Change `spec.json` or the template, re-run the command, and the sim preview and
+firmware both pick up the change. The design mockups the SVG came from are on the design canvas
 (see the project's Artifact link).
 
 **The Cooper S badge** is brand artwork, so it is never committed. Put your PNG in
@@ -221,7 +240,7 @@ If `src/looks/local/CooperSBadge.h` exists, the Retro look draws the badge under
 
 **Add a look:** see the `add-look` skill (`.claude/skills/add-look/SKILL.md`). In short:
 design the artwork, generate its picture, write an `ILook` (usually a
-`DialCachingLook`), register it in the sim's `Rig::selectLook` and add tests.
+`ILook`), register it in the sim's `Rig::selectLook` and add tests.
 
 **Add a transport** (e.g. Bluetooth Classic): implement `IByteStream` (ELM327
 text) or `ICanBus` (raw CAN) in `src/device/`, add a `-DTRANSPORT_X` env in
@@ -232,7 +251,7 @@ text) or `ICanBus` (raw CAN) in `src/device/`, add a `-DTRANSPORT_X` env in
 `IObdClient::readPid`, add the PID constant in `IObdClient.h`, teach `FakeEcu`
 to answer it, test it).
 
-**Change the look**: edit `GaugeView.cpp`, run `python tools/preview.py`, and
+**Change the look**: edit `ClassicLook.cpp`, run `python tools/preview.py`, and
 watch it update (stop and re-run after each edit; it rebuilds the sim).
 
 **Add a mock control**: add a command in `lib/fakes/src/SimCommands.cpp` (with a

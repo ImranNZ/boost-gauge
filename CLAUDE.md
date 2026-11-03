@@ -31,7 +31,19 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * **SOLID / modular.** `lib/core` must never include Arduino, ESP-IDF,
   LovyanGFX, NimBLE or WiFi headers. Hardware sits behind `IClock`,
   `IByteStream`, `ICanBus`, `ICanvas`; concrete classes are wired only in
-  `src/main.cpp`. New hardware = new adapter in `src/device/`, not edits to core.
+  `src/main.cpp` (and `src/device/Transport.h` for the car link). New hardware =
+  new adapter in `src/device/`, not edits to core.
+* **One job per class; depend on the narrowest interface.** A look takes an
+  `IDrawSurface` (never the cache or `present`); caching and presenting belong to
+  `FrameRenderer`. Link health is `LinkSupervisor`, ambient pressure is `AmbientPressure`,
+  the value shown is `GaugeModel`. If a class grows a second reason to change, split it.
+  Before adding to `GaugeApp` or `BoostSampler`, ask whether it is a new collaborator instead.
+* **No duplicated logic across backends.** Shared maths lives in `lib/core` (e.g.
+  `blend`, `arcCoverage`); the PC canvas and the LCD canvas both call it.
+* **Geometry that the artwork and the code share has one source** (`looks/*/spec.json`),
+  generated into both. Do not hard-code such numbers in C++.
+* **Tests are named for the unit they test** (`test_gauge_model.cpp`, not
+  `test_branches.cpp`); shared helpers go in `test_support.h`. Coverage is a floor, not the goal.
 * **No heap in the sampling/render hot path** (`std::array`, fixed buffers).
   Heap is fine in `lib/fakes` and `lib/softcanvas` (test/PC only).
 * **No Boost C++ libraries.** Too heavy for the MCU. Use the C++17 standard library.
@@ -45,11 +57,13 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
-* Looks: the app draws through an `ILook` (`GaugeView` = Classic, `RetroLook` = Retro).
-  `GaugeApp` keeps a reference to the look, so it must outlive the app; passing a temporary is
-  a compile error on purpose. `setLook()` discards the canvas's cached dial. See the `add-look` skill.
-* Generated files: `src/looks/RetroDial.h` comes from `looks/retro/dial.svg` via
-  `tools/make_look.py`; never hand-edit it, regenerate. It is big (~470 KB) so avoid reading it.
+* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`) with two methods,
+  `drawDial` (static, cached by `FrameRenderer`) and `drawDynamic` (every frame). `GaugeApp`
+  keeps a reference to the look, so it must outlive the app; passing a temporary is a
+  compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
+* Generated files: `src/looks/RetroDial.h` and `RetroSpec.h` come from
+  `looks/retro/spec.json` + `dial.svg.in` via `python tools/make_look.py retro`; never
+  hand-edit them, regenerate. `RetroDial.h` is big (~470 KB): avoid reading it.
 * **Brand artwork is never committed.** The Cooper S badge lives in `assets/` and
   `src/looks/local/` (both in `.gitignore`) and is included via `__has_include`. Do not
   `git add -f` those, do not copy brand images into tracked folders, and do not upload them
@@ -65,10 +79,10 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * `GaugeApp` takes an `IReadingSource`. Tests and the sim use `PollingSource` (a
   synchronous source) or `ThrottledSource` (a link-rate limiter); the firmware uses the mailbox.
 
-* `ICanvas` contract: shapes are anti-aliased (no `fillTriangle`; a needle is
-  `drawWedge` with float coordinates), and static artwork is cached via
-  `saveBackground()` / `restoreBackground()`, which returns false when nothing is
-  saved. Always handle the false case by redrawing (see `GaugeView::draw`).
+* Canvas contract: shapes are anti-aliased (no `fillTriangle`; a needle is `drawWedge` with
+  float coordinates). `IDrawSurface` is the drawing side; `IFrameCache` is
+  `saveBackground()` / `restoreBackground()` (false when nothing is saved: the caller redraws,
+  see `FrameRenderer::render`); `ICanvas` adds `present()`. Looks must only use `IDrawSurface`.
 * `SoftCanvas(w, h, supersample)`: default 1 is hard-edged and pixel-exact (use it
   in unit tests); the sim `Rig` uses 4. `image()` returns the downsampled frame.
 * Code in `lib/fakes` is also compiled into the device-demo firmware, so it must
@@ -79,8 +93,8 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   stalls). The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
-* `SoftCanvas` fonts only cover `0-9 - + . space A B E I K L N O P S T`. Using
-  any other character in `GaugeView` renders nothing in the sim/tests. Add the
+* `SoftCanvas` fonts only cover `0-9 - + . space A B E F I K L N O P S T`. Using
+  any other character in a look renders nothing in the sim/tests. Add the
   glyph to `kGlyphs` in `SoftCanvas.cpp` first.
 * The device font (`fonts::Font0`) and `SoftCanvas` share the 6x8 cell, so sim
   layouts match the screen. Keep text metrics in sync if either changes.
@@ -94,9 +108,10 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 | Change | Edit |
 | ------ | ---- |
-| New data source / link | new class in `src/device/` + env in `platformio.ini` + branch in `src/main.cpp` |
-| New PID | constant in `IObdClient.h`, `FakeEcu::answer`, `BoostSampler` (or a sibling), tests |
-| Gauge look | `lib/core/src/GaugeView.cpp`, then run the sim |
+| New data source / link | new class in `src/device/` + a branch in `src/device/Transport.h` + env in `platformio.ini` |
+| New PID | constant in `IObdClient.h`, `FakeEcu::answer`, a collaborator beside `AmbientPressure` / `BoostSampler`, tests |
+| Tune the Classic look | `lib/core/src/ClassicLook.cpp`, then run the sim |
+| Tune the Retro look | `looks/retro/spec.json` or `dial.svg.in`, then `python tools/make_look.py retro` |
 | Pins / SSID / BLE name | `src/config.h` |
 
 Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`).

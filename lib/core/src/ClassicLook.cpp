@@ -1,4 +1,4 @@
-#include "GaugeView.h"
+#include "ClassicLook.h"
 
 #include <algorithm>
 #include <cmath>
@@ -38,11 +38,11 @@ int polarY(int cy, float deg, int r) {
 
 }  // namespace
 
-float GaugeView::angleFor(float psi) const {
+float ClassicLook::angleFor(float psi) const {
   return GaugeScale{config_.minPsi, config_.maxPsi}.angleFor(psi);
 }
 
-void GaugeView::drawDial(ICanvas& c) const {
+void ClassicLook::drawDial(IDrawSurface& c) const {
   const int cx = c.width() / 2;
   const int cy = c.height() / 2;
   c.clear(kBackground);
@@ -50,7 +50,7 @@ void GaugeView::drawDial(ICanvas& c) const {
   drawScale(c, cx, cy);
 }
 
-void GaugeView::drawDynamic(ICanvas& c, const GaugeState& state) const {
+void ClassicLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   const int cx = c.width() / 2;
   const int cy = c.height() / 2;
 
@@ -63,7 +63,7 @@ void GaugeView::drawDynamic(ICanvas& c, const GaugeState& state) const {
   drawReadout(c, cx, state);
 }
 
-void GaugeView::drawZones(ICanvas& c, int cx, int cy) const {
+void ClassicLook::drawZones(IDrawSurface& c, int cx, int cy) const {
   struct Zone {
     float from;
     float to;
@@ -80,7 +80,7 @@ void GaugeView::drawZones(ICanvas& c, int cx, int cy) const {
   }
 }
 
-void GaugeView::drawScale(ICanvas& c, int cx, int cy) const {
+void ClassicLook::drawScale(IDrawSurface& c, int cx, int cy) const {
   const float step = config_.majorStepPsi / static_cast<float>(config_.minorPerMajor);
   for (int i = 0;; ++i) {
     const float psi = config_.minPsi + static_cast<float>(i) * step;
@@ -103,13 +103,13 @@ void GaugeView::drawScale(ICanvas& c, int cx, int cy) const {
   }
 }
 
-void GaugeView::drawPeakMarker(ICanvas& c, int cx, int cy, float peakPsi) const {
+void ClassicLook::drawPeakMarker(IDrawSurface& c, int cx, int cy, float peakPsi) const {
   const float deg = angleFor(peakPsi);
   c.drawLine(polarX(cx, deg, kMajorInner - 6), polarY(cy, deg, kMajorInner - 6),
              polarX(cx, deg, kTickOuter), polarY(cy, deg, kTickOuter), 3, kText);
 }
 
-void GaugeView::drawNeedle(ICanvas& c, int cx, int cy, float psi) const {
+void ClassicLook::drawNeedle(IDrawSurface& c, int cx, int cy, float psi) const {
   // Float coordinates (no rounding) so the needle glides instead of stepping.
   const float rad = angleFor(psi) * kDegToRad;
   const float tipX = static_cast<float>(cx) + std::cos(rad) * kNeedleLength;
@@ -118,7 +118,7 @@ void GaugeView::drawNeedle(ICanvas& c, int cx, int cy, float psi) const {
               kNeedleTipRadius, kNeedle);
 }
 
-void GaugeView::drawReadout(ICanvas& c, int cx, const GaugeState& state) const {
+void ClassicLook::drawReadout(IDrawSurface& c, int cx, const GaugeState& state) const {
   char text[16];
   if (state.linked) {
     std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.psi));

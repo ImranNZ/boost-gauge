@@ -2,17 +2,30 @@
 
 #include "Color.h"
 #include "GaugeScale.h"
+#include "IDrawSurface.h"
 #include "ILook.h"
 #include "ImageView.h"
 
 namespace gauge {
 
 /// The "Retro 60s" look: a cream dial that is a pre-rendered picture (see
-/// looks/retro/dial.svg and tools/make_look.py), with a slim red needle, a peak
-/// flag and a chrome-ringed hub drawn on top. Purely analog; the artwork is
-/// baked for a -15..25 psi scale.
-class RetroLook : public DialCachingLook {
+/// looks/retro/), with a slim red needle, a peak flag and a chrome-ringed hub
+/// drawn on top. Purely analog.
+class RetroLook : public ILook {
  public:
+  /// The geometry the dial artwork was drawn with. It is generated from
+  /// looks/retro/spec.json, the single source for both the picture and this
+  /// code, so the needle always lines up with the printed scale.
+  struct Spec {
+    float minPsi;            // scale the dial is graduated for
+    float maxPsi;
+    float needleLength;      // pixels from the pivot to the tip
+    float tailLength;        // pixels from the pivot to the counterweight
+    float flagInnerRadius;   // the peak flag sits between these two radii
+    float flagOuterRadius;
+    int hubRadius;
+  };
+
   /// An optional picture laid over the dial, e.g. a model badge. Top-left in pixels.
   struct Badge {
     ImageView image;
@@ -23,23 +36,23 @@ class RetroLook : public DialCachingLook {
   static constexpr Color kNeedleRed{200, 40, 30};
   static constexpr Color kInk{28, 26, 22};
 
-  explicit RetroLook(ImageView dial);
-  RetroLook(ImageView dial, Badge badge);
+  RetroLook(ImageView dial, Spec spec);
+  RetroLook(ImageView dial, Spec spec, Badge badge);
 
- protected:
-  void drawDial(ICanvas& c) const override;
-  void drawDynamic(ICanvas& c, const GaugeState& state) const override;
+  void drawDial(IDrawSurface& c) const override;
+  void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
 
  private:
-  void drawNeedle(ICanvas& c, float cx, float cy, float deg) const;
-  void drawNeedleShape(ICanvas& c, float cx, float cy, float dx, float dy, Color color) const;
-  void drawPeakFlag(ICanvas& c, float cx, float cy, float deg) const;
-  void drawHub(ICanvas& c, int cx, int cy) const;
+  void drawNeedle(IDrawSurface& c, float cx, float cy, float deg) const;
+  void drawNeedleShape(IDrawSurface& c, float cx, float cy, float dx, float dy, Color color) const;
+  void drawPeakFlag(IDrawSurface& c, float cx, float cy, float deg) const;
+  void drawHub(IDrawSurface& c, int cx, int cy) const;
 
   ImageView dial_;
+  Spec spec_;
+  GaugeScale scale_;
   Badge badge_;
   bool hasBadge_ = false;
-  GaugeScale scale_;
 };
 
 }  // namespace gauge

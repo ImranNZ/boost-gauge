@@ -1,13 +1,8 @@
-#include <doctest.h>
+// The preview's mock controls: ECU, data-rate and look commands.
 
-#include "FakeEcu.h"
-#include "ManualClock.h"
-#include "ReadingSource.h"
-#include "SimCommands.h"
-#include "ThrottledSource.h"
-#include "Units.h"
+#include "test_support.h"
 
-using namespace gauge;
+using namespace support;
 
 TEST_CASE("ecu commands: drive, boost, offline, online") {
   ManualClock clock;
@@ -54,17 +49,6 @@ TEST_CASE("ecu commands: rejects unknown and malformed input") {
   CHECK_FALSE(applyEcuCommand(ecu, "boost 1234567890123456789012345678901234567890"));  // too long
 }
 
-namespace {
-
-/// Source whose reading and seq are set by the test.
-class FixedSource : public IReadingSource {
- public:
-  Sample latest() override { return sample; }
-  Sample sample;
-};
-
-}  // namespace
-
 TEST_CASE("throttled source: fresh readings at most once per interval") {
   ManualClock clock;
   FixedSource inner;
@@ -101,4 +85,19 @@ TEST_CASE("rate command sets the interval and validates input") {
   CHECK_FALSE(applyRateCommand(source, "rate"));
   CHECK_FALSE(applyRateCommand(source, "boost 5"));    // not a rate command
   CHECK(source.intervalMs() == 10);                    // unchanged by failures
+}
+
+TEST_CASE("parseLookCommand recognises 'look <name>'") {
+  std::string name;
+  CHECK(parseLookCommand("look retro", name));
+  CHECK(name == "retro");
+  CHECK(parseLookCommand("  look   classic \r\n", name));
+  CHECK(name == "classic");
+
+  CHECK_FALSE(parseLookCommand("look", name));
+  CHECK_FALSE(parseLookCommand("look   ", name));
+  CHECK_FALSE(parseLookCommand("looks retro", name));
+  CHECK_FALSE(parseLookCommand("look two words", name));
+  CHECK_FALSE(parseLookCommand("boost 5", name));
+  CHECK_FALSE(parseLookCommand("", name));
 }

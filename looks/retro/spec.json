@@ -1,0 +1,25 @@
+{
+  "scale": {
+    "minPsi": -15,
+    "maxPsi": 25,
+    "startDeg": 135,
+    "sweepDeg": 270,
+    "majorStepPsi": 5,
+    "minorStepPsi": 1,
+    "redFromPsi": 20
+  },
+  "dial": {
+    "tickOuterRadius": 100,
+    "majorTickInnerRadius": 85,
+    "minorTickInnerRadius": 95,
+    "numeralRadius": 72,
+    "redBandRadius": 103
+  },
+  "pointer": {
+    "needleLength": 91,
+    "tailLength": 27,
+    "flagInnerRadius": 99,
+    "flagOuterRadius": 107,
+    "hubRadius": 8
+  }
+}

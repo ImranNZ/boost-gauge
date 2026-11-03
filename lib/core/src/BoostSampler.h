@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
+#include "AmbientPressure.h"
 #include "IClock.h"
 #include "IObdClient.h"
+#include "LinkSupervisor.h"
 
 namespace gauge {
 
@@ -12,15 +14,14 @@ struct BoostReading {
   bool valid = false;
 };
 
-/// Turns raw PIDs into boost: MAP minus barometric pressure. Owns link
-/// recovery so callers just keep calling sample().
+/// Turns raw PIDs into boost: manifold pressure minus ambient. A coordinator:
+/// the link's health is LinkSupervisor's job and ambient pressure is
+/// AmbientPressure's, so callers just keep calling sample().
 class BoostSampler {
  public:
   struct Options {
-    uint32_t baroRefreshMs = 60000;  // re-read ambient pressure this often
-    uint32_t baroRetryMs = 10000;    // ...or this often while it is unavailable
-    uint8_t failuresBeforeReconnect = 5;
-    uint32_t reconnectIntervalMs = 2000;
+    LinkSupervisor::Options link;
+    AmbientPressure::Options ambient;
   };
 
   BoostSampler(IObdClient& client, IClock& clock);
@@ -29,22 +30,10 @@ class BoostSampler {
   BoostReading sample();
 
  private:
-  void refreshBaroIfDue();
-  void tryConnect();
-
   IObdClient& client_;
-  IClock& clock_;
-  Options options_;
-
-  bool linked_ = false;
-  bool everTried_ = false;
-  uint32_t lastConnectAttemptMs_ = 0;
-  uint8_t consecutiveFailures_ = 0;
-
-  float baroKpa_;
-  bool haveBaro_ = false;
-  bool baroTried_ = false;
-  uint32_t baroAtMs_ = 0;
+  LinkSupervisor link_;
+  AmbientPressure ambient_;
+  uint32_t seenConnections_ = 0;
 };
 
 }  // namespace gauge

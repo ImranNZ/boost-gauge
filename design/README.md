@@ -20,4 +20,4 @@ artwork is a trademark and is deliberately **not** in this repository, so those 
 will not load from a copy of the repo. See the main README for how the badge is added
 locally.
 
-Design B's final artwork lives in `looks/retro/dial.svg`; see the README's "Looks" section.
+Design B's final artwork is built from `looks/retro/dial.svg.in` and `spec.json`; see the README's "Looks" section.

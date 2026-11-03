@@ -12,15 +12,15 @@ Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 2. **Decode**: put the formula (e.g. `A - 40` for coolant °C, `(256A+B)/4` for
    RPM) in a small pure function in `lib/core/src` (a header like `Units.h`, or a
    new one). `ObdData` holds up to 4 data bytes (`bytes[0]` = A).
-3. **Sampling**: extend `BoostSampler`, or add a sibling class if it isn't boost
-   (single responsibility). Throttle slow-changing values like baro does
-   (`baroRefreshMs` / `baroRetryMs`) so unsupported PIDs don't stall every frame.
+3. **Sampling**: extend `BoostSampler` only if it is part of boost; otherwise add a collaborator beside
+   `AmbientPressure` / `LinkSupervisor` and a coordinator (single responsibility). Throttle slow-changing values like baro does
+   (`AmbientPressure::Options::refreshMs` / `retryMs`) so unsupported PIDs don't stall every frame.
 4. **Fake ECU**: teach `FakeEcu::answer` (`lib/fakes/src/FakeEcu.cpp`) to return
    it, and advertise it in the `0x00` supported-PIDs bitmask if relevant.
 5. **Tests** (`test/test_core/`): decode formula incl. edge values, supported and
    unsupported paths, and throttling. Then `tools/coverage.sh` must stay at 100%.
-6. **Display** (if shown): change `GaugeState` / `GaugeView`. Only use glyphs in
-   `SoftCanvas` (`0-9 - + . space A B E I K L N O P S T`) or add new ones to
+6. **Display** (if shown): change `GaugeState` / the look(s). Only use glyphs in
+   `SoftCanvas` (`0-9 - + . space A B E F I K L N O P S T`) or add new ones to
    `kGlyphs`. Run `pio run -e sim -t exec` and inspect `out/sheet.png`.
 7. Confirm the F56 actually answers that PID before trusting it (an ELM327 app,
    `01xx`); say it is unverified until then.
