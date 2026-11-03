@@ -31,26 +31,33 @@ Run the `tools/*.sh` scripts from Git Bash.
 <details>
 <summary><b>macOS</b></summary>
 
+Homebrew's Python refuses system-wide `pip install` (PEP 668), so use a virtual
+environment inside the repo:
+
 ```bash
 xcode-select --install          # Apple clang (g++) and git
-python3 -m pip install platformio gcovr
+python3 -m venv .venv
+source .venv/bin/activate       # repeat in every new terminal
+pip install platformio gcovr
 ```
 
-Or with Homebrew: `brew install platformio gcovr`. If `pio` is not found after a
-pip install, add `~/Library/Python/3.x/bin` to your `PATH`. On macOS use `python3`
-wherever this README says `python` (for example `python3 tools/preview.py`).
-`tools/coverage.sh` picks the right Python and switches gcovr to `llvm-cov` on its own.
+Inside the venv, `python` and `python3` both work. `tools/coverage.sh` picks the right
+Python and switches gcovr to `llvm-cov` on its own. (Alternative: `brew install pipx`,
+then `pipx install platformio` and `pipx install gcovr`; `tools/coverage.sh` finds
+`gcovr` on `PATH`.)
 </details>
 
 <details>
 <summary><b>Linux</b></summary>
 
 ```bash
-sudo apt install build-essential python3-pip   # or your distro's equivalent
-python3 -m pip install platformio gcovr
+sudo apt install build-essential python3-venv   # or your distro's equivalent
+python3 -m venv .venv
+source .venv/bin/activate       # repeat in every new terminal
+pip install platformio gcovr
 ```
 
-Use `python3` where this README says `python`.
+Newer distros also block system-wide pip (PEP 668), hence the venv.
 </details>
 
 Open a new terminal afterwards so the tools are on your `PATH`

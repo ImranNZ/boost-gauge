@@ -8,3 +8,4 @@ out/
 
 # Local-only look assets (brand badges generated from /assets)
 /src/looks/local/
+.venv/
