@@ -4,7 +4,7 @@
 // the PC sim so both draw exactly the same pixels.
 //
 // The Cooper S badge is brand artwork, so it is NOT in the repository. If you
-// generated it locally (tools/make_look.py badge ...), src/looks/local/CooperSBadge.h
+// generated it locally (tools/make_look.py badge ...), src/looks/local/Badge.h
 // exists and is picked up here automatically; otherwise the dial is used without it.
 
 #include "GaugeScale.h"
@@ -12,8 +12,8 @@
 #include "looks/RetroDial.h"
 #include "looks/RetroSpec.h"
 
-#if __has_include("looks/local/CooperSBadge.h")
-#include "looks/local/CooperSBadge.h"
+#if __has_include("looks/local/Badge.h")
+#include "looks/local/Badge.h"
 #define BOOST_GAUGE_HAS_BADGE 1
 #endif
 

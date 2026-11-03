@@ -230,10 +230,10 @@ firmware both pick up the change. The design mockups the SVG came from are on th
 `assets/` (git-ignored), then:
 
 ```bash
-python tools/make_look.py badge assets/brand/cooper-s.png src/looks/local/CooperSBadge.h --width 70
+python tools/make_look.py badge assets/brand/cooper-s.png src/looks/local/Badge.h --width 70
 ```
 
-If `src/looks/local/CooperSBadge.h` exists, the Retro look draws the badge under the
+If `src/looks/local/Badge.h` exists, the Retro look draws the badge under the
 5 psi numeral; if not, it is simply left out and everything still builds.
 
 ## Common tasks

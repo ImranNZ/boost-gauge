@@ -2,7 +2,7 @@
 """Turn look artwork into C++ headers the firmware and the PC sim both compile in.
 
   python tools/make_look.py retro
-  python tools/make_look.py badge assets/brand/cooper-s.png src/looks/local/CooperSBadge.h --width 70
+  python tools/make_look.py badge assets/brand/cooper-s.png src/looks/local/Badge.h --width 70
 
 retro  Builds the Retro 60s dial from looks/retro/spec.json + dial.svg.in: fills the
        graduations, numerals and red band from the spec, renders the SVG at 240x240
