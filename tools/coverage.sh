@@ -17,7 +17,7 @@ gcov_args=()
 gate=(--fail-under-line 100 --fail-under-branch 100)
 if [[ "$(uname -s)" == "Darwin" ]]; then
   gcc_version=""
-  for v in 15 14 13 12; do
+  for v in 25 24 23 22 21 20 19 18 17 16 15 14 13 12; do
     if command -v "g++-$v" >/dev/null; then gcc_version=$v; break; fi
   done
   if [[ -n "$gcc_version" ]]; then
