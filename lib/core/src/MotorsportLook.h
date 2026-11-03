@@ -4,6 +4,7 @@
 
 #include "Badge.h"
 #include "Color.h"
+#include "Font.h"
 #include "GaugeScale.h"
 #include "GaugeState.h"
 #include "IDrawSurface.h"
@@ -27,8 +28,17 @@ class MotorsportLook : public ILook {
   /// Pressure above which the rim pulses.
   static constexpr float kShiftPsi = 20.0f;
 
-  MotorsportLook() = default;
-  explicit MotorsportLook(Badge badge) : badge_(badge) {}
+  /// The typefaces it needs: a large bold (slanted) one for the number, a small one for
+  /// the scale labels and a slightly larger one for BOOST, PSI and the peak. All three
+  /// need capitals, digits, "-", "+", "." and a space.
+  struct Fonts {
+    Font number;
+    Font scale;
+    Font caption;
+  };
+
+  explicit MotorsportLook(Fonts fonts) : fonts_(fonts) {}
+  MotorsportLook(Fonts fonts, Badge badge) : fonts_(fonts), badge_(badge) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
@@ -47,6 +57,7 @@ class MotorsportLook : public ILook {
   void drawRim(IDrawSurface& c, const GaugeState& state) const;
   void drawReadout(IDrawSurface& c, const GaugeState& state) const;
 
+  Fonts fonts_;
   std::optional<Badge> badge_;
 };
 

@@ -29,6 +29,7 @@ class LgfxCanvas : public gauge::ICanvas {
   void drawText(int x, int y, const char* text, int scale, gauge::TextAlign align,
                 gauge::Color color) override;
   void drawImage(const gauge::ImageView& image, int x, int y) override;
+  void drawMask(const gauge::MaskView& mask, int x, int y, gauge::Color color) override;
   void saveBackground() override;
   bool restoreBackground() override;
   void discardBackground() override { hasDial_ = false; }

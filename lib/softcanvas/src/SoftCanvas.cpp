@@ -199,6 +199,29 @@ void SoftCanvas::drawImage(const ImageView& image, int x, int y) {
   }
 }
 
+void SoftCanvas::drawMask(const MaskView& mask, int x, int y, Color color) {
+  if (mask.alpha == nullptr) return;
+
+  for (int iy = 0; iy < mask.height; ++iy) {
+    for (int ix = 0; ix < mask.width; ++ix) {
+      const int px = x + ix;
+      const int py = y + iy;
+      if (px < 0 || py < 0 || px >= width_ || py >= height_) continue;  // clipped
+
+      const int alpha = mask.alpha[static_cast<size_t>(iy) * static_cast<size_t>(mask.width) +
+                                   static_cast<size_t>(ix)];
+      if (alpha == 0) continue;
+      for (int sy = 0; sy < k_; ++sy) {
+        for (int sx = 0; sx < k_; ++sx) {
+          const int hx = px * k_ + sx;
+          const int hy = py * k_ + sy;
+          hi_.set(hx, hy, alpha == 255 ? color : blend(hi_.get(hx, hy), color, alpha));
+        }
+      }
+    }
+  }
+}
+
 bool SoftCanvas::restoreBackground() {
   if (!background_) return false;
   hi_ = *background_;

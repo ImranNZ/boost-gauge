@@ -122,6 +122,43 @@ TEST_CASE("softcanvas: every glyph the gauge uses renders something") {
   }
 }
 
+TEST_CASE("drawMask: tints with the colour, using the mask as coverage") {
+  const uint8_t alpha[] = {255, 0, 128, 255};  // 2 x 2
+  const MaskView mask{2, 2, alpha};
+  SoftCanvas c(10, 10);
+  c.clear(Color{0, 0, 100});
+  c.drawMask(mask, 3, 4, Color{200, 0, 0});
+
+  CHECK(same(c.image().get(3, 4), Color{200, 0, 0}));    // fully covered
+  CHECK(same(c.image().get(4, 4), Color{0, 0, 100}));    // no coverage: untouched
+  CHECK(same(c.image().get(3, 5), blend(Color{0, 0, 100}, Color{200, 0, 0}, 128)));
+  CHECK(same(c.image().get(4, 5), Color{200, 0, 0}));
+}
+
+TEST_CASE("drawMask: is clipped to the canvas and ignores an empty mask") {
+  const uint8_t alpha[] = {255, 255, 255, 255};
+  const MaskView mask{2, 2, alpha};
+  SoftCanvas c(4, 4);
+  c.drawMask(mask, -1, -1, kWhite);  // only the bottom-right pixel lands, at (0, 0)
+  c.drawMask(mask, 3, 3, kWhite);    // only the top-left pixel lands, at (3, 3)
+  CHECK(countNonBlack(c.image()) == 2);
+  CHECK(same(c.image().get(0, 0), kWhite));
+  CHECK(same(c.image().get(3, 3), kWhite));
+
+  SoftCanvas empty(4, 4);
+  empty.drawMask(MaskView{2, 2, nullptr}, 0, 0, kWhite);
+  CHECK(countNonBlack(empty.image()) == 0);
+}
+
+TEST_CASE("drawMask: a supersampled canvas blends each covered pixel the same way") {
+  const uint8_t alpha[] = {255, 128};
+  const MaskView mask{2, 1, alpha};
+  SoftCanvas c(8, 8, 4);
+  c.drawMask(mask, 2, 3, kWhite);
+  CHECK(same(c.image().get(2, 3), kWhite));
+  CHECK(same(c.image().get(3, 3), blend(kBlack, kWhite, 128)));
+}
+
 TEST_CASE("drawImage: copies an opaque picture at an offset") {
   const uint16_t px[] = {0xF800, 0x07E0, 0x001F, 0xFFFF};  // red green / blue white
   const ImageView image{2, 2, px, nullptr};

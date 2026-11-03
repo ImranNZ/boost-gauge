@@ -34,7 +34,7 @@ TEST_CASE("minimal look: colour ramp is blue below zero, then teal, lime, amber,
 }
 
 TEST_CASE("minimal look: draws the track and scale once, then restores them") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
@@ -49,7 +49,7 @@ TEST_CASE("minimal look: draws the track and scale once, then restores them") {
 }
 
 TEST_CASE("minimal look: boost grows the arc clockwise from zero, in the ramp colour") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const SoftCanvas canvas = draw(look, 10.0f);
   const Color arc = MinimalLook::colorFor(10.0f);
 
@@ -59,7 +59,7 @@ TEST_CASE("minimal look: boost grows the arc clockwise from zero, in the ramp co
 }
 
 TEST_CASE("minimal look: vacuum grows the arc anticlockwise from zero, in blue") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const SoftCanvas canvas = draw(look, -8.0f);
 
   CHECK(same(pointOnNeedle(canvas, -4.0f, 100.0f), Color{74, 163, 255}));
@@ -68,59 +68,59 @@ TEST_CASE("minimal look: vacuum grows the arc anticlockwise from zero, in blue")
 }
 
 TEST_CASE("minimal look: a glow of the arc colour sits behind the arc") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const SoftCanvas canvas = draw(look, 10.0f);
   const Color glow = blend(MinimalLook::kBackground, MinimalLook::colorFor(10.0f), 26);
   CHECK(same(pointOnNeedle(canvas, 5.0f, 90.0f), glow));
 }
 
 TEST_CASE("minimal look: no arc while the pressure is essentially zero") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const SoftCanvas canvas = draw(look, 0.01f);
   CHECK(same(pointOnNeedle(canvas, 5.0f, 100.0f), MinimalLook::kTrack));
   CHECK(same(pointOnNeedle(canvas, -5.0f, 100.0f), MinimalLook::kTrack));
 }
 
 TEST_CASE("minimal look: peak dot only above zero and only while linked") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   CHECK(same(pointOnNeedle(draw(look, 2.0f, 15.0f), 15.0f, 100.0f), kWhite));
   CHECK_FALSE(same(pointOnNeedle(draw(look, 2.0f, 0.0f), 15.0f, 100.0f), kWhite));
   CHECK_FALSE(same(pointOnNeedle(draw(look, 2.0f, 15.0f, false), 15.0f, 100.0f), kWhite));
 }
 
 TEST_CASE("minimal look: readout and mode label follow the sign") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const Color vacuum{74, 163, 255};
   const Color boost = MinimalLook::colorFor(8.0f);
 
   const SoftCanvas inBoost = draw(look, 8.0f);
   CHECK(countColor(inBoost, boost, 80, 66, 160, 84) > 20);    // BOOST label
   CHECK(countColor(inBoost, vacuum, 80, 66, 160, 84) == 0);
-  CHECK(countColor(inBoost, kWhite, 40, 86, 200, 126) > 100);  // the big number
+  CHECK(countColor(inBoost, kWhite, 40, 100, 200, 140) > 100);  // the big number
 
   const SoftCanvas inVacuum = draw(look, -8.0f);
   CHECK(countColor(inVacuum, vacuum, 80, 66, 160, 84) > 20);   // VACUUM label
 }
 
 TEST_CASE("minimal look: peak text only with a peak") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const Color subtle{207, 213, 219};
-  CHECK(countColor(draw(look, 2.0f, 12.0f), subtle, 60, 190, 180, 215) > 20);
-  CHECK(countColor(draw(look, 2.0f, 0.0f), subtle, 60, 190, 180, 215) == 0);
-  CHECK(countColor(draw(look, 2.0f, 12.0f, false), subtle, 60, 190, 180, 215) == 0);
+  CHECK(countColor(draw(look, 2.0f, 12.0f), subtle, 60, 168, 180, 190) > 20);
+  CHECK(countColor(draw(look, 2.0f, 0.0f), subtle, 60, 168, 180, 190) == 0);
+  CHECK(countColor(draw(look, 2.0f, 12.0f, false), subtle, 60, 168, 180, 190) == 0);
 }
 
 TEST_CASE("minimal look: unlinked hides the arc and says NO LINK") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const SoftCanvas canvas = draw(look, 10.0f, 12.0f, false);
 
   CHECK(same(pointOnNeedle(canvas, 5.0f, 100.0f), MinimalLook::kTrack));
   CHECK(countColor(canvas, Color{255, 77, 77}, 80, 66, 160, 84) > 20);  // the banner
-  CHECK(countColor(canvas, kWhite, 40, 86, 200, 126) == 0);             // no live number
+  CHECK(countColor(canvas, kWhite, 40, 100, 200, 140) == 0);             // no live number
 }
 
 TEST_CASE("minimal look: fps label only for a positive value") {
-  MinimalLook look;
+  MinimalLook look(minimalFonts());
   const Color dim{138, 147, 157};
   CHECK(countColor(draw(look, 2.0f, 0.0f, true, 0), dim, 90, 220, 150, 236) == 0);
   CHECK(countColor(draw(look, 2.0f, 0.0f, true, 60), dim, 90, 220, 150, 236) > 0);
@@ -133,7 +133,7 @@ TEST_CASE("minimal look: optional badge is laid over the dial") {
   badge.image = {2, 2, px, alpha};
   badge.x = 20;
   badge.y = 30;
-  MinimalLook look(badge);
+  MinimalLook look(minimalFonts(), badge);
 
   SoftCanvas canvas(240, 240);
   drawFrame(look, canvas, GaugeState{});

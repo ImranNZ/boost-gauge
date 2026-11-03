@@ -1,0 +1,10 @@
+{
+  "_comment": "Fonts the code-drawn looks use. python tools/make_font.py turns each entry into src/looks/fonts/<name>.h (anti-aliased glyph tables, sized in pixels on the 240 px dial). Variable fonts take a weight (wght); skew leans the glyphs right by that many degrees.",
+  "fonts": [
+    {"name": "OutfitLight62", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 300, "size": 62, "chars": "0123456789-+."},
+    {"name": "OutfitMedium12", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 500, "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "SairaBold70", "file": "looks/motorsport/fonts/SairaCondensed-Bold.ttf", "size": 70, "skew": 8, "chars": "0123456789-+."},
+    {"name": "SairaSemiBold12", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "SairaSemiBold14", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 14, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
+  ]
+}

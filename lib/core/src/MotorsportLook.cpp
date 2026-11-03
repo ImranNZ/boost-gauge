@@ -25,16 +25,18 @@ constexpr Color kWhite{255, 255, 255};
 constexpr Color kHotText{255, 90, 77};
 constexpr Color kLabel{139, 147, 160};
 
-constexpr int kLabelRadius = 70;
-constexpr float kLabelPsi[] = {-15.0f, 0.0f, 10.0f, 20.0f, 25.0f};
+constexpr int kLabelRadius = 77;
+constexpr float kLabelPsi[] = {-15.0f, -10.0f, -5.0f, 0.0f, 5.0f, 10.0f, 15.0f, 20.0f, 25.0f};
 
-// Text rows (top edge, pixels). The badge goes above them (see MotorsportLookFactory.h).
-constexpr int kBoostY = 78;
-constexpr int kReadoutScale = 4;
-constexpr int kReadoutY = 96;
-constexpr int kUnitY = 130;
-constexpr int kPeakY = 196;
-constexpr int kFpsY = 218;
+// Text baselines (pixels from the top) and letter-spacing, as in the design.
+constexpr int kBoostBaseline = 82;
+constexpr int kBoostTracking = 5;
+constexpr int kReadoutCentreY = 118;
+constexpr int kUnitBaseline = 154;
+constexpr int kUnitTracking = 5;
+constexpr int kPeakBaseline = 174;
+constexpr int kPeakTracking = 2;
+constexpr int kFpsBaseline = 222;
 
 constexpr float kMinDrawnPsi = 0.05f;
 constexpr float kPulseMsPerRadian = 90.0f;
@@ -79,12 +81,13 @@ void MotorsportLook::drawDial(IDrawSurface& c) const {
     char label[8];
     std::snprintf(label, sizeof(label), "%d", static_cast<int>(std::lround(psi)));
     const float deg = scale.angleFor(psi);
-    // Scale-2 glyphs are 14 px tall; centre them vertically on the radius.
-    c.drawText(polarX(deg, kLabelRadius), polarY(deg, kLabelRadius) - 7, label, 2,
-               TextAlign::Center, kLabel);
+    // Centre the digits on the label radius: the baseline sits half a cap height lower.
+    fonts_.scale.draw(c, polarX(deg, kLabelRadius),
+                      polarY(deg, kLabelRadius) + fonts_.scale.ascent() / 2, label,
+                      TextAlign::Center, kLabel);
   }
-  c.drawText(kCx, kBoostY, "BOOST", 2, TextAlign::Center, kLabel);
-  c.drawText(kCx, kUnitY, "PSI", 2, TextAlign::Center, kLabel);
+  fonts_.caption.draw(c, kCx, kBoostBaseline, "BOOST", TextAlign::Center, kLabel, kBoostTracking);
+  fonts_.caption.draw(c, kCx, kUnitBaseline, "PSI", TextAlign::Center, kLabel, kUnitTracking);
 
   if (badge_) c.drawImage(badge_->image, badge_->x, badge_->y);
 }
@@ -133,23 +136,25 @@ void MotorsportLook::drawRim(IDrawSurface& c, const GaugeState& state) const {
 
 void MotorsportLook::drawReadout(IDrawSurface& c, const GaugeState& state) const {
   char text[16];
+  const int numberBaseline = kReadoutCentreY + fonts_.number.ascent() / 2;
   if (state.linked) {
     std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.psi));
-    c.drawText(kCx, kReadoutY, text, kReadoutScale, TextAlign::Center,
-               state.psi > kShiftPsi ? kHotText : kWhite);
+    fonts_.number.draw(c, kCx, numberBaseline, text, TextAlign::Center,
+                       state.psi > kShiftPsi ? kHotText : kWhite);
   } else {
-    c.drawText(kCx, kReadoutY, "--.-", kReadoutScale, TextAlign::Center, kLabel);
-    c.drawText(kCx, kBoostY, "NO LINK", 2, TextAlign::Center, kRed);
+    fonts_.number.draw(c, kCx, numberBaseline, "--.-", TextAlign::Center, kLabel);
+    fonts_.caption.draw(c, kCx, kBoostBaseline, "NO LINK", TextAlign::Center, kRed,
+                        kBoostTracking);
   }
 
   if (state.linked && state.peakPsi > kMinDrawnPsi) {
     std::snprintf(text, sizeof(text), "PEAK %.1f", static_cast<double>(state.peakPsi));
-    c.drawText(kCx, kPeakY, text, 2, TextAlign::Center, kAmber);
+    fonts_.caption.draw(c, kCx, kPeakBaseline, text, TextAlign::Center, kAmber, kPeakTracking);
   }
 
   if (state.fps > 0) {
     std::snprintf(text, sizeof(text), "%d FPS", state.fps);
-    c.drawText(kCx, kFpsY, text, 1, TextAlign::Center, kLabel);
+    fonts_.scale.draw(c, kCx, kFpsBaseline, text, TextAlign::Center, kLabel);
   }
 }
 

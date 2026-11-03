@@ -60,7 +60,7 @@ TEST_CASE("motorsport look: a pressure maps to its segment, clamped to the bar")
 }
 
 TEST_CASE("motorsport look: draws the dim bar, rim and labels once, then restores them") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
@@ -78,7 +78,7 @@ TEST_CASE("motorsport look: draws the dim bar, rim and labels once, then restore
 }
 
 TEST_CASE("motorsport look: lights segments up to the pressure, each in its zone colour") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   const SoftCanvas canvas = draw(look, 8.2f);
 
   CHECK(same(onSegment(canvas, 0), MotorsportLook::segmentColor(0)));  // vacuum blue
@@ -89,7 +89,7 @@ TEST_CASE("motorsport look: lights segments up to the pressure, each in its zone
 }
 
 TEST_CASE("motorsport look: at full scale every segment is lit") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   const SoftCanvas canvas = draw(look, 25.0f);
   for (int i : {0, 15, 25, 30, 39}) {
     CAPTURE(i);
@@ -98,7 +98,7 @@ TEST_CASE("motorsport look: at full scale every segment is lit") {
 }
 
 TEST_CASE("motorsport look: peak outlines its segment in white") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
 
   // Peak above the current pressure: an unlit segment, outlined, empty inside.
   const SoftCanvas above = draw(look, 2.0f, 17.3f);
@@ -116,7 +116,7 @@ TEST_CASE("motorsport look: peak outlines its segment in white") {
 }
 
 TEST_CASE("motorsport look: the rim pulses red past 20 psi and stays dim below") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   const uint32_t brightMs = 141;  // sin(ms / 90) is at its peak
   const uint32_t dimMs = 424;     // and at its trough
 
@@ -132,7 +132,7 @@ TEST_CASE("motorsport look: the rim pulses red past 20 psi and stays dim below")
 }
 
 TEST_CASE("motorsport look: the readout turns red-hot past 20 psi") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   const Color hot{255, 90, 77};
 
   const SoftCanvas calm = draw(look, 8.0f);
@@ -145,23 +145,23 @@ TEST_CASE("motorsport look: the readout turns red-hot past 20 psi") {
 }
 
 TEST_CASE("motorsport look: peak text only with a peak") {
-  MotorsportLook look;
-  CHECK(countColor(draw(look, 2.0f, 12.0f), kAmber, 60, 190, 180, 215) > 20);
-  CHECK(countColor(draw(look, 2.0f, 0.0f), kAmber, 60, 190, 180, 215) == 0);
-  CHECK(countColor(draw(look, 2.0f, 12.0f, false), kAmber, 60, 190, 180, 215) == 0);
+  MotorsportLook look(motorsportFonts());
+  CHECK(countColor(draw(look, 2.0f, 12.0f), kAmber, 60, 160, 180, 180) > 20);
+  CHECK(countColor(draw(look, 2.0f, 0.0f), kAmber, 60, 160, 180, 180) == 0);
+  CHECK(countColor(draw(look, 2.0f, 12.0f, false), kAmber, 60, 160, 180, 180) == 0);
 }
 
 TEST_CASE("motorsport look: unlinked lights nothing and says NO LINK") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   const SoftCanvas canvas = draw(look, 10.0f, 12.0f, false);
 
   CHECK(same(onSegment(canvas, 5), kOff));
-  CHECK(countColor(canvas, kRed, 80, 76, 160, 94) > 20);     // the banner
+  CHECK(countColor(canvas, kRed, 80, 68, 160, 86) > 20);     // the banner
   CHECK(countColor(canvas, kWhite, 50, 94, 190, 128) == 0);  // no live number
 }
 
 TEST_CASE("motorsport look: fps label only for a positive value") {
-  MotorsportLook look;
+  MotorsportLook look(motorsportFonts());
   CHECK(countColor(draw(look, 2.0f, 0.0f, true, 0), kLabel, 90, 216, 150, 232) == 0);
   CHECK(countColor(draw(look, 2.0f, 0.0f, true, 60), kLabel, 90, 216, 150, 232) > 0);
 }
@@ -173,7 +173,7 @@ TEST_CASE("motorsport look: optional badge is laid over the dial") {
   badge.image = {2, 2, px, alpha};
   badge.x = 20;
   badge.y = 30;
-  MotorsportLook look(badge);
+  MotorsportLook look(motorsportFonts(), badge);
 
   SoftCanvas canvas(240, 240);
   drawFrame(look, canvas, GaugeState{});

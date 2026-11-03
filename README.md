@@ -243,6 +243,8 @@ state each frame and it draws. Four exist today:
 | **Minimal** (`MinimalLook`) | No needle: a thin arc grows out from zero (blue for vacuum, a green-to-red heat ramp for boost) with a glow, around a big number. Drawn in code. |
 | **Motorsport** (`MotorsportLook`) | A 40-segment bar (one per psi) that lights up through blue, teal, lime, amber and red, a bold readout, and a rim that pulses red past 20 psi like a shift light. Drawn in code. |
 
+**Fonts.** Minimal and Motorsport draw their text with real typefaces (Outfit; Saira Condensed, both SIL OFL) instead of the board's 6x8 pixel font. `tools/fonts.json` lists each font, size, weight and characters; `python tools/make_font.py` renders them with FreeType into anti-aliased glyph tables in `src/looks/fonts/` (committed, never hand-edited). A look draws them through `Font::draw`, which uses the `IDrawSurface::drawMask` primitive, so the PC sim and the LCD agree. Add a font by adding an entry to `tools/fonts.json` and re-running the script (needs `pip install pillow`).
+
 Pick one for the firmware with `config::kLook` in `src/config.h` (`Look::Retro`, `Look::Classic`, `Look::Minimal` or `Look::Motorsport`). In the
 preview, use the **Look** menu to switch live (that is the switcher the board
 will get once it has an input method).

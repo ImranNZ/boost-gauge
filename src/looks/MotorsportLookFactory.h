@@ -7,6 +7,9 @@
 // artwork and is never committed.
 
 #include "MotorsportLook.h"
+#include "looks/fonts/SairaBold70.h"
+#include "looks/fonts/SairaSemiBold12.h"
+#include "looks/fonts/SairaSemiBold14.h"
 
 #if __has_include("looks/local/Badge.h")
 #include "looks/local/Badge.h"
@@ -15,15 +18,19 @@
 
 namespace looks {
 
+inline gauge::MotorsportLook::Fonts motorsportFonts() {
+  return {fonts::sairaBold70(), fonts::sairaSemiBold12(), fonts::sairaSemiBold14()};
+}
+
 inline gauge::MotorsportLook makeMotorsport() {
 #ifdef BOOST_GAUGE_MOTORSPORT_HAS_BADGE
   gauge::Badge overlay;
   overlay.image = {badge::kWidth, badge::kHeight, badge::kRgb565, badge::kAlpha};
   overlay.x = 120 - badge::kWidth / 2;  // centred above the BOOST label
-  overlay.y = 48 - badge::kHeight / 2;
-  return gauge::MotorsportLook(overlay);
+  overlay.y = 64 - badge::kHeight / 2;
+  return gauge::MotorsportLook(motorsportFonts(), overlay);
 #else
-  return gauge::MotorsportLook();
+  return gauge::MotorsportLook(motorsportFonts());
 #endif
 }
 

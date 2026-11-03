@@ -4,6 +4,7 @@
 
 #include "Badge.h"
 #include "Color.h"
+#include "Font.h"
 #include "GaugeScale.h"
 #include "GaugeState.h"
 #include "IDrawSurface.h"
@@ -19,8 +20,15 @@ class MinimalLook : public ILook {
   static constexpr Color kBackground{5, 7, 10};
   static constexpr Color kTrack{27, 33, 40};
 
-  MinimalLook() = default;
-  explicit MinimalLook(Badge badge) : badge_(badge) {}
+  /// The two typefaces it needs: a large light one for the number, and a small
+  /// medium-weight one for the labels (capitals, digits, "-" and ".").
+  struct Fonts {
+    Font number;
+    Font label;
+  };
+
+  explicit MinimalLook(Fonts fonts) : fonts_(fonts) {}
+  MinimalLook(Fonts fonts, Badge badge) : fonts_(fonts), badge_(badge) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
@@ -33,6 +41,7 @@ class MinimalLook : public ILook {
   void drawPeak(IDrawSurface& c, float peakPsi) const;
   void drawReadout(IDrawSurface& c, const GaugeState& state) const;
 
+  Fonts fonts_;
   GaugeScale scale_;
   std::optional<Badge> badge_;
 };

@@ -155,6 +155,24 @@ void LgfxCanvas::drawImage(const gauge::ImageView& image, int x, int y) {
   }
 }
 
+void LgfxCanvas::drawMask(const gauge::MaskView& mask, int x, int y, gauge::Color color) {
+  if (mask.alpha == nullptr) return;
+
+  for (int iy = 0; iy < mask.height; ++iy) {
+    for (int ix = 0; ix < mask.width; ++ix) {
+      const int px = x + ix;
+      const int py = y + iy;
+      if (px < 0 || py < 0 || px >= frame_.width() || py >= frame_.height()) continue;
+
+      const int alpha = mask.alpha[static_cast<size_t>(iy) * static_cast<size_t>(mask.width) +
+                                   static_cast<size_t>(ix)];
+      if (alpha == 0) continue;
+      frame_.drawPixel(px, py,
+                       rgb(alpha == 255 ? color : gauge::blend(readColor(px, py), color, alpha)));
+    }
+  }
+}
+
 void LgfxCanvas::saveBackground() {
   if (!dialAllocated_) return;
   frame_.pushSprite(&dial_, 0, 0);

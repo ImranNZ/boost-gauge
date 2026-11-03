@@ -43,18 +43,18 @@ struct Glow {
 };
 constexpr Glow kGlow[] = {{88, 112, 26}, {92, 108, 56}};
 
-constexpr int kLabelRadius = 74;
+constexpr int kLabelRadius = 82;
 constexpr float kLabelPsi[] = {-15.0f, 0.0f, 10.0f, 20.0f, 25.0f};
 
-// Text rows (top edge, pixels) and sizes.
-// From the top: badge (see MinimalLookFactory.h), mode label, number, unit. The number
-// stops above the "20" label so a five-character "-11.0" cannot run into it.
-constexpr int kModeY = 68;
-constexpr int kReadoutScale = 5;
-constexpr int kReadoutY = 88;
-constexpr int kUnitY = 132;
-constexpr int kPeakY = 196;
-constexpr int kFpsY = 224;
+// Text baselines (pixels from the top) and letter-spacing, as in the design.
+constexpr int kModeBaseline = 82;
+constexpr int kModeTracking = 4;
+constexpr int kReadoutCentreY = 120;
+constexpr int kUnitBaseline = 158;
+constexpr int kUnitTracking = 4;
+constexpr int kPeakBaseline = 182;
+constexpr int kPeakTracking = 2;
+constexpr int kFpsBaseline = 224;
 
 constexpr float kMinDrawnPsi = 0.05f;  // closer to zero than this, draw no arc
 
@@ -94,9 +94,10 @@ void MinimalLook::drawDial(IDrawSurface& c) const {
     char label[8];
     std::snprintf(label, sizeof(label), "%d", static_cast<int>(std::lround(psi)));
     const float deg = scale_.angleFor(psi);
-    // Scale-2 glyphs are 14 px tall; centre them vertically on the radius.
-    c.drawText(polarX(deg, kLabelRadius), polarY(deg, kLabelRadius) - 7, label, 2,
-               TextAlign::Center, kLabel);
+    // Centre the digits on the label radius: the baseline sits half a cap height lower.
+    fonts_.label.draw(c, polarX(deg, kLabelRadius),
+                      polarY(deg, kLabelRadius) + fonts_.label.ascent() / 2, label,
+                      TextAlign::Center, kLabel);
   }
 
   if (badge_) c.drawImage(badge_->image, badge_->x, badge_->y);
@@ -137,25 +138,27 @@ void MinimalLook::drawPeak(IDrawSurface& c, float peakPsi) const {
 
 void MinimalLook::drawReadout(IDrawSurface& c, const GaugeState& state) const {
   char text[16];
+  const int numberBaseline = kReadoutCentreY + fonts_.number.ascent() / 2;
   if (state.linked) {
-    c.drawText(kCx, kModeY, state.psi >= 0.0f ? "BOOST" : "VACUUM", 2, TextAlign::Center,
-               colorFor(state.psi));
+    fonts_.label.draw(c, kCx, kModeBaseline, state.psi >= 0.0f ? "BOOST" : "VACUUM",
+                      TextAlign::Center, colorFor(state.psi), kModeTracking);
     std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.psi));
-    c.drawText(kCx, kReadoutY, text, kReadoutScale, TextAlign::Center, kText);
+    fonts_.number.draw(c, kCx, numberBaseline, text, TextAlign::Center, kText);
   } else {
-    c.drawText(kCx, kModeY, "NO LINK", 2, TextAlign::Center, kNoLink);
-    c.drawText(kCx, kReadoutY, "--.-", kReadoutScale, TextAlign::Center, kLabel);
+    fonts_.label.draw(c, kCx, kModeBaseline, "NO LINK", TextAlign::Center, kNoLink,
+                      kModeTracking);
+    fonts_.number.draw(c, kCx, numberBaseline, "--.-", TextAlign::Center, kLabel);
   }
-  c.drawText(kCx, kUnitY, "PSI", 2, TextAlign::Center, kLabel);
+  fonts_.label.draw(c, kCx, kUnitBaseline, "PSI", TextAlign::Center, kLabel, kUnitTracking);
 
   if (state.linked && state.peakPsi > kMinDrawnPsi) {
     std::snprintf(text, sizeof(text), "PEAK %.1f", static_cast<double>(state.peakPsi));
-    c.drawText(kCx, kPeakY, text, 2, TextAlign::Center, kSubtle);
+    fonts_.label.draw(c, kCx, kPeakBaseline, text, TextAlign::Center, kSubtle, kPeakTracking);
   }
 
   if (state.fps > 0) {
     std::snprintf(text, sizeof(text), "%d FPS", state.fps);
-    c.drawText(kCx, kFpsY, text, 1, TextAlign::Center, kLabel);
+    fonts_.label.draw(c, kCx, kFpsBaseline, text, TextAlign::Center, kLabel);
   }
 }
 

@@ -61,7 +61,8 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   `drawDial` (static, cached by `FrameRenderer`) and `drawDynamic` (every frame). `GaugeApp`
   keeps a reference to the look, so it must outlive the app; passing a temporary is a
   compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
-* Generated files: `src/looks/RetroDial.h` and `RetroSpec.h` come from
+* Generated files: `src/looks/fonts/*.h` come from `tools/fonts.json` via `python tools/make_font.py`
+  (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/RetroDial.h` and `RetroSpec.h` come from
   `looks/retro/spec.json` + `dial.svg.in` via `python tools/make_look.py retro`; never
   hand-edit them, regenerate. `RetroDial.h` is big (~470 KB): avoid reading it.
 * **Brand artwork is never committed.** The Cooper S badge lives in `assets/` and
@@ -93,7 +94,9 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   stalls). The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
-* `SoftCanvas` fonts only cover `0-9 - + . space A B C E F I K L M N O P S T U V`. Using
+* Looks that need nice type take a `Font` (`lib/core/src/Font.h`) and draw with `Font::draw`; only
+  the built-in bitmap font below is limited to its glyph list.
+* The built-in `SoftCanvas` font only covers `0-9 - + . space A B C E F I K L M N O P S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the
   glyph to `kGlyphs` in `SoftCanvas.cpp` first.
 * The device font (`fonts::Font0`) and `SoftCanvas` share the 6x8 cell, so sim

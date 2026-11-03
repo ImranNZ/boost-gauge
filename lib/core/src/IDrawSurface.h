@@ -37,6 +37,9 @@ class IDrawSurface {
   /// Copy a picture with its top-left at (x, y), clipped to the surface. Pixels
   /// with partial alpha blend over what is already there.
   virtual void drawImage(const ImageView& image, int x, int y) = 0;
+  /// Lay `color` over the surface with the mask's coverage as its alpha, top-left at
+  /// (x, y), clipped. Anti-aliased text (see Font) is drawn this way.
+  virtual void drawMask(const MaskView& mask, int x, int y, Color color) = 0;
 };
 
 }  // namespace gauge

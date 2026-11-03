@@ -16,6 +16,14 @@ struct ImageView {
   const uint8_t* alpha = nullptr;  // optional
 };
 
+/// A read-only 8-bit coverage bitmap (255 = fully covered), one byte per pixel,
+/// row-major. Drawn tinted with a colour: this is how anti-aliased text is drawn.
+struct MaskView {
+  int width = 0;
+  int height = 0;
+  const uint8_t* alpha = nullptr;
+};
+
 /// Expand RGB565 to 8 bits per channel, replicating high bits so white stays white.
 inline Color rgb565ToColor(uint16_t value) {
   const uint8_t r5 = (value >> 11) & 0x1F;

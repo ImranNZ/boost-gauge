@@ -21,6 +21,7 @@
 #include "FakeCanBus.h"
 #include "FakeEcu.h"
 #include "FakeElm327Stream.h"
+#include "Font.h"
 #include "FpsCounter.h"
 #include "FrameRenderer.h"
 #include "GaugeApp.h"
@@ -118,6 +119,45 @@ class FlatDial {
  private:
   std::vector<uint16_t> pixels_;
 };
+
+/// A font whose glyphs are solid boxes (a space is empty), so a test can find text by
+/// where it is rather than what it looks like. `height` is also the ascent: glyphs sit
+/// on the baseline.
+class SolidFont {
+ public:
+  SolidFont(int glyphWidth, int glyphHeight, int advance) : height_(glyphHeight) {
+    const std::string chars = "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (char ch : chars) {
+      const bool space = ch == ' ';
+      const int w = space ? 0 : glyphWidth;
+      const int h = space ? 0 : glyphHeight;
+      glyphs_.push_back(Glyph{ch, static_cast<uint8_t>(w), static_cast<uint8_t>(h), 1,
+                              static_cast<int8_t>(-h), static_cast<uint8_t>(advance),
+                              static_cast<uint32_t>(alpha_.size())});
+      alpha_.insert(alpha_.end(), static_cast<size_t>(w * h), uint8_t{255});
+    }
+  }
+  SolidFont(const SolidFont&) = delete;
+  SolidFont& operator=(const SolidFont&) = delete;
+
+  Font font() const {
+    return Font(glyphs_.data(), static_cast<int>(glyphs_.size()), alpha_.data(), height_);
+  }
+
+ private:
+  int height_;
+  std::vector<Glyph> glyphs_;
+  std::vector<uint8_t> alpha_;
+};
+
+inline const SolidFont kNumberFont(20, 30, 24);
+inline const SolidFont kCaptionFont(7, 11, 9);
+inline const SolidFont kLabelFont(6, 10, 8);
+
+inline MinimalLook::Fonts minimalFonts() { return {kNumberFont.font(), kLabelFont.font()}; }
+inline MotorsportLook::Fonts motorsportFonts() {
+  return {kNumberFont.font(), kLabelFont.font(), kCaptionFont.font()};
+}
 
 constexpr uint16_t kCream = (30 << 11) | (57 << 5) | 25;  // ~ (247, 229, 205)
 
