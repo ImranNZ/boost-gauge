@@ -263,7 +263,7 @@ TEST_CASE("softcanvas: text alignment, scale and unknown glyphs") {
 }
 
 TEST_CASE("softcanvas: every glyph the gauge uses renders something") {
-  const std::string used = "0123456789-+.ABEIKLNOPST";
+  const std::string used = "0123456789-+.ABEFIKLNOPST";
   for (char ch : used) {
     SoftCanvas c(10, 10);
     const char text[2] = {ch, 0};

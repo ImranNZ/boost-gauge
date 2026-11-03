@@ -1,4 +1,4 @@
-#include "EcuCommands.h"
+#include "SimCommands.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -10,6 +10,8 @@ namespace gauge {
 namespace {
 
 constexpr float kMaxSensorKpa = 255.0f;  // PID 0B is one byte
+constexpr float kMinRateHz = 1.0f;
+constexpr float kMaxRateHz = 100.0f;
 
 std::string_view trim(std::string_view s) {
   const char* whitespace = " \t\r\n";
@@ -34,6 +36,14 @@ bool parseFloat(std::string_view text, float& out) {
   return true;
 }
 
+/// If `line` is "<verb> <number>", return true and the number.
+bool parseVerbNumber(std::string_view line, std::string_view verb, float& number) {
+  if (line.substr(0, verb.size()) != verb) return false;
+  line.remove_prefix(verb.size());
+  if (line.empty() || line.front() != ' ') return false;
+  return parseFloat(trim(line), number);
+}
+
 }  // namespace
 
 bool applyEcuCommand(FakeEcu& ecu, std::string_view line) {
@@ -48,15 +58,21 @@ bool applyEcuCommand(FakeEcu& ecu, std::string_view line) {
     return true;
   }
 
-  constexpr std::string_view kBoost = "boost ";
-  if (line.substr(0, kBoost.size()) == kBoost) {
-    float psi = 0.0f;
-    if (!parseFloat(trim(line.substr(kBoost.size())), psi)) return false;
+  float psi = 0.0f;
+  if (parseVerbNumber(line, "boost", psi)) {
     const float kpa = ecu.baroKpa() + psiToKpa(psi);
     ecu.holdMapKpa(std::clamp(kpa, 0.0f, kMaxSensorKpa));
     return true;
   }
   return false;
+}
+
+bool applyRateCommand(ThrottledSource& source, std::string_view line) {
+  float hz = 0.0f;
+  if (!parseVerbNumber(trim(line), "rate", hz)) return false;
+  if (hz < kMinRateHz || hz > kMaxRateHz) return false;
+  source.setIntervalMs(static_cast<uint32_t>(1000.0f / hz + 0.5f));
+  return true;
 }
 
 }  // namespace gauge

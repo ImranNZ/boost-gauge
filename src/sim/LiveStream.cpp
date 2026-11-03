@@ -6,9 +6,9 @@
 #include <string>
 #include <thread>
 
-#include "EcuCommands.h"
 #include "Modes.h"
 #include "Rig.h"
+#include "SimCommands.h"
 
 #ifdef _WIN32
 #include <fcntl.h>
@@ -62,7 +62,7 @@ int runLive() {
   for (;;) {
     std::string line;
     while (commands.pop(line)) {
-      if (!gauge::applyEcuCommand(rig.ecu, line)) {
+      if (!gauge::applyEcuCommand(rig.ecu, line) && !gauge::applyRateCommand(rig.link, line)) {
         std::fprintf(stderr, "ignored command: %s\n", line.c_str());
       }
     }

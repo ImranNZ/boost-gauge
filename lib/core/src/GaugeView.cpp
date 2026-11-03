@@ -140,6 +140,11 @@ void GaugeView::drawReadout(ICanvas& c, int cx, const GaugeState& state) const {
     std::snprintf(text, sizeof(text), "PK %.1f", static_cast<double>(state.peakPsi));
     c.drawText(cx, 204, text, 2, TextAlign::Center, kDim);
   }
+
+  if (state.fps > 0) {
+    std::snprintf(text, sizeof(text), "%d FPS", state.fps);
+    c.drawText(cx, 224, text, 1, TextAlign::Center, kDim);
+  }
 }
 
 }  // namespace gauge

@@ -6,7 +6,9 @@
 #include "FakeEcu.h"
 #include "GaugeApp.h"
 #include "ManualClock.h"
+#include "ReadingSource.h"
 #include "SoftCanvas.h"
+#include "ThrottledSource.h"
 
 namespace sim {
 
@@ -22,8 +24,11 @@ struct Rig {
   gauge::FakeCanBus bus{ecu};
   gauge::CanObdClient obdClient{bus, clock};
   gauge::BoostSampler sampler{obdClient, clock};
+  gauge::PollingSource polling{sampler};
+  // Readings arrive at the link's rate, not the display's: ~CAN speed by default.
+  gauge::ThrottledSource link{polling, clock, 40};
   gauge::SoftCanvas canvas{kScreen, kScreen, kSupersample};
-  gauge::GaugeApp app{sampler, canvas, clock};
+  gauge::GaugeApp app{link, canvas, clock};
 
   /// Run one app iteration and advance simulated time by one frame.
   void step() {

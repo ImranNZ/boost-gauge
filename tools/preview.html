@@ -34,6 +34,7 @@
   #screen.native { width: 240px; }
   select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
   .check { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+  .hint { color: var(--muted); font-size: 13px; flex: 1 1 200px; }
   .controls { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 16px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   button {
@@ -70,6 +71,17 @@
       <label class="check"><input type="checkbox" id="crisp"> Show raw pixels</label>
     </div>
     <div class="row">
+      <label for="rate">Data rate</label>
+      <select id="rate">
+        <option value="30">30 Hz (every frame)</option>
+        <option value="25" selected>25 Hz (CAN)</option>
+        <option value="10">10 Hz (ELM327 dongle)</option>
+        <option value="5">5 Hz (slow dongle)</option>
+        <option value="2">2 Hz (struggling)</option>
+      </select>
+      <span class="hint">The needle eases between readings, so it stays smooth at any rate.</span>
+    </div>
+    <div class="row">
       <label for="boost">Hold boost</label>
       <input id="boost" type="range" min="-15" max="25" step="0.5" value="0">
       <output id="boostOut" for="boost">0.0 psi</output>
@@ -90,6 +102,7 @@
   document.getElementById('drive').onclick = () => send('drive');
   document.getElementById('offline').onclick = () => send('offline');
   document.getElementById('online').onclick = () => send('online');
+  document.getElementById('rate').onchange = (event) => send('rate ' + event.target.value);
   slider.oninput = () => {
     sliderOut.textContent = Number(slider.value).toFixed(1) + ' psi';
     send('boost ' + slider.value);

@@ -52,11 +52,7 @@ TEST_CASE("no needle and no link banner when unlinked") {
   CHECK_FALSE(sameColor(pixelOnNeedle(canvas, view, 10.0f, 60), GaugeView::kNeedle));
 }
 
-TEST_CASE("ema converges and peak hold releases") {
-  Ema ema(0.5f);
-  CHECK(ema.update(10.0f) == doctest::Approx(10.0f));
-  CHECK(ema.update(0.0f) == doctest::Approx(5.0f));
-
+TEST_CASE("peak hold releases after the hold time") {
   PeakHold peak(1000);
   CHECK(peak.update(5.0f, 0) == doctest::Approx(5.0f));
   CHECK(peak.update(3.0f, 500) == doctest::Approx(5.0f));
@@ -70,9 +66,10 @@ TEST_CASE("app goes NO LINK when the ECU disappears") {
   FakeCanBus bus(ecu);
   CanObdClient client(bus, clock);
   BoostSampler sampler(client, clock);
+  PollingSource source(sampler);
   SoftCanvas canvas(240, 240);
   GaugeView view;
-  GaugeApp app(sampler, canvas, clock);
+  GaugeApp app(source, canvas, clock);
 
   app.tick();
   CHECK(canvas.framesPresented() == 1);

@@ -1,28 +1,36 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 
 namespace gauge {
 
-/// Exponential moving average. alpha in (0,1]; higher = more responsive.
-class Ema {
+/// Moves a displayed value toward a target with an exponential approach, so a
+/// needle glides between sparse readings. Frame-rate independent: the value
+/// closes ~63% of the gap every `timeConstantMs`, however often it is called.
+/// A time constant of 0 (or less) disables easing: the value snaps.
+class Easer {
  public:
-  explicit Ema(float alpha) : alpha_(alpha) {}
+  explicit Easer(float timeConstantMs) : tau_(timeConstantMs) {}
 
-  float update(float x) {
-    if (!primed_) {
-      value_ = x;
+  float update(float target, uint32_t nowMs) {
+    if (!primed_ || tau_ <= 0.0f) {
+      value_ = target;  // first value, or easing off: no lag
       primed_ = true;
     } else {
-      value_ += alpha_ * (x - value_);
+      const float dt = static_cast<float>(nowMs - lastMs_);
+      value_ += (target - value_) * (1.0f - std::exp(-dt / tau_));
     }
+    lastMs_ = nowMs;
     return value_;
   }
+
   float value() const { return value_; }
 
  private:
-  float alpha_;
+  float tau_;
   float value_ = 0.0f;
+  uint32_t lastMs_ = 0;
   bool primed_ = false;
 };
 

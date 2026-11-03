@@ -2,30 +2,42 @@
 
 namespace gauge {
 
-GaugeApp::GaugeApp(BoostSampler& sampler, ICanvas& canvas, IClock& clock)
-    : GaugeApp(sampler, canvas, clock, GaugeView{}, Options{}) {}
+GaugeApp::GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock)
+    : GaugeApp(source, canvas, clock, GaugeView{}, Options{}) {}
 
-GaugeApp::GaugeApp(BoostSampler& sampler, ICanvas& canvas, IClock& clock, GaugeView view,
+GaugeApp::GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, GaugeView view,
                    Options options)
-    : sampler_(sampler),
+    : source_(source),
       canvas_(canvas),
       clock_(clock),
       view_(view),
       options_(options),
-      smoother_(options.smoothingAlpha),
+      easer_(options.smoothingMs),
       peak_(options.peakHoldMs) {}
 
 void GaugeApp::tick() {
-  const BoostReading reading = sampler_.sample();
+  const Sample sample = source_.latest();
   const uint32_t now = clock_.nowMs();
 
-  if (reading.valid) {
-    state_.psi = smoother_.update(reading.psi);
+  // A repeated sample is not news: the source may be slower than the display.
+  if (sample.seq != lastSeq_) {
+    lastSeq_ = sample.seq;
+    if (sample.reading.valid) {
+      target_ = sample.reading.psi;
+      lastValidMs_ = now;
+      everValid_ = true;
+    }
+  }
+
+  // Ease every frame, not every sample, so the needle moves smoothly between them.
+  if (everValid_) {
+    state_.psi = easer_.update(target_, now);
     state_.peakPsi = peak_.update(state_.psi, now);
-    lastValidMs_ = now;
-    everValid_ = true;
   }
   state_.linked = everValid_ && (now - lastValidMs_) < options_.staleAfterMs;
+
+  fps_.frame(now);
+  state_.fps = options_.showFps ? static_cast<int>(fps_.fps() + 0.5f) : 0;
 
   view_.draw(canvas_, state_);
   canvas_.present();

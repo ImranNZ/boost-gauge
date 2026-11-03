@@ -13,6 +13,14 @@ constexpr int kLcdCs = 9;
 constexpr int kLcdRst = 12;
 constexpr int kLcdBacklight = 40;
 constexpr int kLcdSize = 240;
+// SPI write clock. Waveshare quotes up to 80 MHz, which roughly doubles the
+// frame-rate ceiling (a full frame is ~11 ms at 80 MHz, ~23 ms at 40 MHz). If the
+// screen shows noise or tearing, drop this to 40000000.
+constexpr int kLcdSpiHz = 80000000;
+
+// --- Diagnostics -------------------------------------------------------------
+// Show the measured frames-per-second in the bottom corner of the dial.
+constexpr bool kShowFps = true;
 
 // --- CAN (TRANSPORT_CAN): SN65HVD230 transceiver on two spare header pins --
 // VERIFY against the header silkscreen of your board before wiring; these two

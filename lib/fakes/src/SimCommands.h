@@ -3,6 +3,7 @@
 #include <string_view>
 
 #include "FakeEcu.h"
+#include "ThrottledSource.h"
 
 namespace gauge {
 
@@ -14,5 +15,10 @@ namespace gauge {
 ///   offline        ECU stops answering
 ///   online         ECU answers again
 bool applyEcuCommand(FakeEcu& ecu, std::string_view line);
+
+/// Apply a data-rate command to a throttled source:
+///
+///   rate <hz>      deliver fresh readings this often (1..100)
+bool applyRateCommand(ThrottledSource& source, std::string_view line);
 
 }  // namespace gauge

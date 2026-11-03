@@ -61,6 +61,8 @@ page has controls to drive the mock:
 * **Drive cycle**: the scripted 20 s loop (idle vacuum, full-boost pull, lift-off, cruise)
 * **Hold boost** slider: pin the ECU at any pressure from -15 to +25 psi
 * **Drop link / Restore link**: see the NO LINK state and the sampler reconnecting
+* **Data rate**: how often fresh readings arrive (30 / 25 / 10 / 5 / 2 Hz), to see how
+  the needle behaves with a fast CAN link versus a slow dongle
 
 The **View** menu switches between fit-to-page, 1:1 (240 px) and **real size**
 (the actual 32.5 mm display, which is how pixelated it will really look); "Show
@@ -138,10 +140,12 @@ IClock  IByteStream  ICanBus  IObdClient  ICanvas        <- the seams
 
 `Elm327Client` turns any `IByteStream` (BLE, WiFi, fake) into an `IObdClient`;
 `CanObdClient` does the same for any `ICanBus`. `BoostSampler` computes boost
-and handles reconnects; `GaugeApp` runs sample -> smooth -> draw. `main.cpp` is
-the only place that names concrete classes. If you know .NET or TypeScript:
-interfaces are abstract classes, DI is constructor injection, and doctest is
-your xUnit/Jest.
+and handles reconnects. On the device a `SamplerTask` (core 0) calls
+`SamplerLoop::step()` forever and publishes into a lock-free `ReadingMailbox`;
+`GaugeApp` (core 1, in `loop()`) takes the newest reading from that mailbox
+(`IReadingSource`), eases the needle toward it and draws. `main.cpp` is the only
+place that names concrete classes. If you know .NET or TypeScript: interfaces are
+abstract classes, DI is constructor injection, and doctest is your xUnit/Jest.
 
 ## Rendering and frame rate
 
@@ -153,10 +157,20 @@ your xUnit/Jest.
   the cache lives in PSRAM). Each frame only draws the needle and readout. If
   the cache is unavailable the view just redraws the dial every frame.
 * Text still uses the built-in 5x7 bitmap font. Smooth fonts are the next step.
-* Frame rate is limited by the SPI transfer (about 23 ms per full frame at 40 MHz),
-  not by drawing. Planned: 80 MHz SPI, a sampler task so a slow dongle cannot
-  stall the screen, needle easing so motion is smooth at any data rate, and an
-  fps counter for first flash. None of it can be measured until the board arrives.
+* **The screen never waits on the car.** Sampling runs on its own task and the
+  render loop just reads the latest value from the mailbox, so a slow dongle or a
+  dropped link cannot lower the frame rate or freeze the display.
+* **Needle easing.** The displayed value glides toward the newest reading every
+  frame (`Easer`, time constant `GaugeApp::Options::smoothingMs`, 80 ms), so motion
+  is smooth even when readings arrive at only 5-25 Hz. It is frame-rate independent.
+  Try the preview's **Data rate** control.
+* **SPI at 80 MHz** (`kLcdSpiHz` in `src/config.h`): a full frame is about 11 ms
+  versus 23 ms at 40 MHz. If the screen shows noise or tearing, drop it to 40 MHz.
+* **fps counter** (`kShowFps`): the measured frame rate is drawn in the bottom
+  corner of the dial. Use it at first flash to see the real figure.
+
+None of the frame-rate numbers are measured on hardware yet; they come from the
+SPI maths and the PC preview.
 
 ## Common tasks
 
@@ -172,7 +186,7 @@ to answer it, test it).
 **Change the look**: edit `GaugeView.cpp`, run `python tools/preview.py`, and
 watch it update (stop and re-run after each edit; it rebuilds the sim).
 
-**Add a mock control**: add a command in `lib/fakes/src/EcuCommands.cpp` (with a
+**Add a mock control**: add a command in `lib/fakes/src/SimCommands.cpp` (with a
 test), then a button in `tools/preview.html` that sends it.
 
 ## Troubleshooting
@@ -195,9 +209,8 @@ These can only be confirmed with the board and car:
 
 ## Known MVP limits
 
-* Sampling and drawing share one loop, so a slow dongle lowers the frame rate
-  and a reconnect attempt briefly freezes the screen. Next step: a reader task
-  plus a latest-value mailbox.
-* PID `0B` has 1 kPa resolution (about 0.15 psi steps); `Ema` smooths it.
+* PID `0B` has 1 kPa resolution (about 0.15 psi steps); needle easing smooths it.
+* The sampler task and the display are untested together on real hardware
+  (task stack size, core pinning, and BLE/WiFi behaviour on core 0 are unverified).
 * No Boost C++ libraries: too heavy for the target. The code is C++17 standard
   library only, with no heap use in the sampling path.

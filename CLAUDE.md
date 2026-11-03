@@ -45,6 +45,14 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
+* Threading model: the sampler (`SamplerLoop`, in `SamplerTask` on core 0) is the only
+  thing that touches the OBD client/bus/stream. The render loop (`GaugeApp`, core 1)
+  only reads the `ReadingMailbox`. Never call the sampler or a transport from the render
+  path, and never block in `GaugeApp::tick`. The mailbox is a single lock-free
+  32-bit word (15-bit seq, valid bit, psi in hundredths); keep it that way.
+* `GaugeApp` takes an `IReadingSource`. Tests and the sim use `PollingSource` (a
+  synchronous source) or `ThrottledSource` (a link-rate limiter); the firmware uses the mailbox.
+
 * `ICanvas` contract: shapes are anti-aliased (no `fillTriangle`; a needle is
   `drawWedge` with float coordinates), and static artwork is cached via
   `saveBackground()` / `restoreBackground()`, which returns false when nothing is

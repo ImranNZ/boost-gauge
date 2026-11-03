@@ -6,7 +6,7 @@
 
 The sim (`program --live`) streams raw 240x240 RGB frames on stdout; this script
 turns each into a PNG and serves the newest one to preview.html, and forwards
-button/slider commands to the sim's stdin (see lib/fakes/src/EcuCommands.h).
+button/slider commands to the sim's stdin (see lib/fakes/src/SimCommands.h).
 """
 import argparse
 import os
@@ -137,6 +137,12 @@ def make_handler(frames: Frames, proc):
                 self.send_header(key, value)
             self.end_headers()
             self.wfile.write(body)
+
+        def handle(self):
+            try:
+                super().handle()
+            except ConnectionError:
+                pass  # the browser tab closed or reloaded mid-request; not an error
 
         def do_GET(self):
             url = urlparse(self.path)

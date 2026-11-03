@@ -1,12 +1,20 @@
 // Composition root: the only place that knows which concrete classes are used.
 // Everything else depends on interfaces from lib/core.
+//
+// Two threads: a sampler task talks to the car and publishes into a mailbox;
+// loop() (the render side) reads the latest reading and draws. They share only
+// the mailbox, so a slow link cannot slow the display.
 
 #include <Arduino.h>
 
 #include "BoostSampler.h"
 #include "GaugeApp.h"
+#include "ReadingMailbox.h"
+#include "SamplerLoop.h"
+#include "config.h"
 #include "device/ArduinoClock.h"
 #include "device/LgfxCanvas.h"
+#include "device/SamplerTask.h"
 
 #if defined(TRANSPORT_CAN)
 #include "CanObdClient.h"
@@ -45,8 +53,18 @@ gauge::FakeCanBus bus(ecu);
 gauge::CanObdClient obdClient(bus, clock);
 #endif
 
+// Producer side (sampler task).
 gauge::BoostSampler sampler(obdClient, clock);
-gauge::GaugeApp app(sampler, canvas, clock);
+gauge::ReadingMailbox mailbox;
+gauge::SamplerLoop samplerLoop(sampler, mailbox);
+device::SamplerTask samplerTask(samplerLoop);
+
+// Consumer side (loop()).
+gauge::GaugeApp app(mailbox, canvas, clock, gauge::GaugeView{}, [] {
+  gauge::GaugeApp::Options options;
+  options.showFps = config::kShowFps;
+  return options;
+}());
 
 }  // namespace
 
@@ -56,6 +74,7 @@ void setup() {
     Serial.println("display: frame buffer allocation failed");
     for (;;) delay(1000);
   }
+  samplerTask.start();
 }
 
 void loop() { app.tick(); }

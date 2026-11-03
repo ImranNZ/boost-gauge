@@ -15,7 +15,7 @@ namespace gauge {
 /// which keeps unit tests simple.
 ///
 /// Font matches the device's built-in 6x8 font, but only covers:
-/// 0-9 - + . space A B E I K L N O P S T
+/// 0-9 - + . space A B E F I K L N O P S T
 class SoftCanvas : public ICanvas {
  public:
   SoftCanvas(int width, int height, int supersample = 1);

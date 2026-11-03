@@ -483,20 +483,14 @@ TEST_CASE("peak hold: rises, ties, expires") {
   CHECK(peak.value() == doctest::Approx(1.0f));
 }
 
-TEST_CASE("ema: value accessor and alpha=1 tracks input") {
-  Ema ema(1.0f);
-  ema.update(3.0f);
-  ema.update(7.0f);
-  CHECK(ema.value() == doctest::Approx(7.0f));
-}
-
 TEST_CASE("app: never-connected shows NO LINK and still presents frames") {
   ManualClock clock;
   StubObdClient client;
   client.beginResult = false;
   BoostSampler sampler(client, clock);
+  PollingSource source(sampler);
   SoftCanvas canvas(240, 240);
-  GaugeApp app(sampler, canvas, clock);
+  GaugeApp app(source, canvas, clock);
 
   for (int i = 0; i < 3; ++i) {
     clock.advance(33);
@@ -511,13 +505,14 @@ TEST_CASE("app: custom view and options are honoured") {
   client.map = {true, 1, 160};
   client.baro = {true, 1, 100};
   BoostSampler sampler(client, clock);
+  PollingSource source(sampler);
   SoftCanvas canvas(240, 240);
   GaugeConfig config;
   config.maxPsi = 30.0f;
   GaugeApp::Options options;
-  options.smoothingAlpha = 1.0f;
+  options.smoothingMs = 0.0f;
   options.staleAfterMs = 10;
-  GaugeApp app(sampler, canvas, clock, GaugeView(config), options);
+  GaugeApp app(source, canvas, clock, GaugeView(config), options);
 
   app.tick();
   client.map = {false, 0, 0};
