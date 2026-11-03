@@ -25,8 +25,9 @@ constexpr int kTickOuter = 108;
 constexpr int kMajorInner = 96;
 constexpr int kMinorInner = 101;
 constexpr int kLabelRadius = 82;
-constexpr int kNeedleLength = 94;
-constexpr int kNeedleHalfWidth = 5;
+constexpr float kNeedleLength = 94.0f;
+constexpr float kNeedleBaseRadius = 5.0f;
+constexpr float kNeedleTipRadius = 0.6f;
 
 int polarX(int cx, float deg, int r) {
   return cx + static_cast<int>(std::lround(std::cos(deg * kDegToRad) * r));
@@ -47,9 +48,11 @@ void GaugeView::draw(ICanvas& c, const GaugeState& state) const {
   const int cx = c.width() / 2;
   const int cy = c.height() / 2;
 
-  c.clear(kBackground);
-  drawZones(c, cx, cy);
-  drawScale(c, cx, cy);
+  // The dial never changes: draw it once, then just restore it each frame.
+  if (!c.restoreBackground()) {
+    drawDial(c, cx, cy);
+    c.saveBackground();
+  }
   if (state.linked) {
     if (state.peakPsi > 0.05f) drawPeakMarker(c, cx, cy, state.peakPsi);
     drawNeedle(c, cx, cy, state.psi);
@@ -57,6 +60,12 @@ void GaugeView::draw(ICanvas& c, const GaugeState& state) const {
   c.fillCircle(cx, cy, 10, kHub);
   c.fillCircle(cx, cy, 4, kBackground);
   drawReadout(c, cx, state);
+}
+
+void GaugeView::drawDial(ICanvas& c, int cx, int cy) const {
+  c.clear(kBackground);
+  drawZones(c, cx, cy);
+  drawScale(c, cx, cy);
 }
 
 void GaugeView::drawZones(ICanvas& c, int cx, int cy) const {
@@ -106,14 +115,12 @@ void GaugeView::drawPeakMarker(ICanvas& c, int cx, int cy, float peakPsi) const 
 }
 
 void GaugeView::drawNeedle(ICanvas& c, int cx, int cy, float psi) const {
-  const float deg = angleFor(psi);
-  const int tipX = polarX(cx, deg, kNeedleLength);
-  const int tipY = polarY(cy, deg, kNeedleLength);
-  const int ax = polarX(cx, deg + 90.0f, kNeedleHalfWidth);
-  const int ay = polarY(cy, deg + 90.0f, kNeedleHalfWidth);
-  const int bx = polarX(cx, deg - 90.0f, kNeedleHalfWidth);
-  const int by = polarY(cy, deg - 90.0f, kNeedleHalfWidth);
-  c.fillTriangle(tipX, tipY, ax, ay, bx, by, kNeedle);
+  // Float coordinates (no rounding) so the needle glides instead of stepping.
+  const float rad = angleFor(psi) * kDegToRad;
+  const float tipX = static_cast<float>(cx) + std::cos(rad) * kNeedleLength;
+  const float tipY = static_cast<float>(cy) + std::sin(rad) * kNeedleLength;
+  c.drawWedge(static_cast<float>(cx), static_cast<float>(cy), tipX, tipY, kNeedleBaseRadius,
+              kNeedleTipRadius, kNeedle);
 }
 
 void GaugeView::drawReadout(ICanvas& c, int cx, const GaugeState& state) const {

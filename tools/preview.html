@@ -28,8 +28,12 @@
   #screen {
     width: min(86vw, 420px); height: auto; aspect-ratio: 1; border-radius: 50%; background: #000;
     box-shadow: 0 0 0 10px #23272c, 0 0 0 12px var(--line), 0 18px 50px rgba(0,0,0,.45);
-    image-rendering: pixelated;
   }
+  #screen.crisp { image-rendering: pixelated; }
+  #screen.real { width: 32.5mm; box-shadow: 0 0 0 2mm #23272c, 0 0 0 2.3mm var(--line); }
+  #screen.native { width: 240px; }
+  select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .check { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
   .controls { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 16px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   button {
@@ -57,6 +61,15 @@
       <button id="online">Restore link</button>
     </div>
     <div class="row">
+      <label for="size">View</label>
+      <select id="size">
+        <option value="fit">Fit to page</option>
+        <option value="native">1:1 (240 px)</option>
+        <option value="real">Real size (32.5 mm display)</option>
+      </select>
+      <label class="check"><input type="checkbox" id="crisp"> Show raw pixels</label>
+    </div>
+    <div class="row">
       <label for="boost">Hold boost</label>
       <input id="boost" type="range" min="-15" max="25" step="0.5" value="0">
       <output id="boostOut" for="boost">0.0 psi</output>
@@ -81,6 +94,24 @@
     sliderOut.textContent = Number(slider.value).toFixed(1) + ' psi';
     send('boost ' + slider.value);
   };
+
+  // View options: remembered across reloads, but the page works without storage.
+  const sizeSelect = document.getElementById('size');
+  const crispBox = document.getElementById('crisp');
+  const saved = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
+  const save = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+
+  function applyView() {
+    img.classList.remove('native', 'real');
+    if (sizeSelect.value !== 'fit') img.classList.add(sizeSelect.value);
+    img.classList.toggle('crisp', crispBox.checked);
+    save('preview.size', sizeSelect.value);
+    save('preview.crisp', crispBox.checked ? '1' : '0');
+  }
+  sizeSelect.value = saved('preview.size', 'fit');
+  crispBox.checked = saved('preview.crisp', '0') === '1';
+  sizeSelect.onchange = crispBox.onchange = applyView;
+  applyView();
 
   let seq = 0, frames = 0, last = performance.now();
 

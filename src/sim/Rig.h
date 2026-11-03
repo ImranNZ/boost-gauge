@@ -15,13 +15,14 @@ namespace sim {
 struct Rig {
   static constexpr int kFrameMs = 33;  // ~30 fps of simulated time
   static constexpr int kScreen = 240;
+  static constexpr int kSupersample = 4;  // anti-aliasing: draw 4x, box-filter down
 
   gauge::ManualClock clock;
   gauge::FakeEcu ecu{clock};
   gauge::FakeCanBus bus{ecu};
   gauge::CanObdClient obdClient{bus, clock};
   gauge::BoostSampler sampler{obdClient, clock};
-  gauge::SoftCanvas canvas{kScreen, kScreen};
+  gauge::SoftCanvas canvas{kScreen, kScreen, kSupersample};
   gauge::GaugeApp app{sampler, canvas, clock};
 
   /// Run one app iteration and advance simulated time by one frame.

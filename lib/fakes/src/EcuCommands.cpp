@@ -1,7 +1,8 @@
 #include "EcuCommands.h"
 
 #include <algorithm>
-#include <charconv>
+#include <cstdlib>
+#include <cstring>
 
 #include "Units.h"
 
@@ -18,9 +19,19 @@ std::string_view trim(std::string_view s) {
   return s.substr(first, last - first + 1);
 }
 
+// strtof rather than std::from_chars: the ESP32 toolchain's libstdc++ lacks the
+// floating-point overload of from_chars.
 bool parseFloat(std::string_view text, float& out) {
-  const auto result = std::from_chars(text.data(), text.data() + text.size(), out);
-  return result.ec == std::errc() && result.ptr == text.data() + text.size();
+  char buffer[32];
+  if (text.empty() || text.size() >= sizeof(buffer)) return false;
+  std::memcpy(buffer, text.data(), text.size());
+  buffer[text.size()] = '\0';
+
+  char* end = nullptr;
+  const float value = std::strtof(buffer, &end);
+  if (end != buffer + text.size()) return false;  // not fully numeric
+  out = value;
+  return true;
 }
 
 }  // namespace

@@ -215,18 +215,6 @@ TEST_CASE("softcanvas: arc quadrants, negative start and wrap-around") {
   CHECK_FALSE(same(c.image().get(60, 40), kWhite));
 }
 
-TEST_CASE("softcanvas: triangle fills regardless of winding") {
-  SoftCanvas a(40, 40);
-  a.fillTriangle(10, 10, 30, 10, 10, 30, kWhite);
-  CHECK(same(a.image().get(14, 14), kWhite));
-  CHECK_FALSE(same(a.image().get(28, 28), kWhite));
-
-  SoftCanvas b(40, 40);
-  b.fillTriangle(10, 10, 10, 30, 30, 10, kWhite);  // opposite winding
-  CHECK(same(b.image().get(14, 14), kWhite));
-  CHECK(countNonBlack(a.image()) == countNonBlack(b.image()));
-}
-
 TEST_CASE("softcanvas: lines, thickness clamp and zero length") {
   SoftCanvas c(40, 40);
   c.drawLine(5, 20, 35, 20, 1, kWhite);

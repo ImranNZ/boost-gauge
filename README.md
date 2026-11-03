@@ -62,8 +62,14 @@ page has controls to drive the mock:
 * **Hold boost** slider: pin the ECU at any pressure from -15 to +25 psi
 * **Drop link / Restore link**: see the NO LINK state and the sampler reconnecting
 
+The **View** menu switches between fit-to-page, 1:1 (240 px) and **real size**
+(the actual 32.5 mm display, which is how pixelated it will really look); "Show
+raw pixels" turns off the browser's smooth scaling.
+
 Options: `--port 9000`, `--no-browser`, `--no-build` (reuse the last build).
 Press Ctrl+C to stop. Needs only Python 3 and the tools from step 1.
+
+Stop the preview before rebuilding the sim (Windows locks `program.exe` while it runs).
 
 For still images instead, `pio run -e sim -t exec` writes `out/sheet.png` (8
 frames of the drive) and `out/no_link.png`.
@@ -136,6 +142,21 @@ and handles reconnects; `GaugeApp` runs sample -> smooth -> draw. `main.cpp` is
 the only place that names concrete classes. If you know .NET or TypeScript:
 interfaces are abstract classes, DI is constructor injection, and doctest is
 your xUnit/Jest.
+
+## Rendering and frame rate
+
+* The panel is a fixed 240x240. Shapes are anti-aliased: the PC sim draws at 4x
+  and averages down; on the device LovyanGFX does smooth lines/circles and
+  `ArcCoverage` blends the dial arcs.
+* The **dial** (zones, ticks, labels) never changes, so `GaugeView` draws it once
+  and the canvas caches it (`saveBackground` / `restoreBackground`; on the device
+  the cache lives in PSRAM). Each frame only draws the needle and readout. If
+  the cache is unavailable the view just redraws the dial every frame.
+* Text still uses the built-in 5x7 bitmap font. Smooth fonts are the next step.
+* Frame rate is limited by the SPI transfer (about 23 ms per full frame at 40 MHz),
+  not by drawing. Planned: 80 MHz SPI, a sampler task so a slow dongle cannot
+  stall the screen, needle easing so motion is smooth at any data rate, and an
+  fps counter for first flash. None of it can be measured until the board arrives.
 
 ## Common tasks
 

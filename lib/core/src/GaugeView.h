@@ -37,6 +37,7 @@ class GaugeView {
   float angleFor(float psi) const;
 
  private:
+  void drawDial(ICanvas& c, int cx, int cy) const;  // the static artwork, cached
   void drawZones(ICanvas& c, int cx, int cy) const;
   void drawScale(ICanvas& c, int cx, int cy) const;
   void drawPeakMarker(ICanvas& c, int cx, int cy, float peakPsi) const;

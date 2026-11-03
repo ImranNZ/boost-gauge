@@ -45,6 +45,16 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
+* `ICanvas` contract: shapes are anti-aliased (no `fillTriangle`; a needle is
+  `drawWedge` with float coordinates), and static artwork is cached via
+  `saveBackground()` / `restoreBackground()`, which returns false when nothing is
+  saved. Always handle the false case by redrawing (see `GaugeView::draw`).
+* `SoftCanvas(w, h, supersample)`: default 1 is hard-edged and pixel-exact (use it
+  in unit tests); the sim `Rig` uses 4. `image()` returns the downsampled frame.
+* Code in `lib/fakes` is also compiled into the device-demo firmware, so it must
+  build with the ESP32 toolchain (old libstdc++: no floating-point `std::from_chars`).
+  Run `pio run -e device-demo` after touching it.
+
 * Live preview: use `127.0.0.1`, not `localhost` (Windows tries IPv6 first and
   stalls). The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.

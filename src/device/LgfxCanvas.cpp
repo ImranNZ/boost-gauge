@@ -1,5 +1,6 @@
 #include "device/LgfxCanvas.h"
 
+#include "ArcCoverage.h"
 #include "config.h"
 
 namespace device {
@@ -58,14 +59,23 @@ class LgfxCanvas::Panel : public lgfx::LGFX_Device {
   lgfx::Light_PWM light_;
 };
 
-LgfxCanvas::LgfxCanvas() : panel_(new Panel()), frame_(panel_) {}
+LgfxCanvas::LgfxCanvas() : panel_(new Panel()), frame_(panel_), dial_(panel_) {}
 
 bool LgfxCanvas::begin() {
   panel_->init();
   panel_->setBrightness(200);
+
   frame_.setColorDepth(16);
   frame_.setPsram(false);  // internal RAM: faster to push than PSRAM
-  return frame_.createSprite(config::kLcdSize, config::kLcdSize) != nullptr;
+  if (frame_.createSprite(config::kLcdSize, config::kLcdSize) == nullptr) return false;
+
+  // Optional: without it restoreBackground() reports false and the view simply
+  // redraws the dial every frame (slower, but correct).
+  dial_.setColorDepth(16);
+  dial_.setPsram(true);
+  hasDial_ = false;
+  dialAllocated_ = dial_.createSprite(config::kLcdSize, config::kLcdSize) != nullptr;
+  return true;
 }
 
 int LgfxCanvas::width() const { return config::kLcdSize; }
@@ -74,27 +84,60 @@ int LgfxCanvas::height() const { return config::kLcdSize; }
 void LgfxCanvas::clear(gauge::Color color) { frame_.fillScreen(rgb(color)); }
 
 void LgfxCanvas::fillCircle(int cx, int cy, int radius, gauge::Color color) {
-  frame_.fillCircle(cx, cy, radius, rgb(color));
+  frame_.fillSmoothCircle(cx, cy, radius, rgb(color));
 }
 
+// LovyanGFX has no anti-aliased arc, so blend the ring edges ourselves using the
+// shared coverage maths. Only used for the dial, which is drawn once and cached.
 void LgfxCanvas::fillArc(int cx, int cy, int innerRadius, int outerRadius, float startDeg,
                          float endDeg, gauge::Color color) {
-  // LovyanGFX arcs: 0 deg = 3 o'clock, clockwise; same convention as ICanvas.
-  frame_.fillArc(cx, cy, innerRadius, outerRadius, startDeg, endDeg, rgb(color));
+  const float start = gauge::wrapDegrees(startDeg);
+  const float sweep = gauge::wrapDegrees(endDeg - startDeg);
+  const int reach = outerRadius + 1;
+
+  for (int y = cy - reach; y <= cy + reach; ++y) {
+    for (int x = cx - reach; x <= cx + reach; ++x) {
+      const float coverage = gauge::arcCoverage(static_cast<float>(x - cx),
+                                                static_cast<float>(y - cy),
+                                                static_cast<float>(innerRadius),
+                                                static_cast<float>(outerRadius), start, sweep);
+      if (coverage <= 0.0f) continue;
+      if (coverage >= 1.0f) {
+        frame_.drawPixel(x, y, rgb(color));
+        continue;
+      }
+      const auto under = frame_.readPixelRGB(x, y);
+      const auto mix = [coverage](uint8_t over, uint8_t base) {
+        return static_cast<uint8_t>(base + (over - base) * coverage);
+      };
+      frame_.drawPixel(x, y,
+                       frame_.color565(mix(color.r, under.R8()), mix(color.g, under.G8()),
+                                       mix(color.b, under.B8())));
+    }
+  }
 }
 
-void LgfxCanvas::fillTriangle(int x0, int y0, int x1, int y1, int x2, int y2,
-                              gauge::Color color) {
-  frame_.fillTriangle(x0, y0, x1, y1, x2, y2, rgb(color));
+void LgfxCanvas::drawWedge(float x0, float y0, float x1, float y1, float r0, float r1,
+                           gauge::Color color) {
+  frame_.drawWedgeLine(x0, y0, x1, y1, r0, r1, rgb(color));
 }
 
 void LgfxCanvas::drawLine(int x0, int y0, int x1, int y1, int thickness,
                           gauge::Color color) {
-  if (thickness <= 1) {
-    frame_.drawLine(x0, y0, x1, y1, rgb(color));
-  } else {
-    frame_.drawWideLine(x0, y0, x1, y1, static_cast<float>(thickness) * 0.5f, rgb(color));
-  }
+  const float radius = static_cast<float>(thickness < 1 ? 1 : thickness) * 0.5f;
+  frame_.drawWideLine(x0, y0, x1, y1, radius, rgb(color));
+}
+
+void LgfxCanvas::saveBackground() {
+  if (!dialAllocated_) return;
+  frame_.pushSprite(&dial_, 0, 0);
+  hasDial_ = true;
+}
+
+bool LgfxCanvas::restoreBackground() {
+  if (!hasDial_) return false;
+  dial_.pushSprite(&frame_, 0, 0);
+  return true;
 }
 
 void LgfxCanvas::drawText(int x, int y, const char* text, int scale, gauge::TextAlign align,

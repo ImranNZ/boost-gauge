@@ -48,4 +48,5 @@ TEST_CASE("ecu commands: rejects unknown and malformed input") {
   CHECK_FALSE(applyEcuCommand(ecu, "boost"));       // missing argument
   CHECK_FALSE(applyEcuCommand(ecu, "boost abc"));
   CHECK_FALSE(applyEcuCommand(ecu, "boost 5 psi"));  // trailing junk
+  CHECK_FALSE(applyEcuCommand(ecu, "boost 1234567890123456789012345678901234567890"));  // too long
 }
