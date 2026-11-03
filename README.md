@@ -15,15 +15,43 @@ protocols and the rendering all run on your PC against a simulated ECU.
 
 You need a C++ compiler (for PC builds), PlatformIO, and gcovr (coverage).
 
-**Windows**
+Markdown has no tabs, so pick your system below.
+
+<details open>
+<summary><b>Windows</b></summary>
 
 ```bash
 winget install BrechtSanders.WinLibs.POSIX.UCRT
 pip install platformio gcovr
 ```
 
-**macOS / Linux**: install `gcc`/`g++` (Xcode CLT or `build-essential`), then
-`pip install platformio gcovr`.
+Run the `tools/*.sh` scripts from Git Bash.
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+xcode-select --install          # Apple clang (g++) and git
+python3 -m pip install platformio gcovr
+```
+
+Or with Homebrew: `brew install platformio gcovr`. If `pio` is not found after a
+pip install, add `~/Library/Python/3.x/bin` to your `PATH`. On macOS use `python3`
+wherever this README says `python` (for example `python3 tools/preview.py`).
+`tools/coverage.sh` picks the right Python and switches gcovr to `llvm-cov` on its own.
+</details>
+
+<details>
+<summary><b>Linux</b></summary>
+
+```bash
+sudo apt install build-essential python3-pip   # or your distro's equivalent
+python3 -m pip install platformio gcovr
+```
+
+Use `python3` where this README says `python`.
+</details>
 
 Open a new terminal afterwards so the tools are on your `PATH`
 (`g++ --version` and `pio --version` should both work).
@@ -71,7 +99,7 @@ raw pixels" turns off the browser's smooth scaling.
 Options: `--port 9000`, `--no-browser`, `--no-build` (reuse the last build).
 Press Ctrl+C to stop. Needs only Python 3 and the tools from step 1.
 
-Stop the preview before rebuilding the sim (Windows locks `program.exe` while it runs).
+Stop the preview before rebuilding the sim (Windows locks `program.exe` while it runs; macOS and Linux do not).
 
 For still images instead, `pio run -e sim -t exec` writes `out/sheet.png` (8
 frames of the drive) and `out/no_link.png`.

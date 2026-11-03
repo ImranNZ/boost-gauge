@@ -24,11 +24,20 @@ common=(-r . --object-directory .pio/build/coverage
         # A lone "}" is where the compiler hangs destructor/unwind cleanup; no logic.
         --exclude-lines-by-pattern '^\s*}\s*$')
 
-python -m gcovr "${common[@]}" --txt --print-summary \
+# python3 on macOS/Linux; plain python on Windows (python3 there can be a Store stub).
+if python3 -c "" >/dev/null 2>&1; then py=python3; else py=python; fi
+
+# Apple's compiler is clang, whose gcov data needs llvm-cov rather than gcc's gcov.
+gcovr_extra=()
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  gcovr_extra=(--gcov-executable "xcrun llvm-cov gcov")
+fi
+
+"$py" -m gcovr ${gcovr_extra[@]+"${gcovr_extra[@]}"} "${common[@]}" --txt --print-summary \
   --fail-under-line 100 --fail-under-branch 100
 
 if [[ "${1:-}" == "html" ]]; then
   mkdir -p out/coverage
-  python -m gcovr "${common[@]}" --html-details out/coverage/index.html
+  "$py" -m gcovr ${gcovr_extra[@]+"${gcovr_extra[@]}"} "${common[@]}" --html-details out/coverage/index.html
   echo "report: out/coverage/index.html"
 fi
