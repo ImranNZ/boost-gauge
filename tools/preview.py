@@ -78,10 +78,28 @@ def pio_command():
     return [sys.executable, "-m", "platformio"]
 
 
+def env_with_compiler():
+    """Environment for the build, with a C++ compiler on PATH if we can find one.
+
+    A terminal opened before `winget install BrechtSanders.WinLibs...` does not
+    have the new PATH, so look in WinGet's package folder as a fallback.
+    """
+    env = os.environ.copy()
+    if shutil.which("g++", path=env.get("PATH", "")):
+        return env
+    packages = Path(env.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+    for bin_dir in packages.glob("BrechtSanders.WinLibs*/mingw64/bin"):
+        if (bin_dir / "g++.exe").exists():
+            env["PATH"] = str(bin_dir) + os.pathsep + env.get("PATH", "")
+            print(f"g++ not on PATH; using {bin_dir}", flush=True)
+            break
+    return env
+
+
 def build_sim():
     print("building sim ...", flush=True)
     result = subprocess.run(pio_command() + ["run", "-e", "sim"], cwd=ROOT,
-                            capture_output=True, text=True)
+                            capture_output=True, text=True, env=env_with_compiler())
     if result.returncode != 0:
         print(result.stdout + result.stderr, file=sys.stderr)
         sys.exit("sim build failed (see above). Is PlatformIO installed and is a C++ "
@@ -160,8 +178,10 @@ def main():
 
     if not args.no_build:
         build_sim()
+    # The sim links MinGW's runtime DLLs dynamically, so it needs the compiler's
+    # bin directory on PATH to start, same as the build does.
     proc = subprocess.Popen([str(sim_path()), "--live"], stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE)
+                            stdout=subprocess.PIPE, env=env_with_compiler())
 
     frames = Frames()
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(frames, proc))

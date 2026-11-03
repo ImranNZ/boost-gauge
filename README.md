@@ -179,7 +179,7 @@ test), then a button in `tools/preview.html` that sends it.
 
 | Symptom | Likely cause |
 | ------- | ------------ |
-| `g++` / `pio` not found | New terminal needed after install, or `PATH` missing the WinLibs / Python `Scripts` folder |
+| `g++` / `pio` not found | New terminal needed after install, or `PATH` missing the WinLibs / Python `Scripts` folder. `tools/preview.py` finds the WinGet copy of `g++` itself, but `pio test` and `tools/coverage.sh` need it on `PATH` |
 | `pio test` says `SKIPPED, 0 test cases` | Known PlatformIO doctest reporting quirk; run `tools/coverage.sh` |
 | Screen colours inverted | Toggle `cfg.invert` in `src/device/LgfxCanvas.cpp` |
 | Gauge shows NO LINK in the car | Check wiring/pairing; confirm the car answers PID `0B` (try `010B` in an ELM327 terminal app) |
