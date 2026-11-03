@@ -42,7 +42,10 @@ pip install platformio gcovr
 ```
 
 Inside the venv, `python` and `python3` both work. `tools/coverage.sh` picks the right
-Python and switches gcovr to `llvm-cov` on its own. (Alternative: `brew install pipx`,
+Python on its own. For the strict 100% coverage gate also run `brew install gcc`: Apple's `g++` is really
+clang, which counts coverage differently, so without Homebrew GCC the script still runs
+but only reports (the tests themselves are unaffected).
+(Alternative: `brew install pipx`,
 then `pipx install platformio` and `pipx install gcovr`; `tools/coverage.sh` finds
 `gcovr` on `PATH`.)
 </details>
