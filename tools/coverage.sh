@@ -21,8 +21,14 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     if command -v "g++-$v" >/dev/null; then gcc_version=$v; break; fi
   done
   if [[ -n "$gcc_version" ]]; then
-    export GAUGE_GCC_VERSION=$gcc_version   # read by tools/link_coverage.py
-    gcov_args=(--gcov-executable "gcov-$gcc_version")
+    # PlatformIO calls plain gcc/g++, so shadow them with Homebrew's GCC via a temp bin dir.
+    shim=$(mktemp -d)
+    trap 'rm -rf "$shim"' EXIT
+    for tool in gcc g++ cpp gcov; do
+      ln -s "$(command -v "$tool-$gcc_version")" "$shim/$tool"
+    done
+    export PATH="$shim:$PATH"
+    gcov_args=(--gcov-executable "gcov")
   else
     gcov_args=(--gcov-executable "xcrun llvm-cov gcov")
     gate=()
