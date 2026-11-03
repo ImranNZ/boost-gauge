@@ -25,6 +25,8 @@ void GaugeModel::update(const Sample& sample, uint32_t nowMs) {
   }
   state_.linked = everValid_ && (nowMs - lastValidMs_) < options_.staleAfterMs;
 
+  state_.timeMs = nowMs;
+
   fps_.frame(nowMs);
   state_.fps = options_.showFps ? static_cast<int>(fps_.fps() + 0.5f) : 0;
 }

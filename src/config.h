@@ -21,7 +21,8 @@ constexpr int kLcdSpiHz = 80000000;
 // --- Look ---------------------------------------------------------------------
 // Retro: cream 60s dial with a red needle. Classic: dark dial with zones, drawn in code.
 // Minimal: no needle, a thin glowing arc around a big number.
-enum class Look { Retro, Classic, Minimal };
+// Motorsport: segmented bar that lights up, with a shift-light rim past 20 psi.
+enum class Look { Retro, Classic, Minimal, Motorsport };
 constexpr Look kLook = Look::Retro;
 
 // --- Diagnostics -------------------------------------------------------------

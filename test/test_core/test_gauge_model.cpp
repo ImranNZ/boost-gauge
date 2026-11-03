@@ -24,6 +24,12 @@ TEST_CASE("gauge model: starts unlinked with nothing to show") {
   CHECK(model.state().fps == 0);
 }
 
+TEST_CASE("gauge model: the state carries the frame time") {
+  GaugeModel model(snapping());
+  model.update(sample(1.0f, 1), 1234);
+  CHECK(model.state().timeMs == 1234);
+}
+
 TEST_CASE("gauge model: a valid reading links it and sets the value") {
   GaugeModel model(snapping());
   model.update(sample(8.0f, 1), 0);

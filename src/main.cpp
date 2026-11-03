@@ -11,6 +11,7 @@
 #include "ClassicLook.h"
 #include "GaugeApp.h"
 #include "MinimalLook.h"
+#include "MotorsportLook.h"
 #include "ReadingMailbox.h"
 #include "SamplerLoop.h"
 #include "config.h"
@@ -19,6 +20,7 @@
 #include "device/SamplerTask.h"
 #include "device/Transport.h"
 #include "looks/MinimalLookFactory.h"
+#include "looks/MotorsportLookFactory.h"
 #include "looks/RetroLookFactory.h"
 
 namespace {
@@ -37,6 +39,7 @@ device::SamplerTask samplerTask(samplerLoop);
 gauge::ClassicLook classicLook;
 gauge::RetroLook retroLook = looks::makeRetro();
 gauge::MinimalLook minimalLook = looks::makeMinimal();
+gauge::MotorsportLook motorsportLook = looks::makeMotorsport();
 
 const gauge::ILook& chosenLook() {
   switch (config::kLook) {
@@ -44,6 +47,8 @@ const gauge::ILook& chosenLook() {
       return classicLook;
     case config::Look::Minimal:
       return minimalLook;
+    case config::Look::Motorsport:
+      return motorsportLook;
     case config::Look::Retro:
     default:
       return retroLook;

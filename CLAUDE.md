@@ -57,7 +57,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
-* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`, `MinimalLook`) with two methods,
+* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`, `MinimalLook`, `MotorsportLook`) with two methods,
   `drawDial` (static, cached by `FrameRenderer`) and `drawDynamic` (every frame). `GaugeApp`
   keeps a reference to the look, so it must outlive the app; passing a temporary is a
   compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
@@ -100,6 +100,9 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   layouts match the screen. Keep text metrics in sync if either changes.
 * `ManualClock::delayMs` advances time. That is what makes timeout loops
   terminate in tests; do not make a fake clock's `delayMs` a no-op.
+* `fillArc` wraps its sweep at 360, so a full circle (end - start = 360) draws nothing: draw two
+  half arcs, as the Motorsport rim does.
+* Looks that animate (the Motorsport shift light) read `GaugeState::timeMs`; a look has no clock.
 * Angles: 0 = 3 o'clock, clockwise (screen space), everywhere.
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
