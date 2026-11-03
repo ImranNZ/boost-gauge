@@ -234,14 +234,15 @@ SPI maths and the PC preview.
 ## Looks
 
 A **look** (`ILook`) is a complete visual style. The app hands it the current
-state each frame and it draws. Two exist today:
+state each frame and it draws. Three exist today:
 
 | Look | What it is |
 | ---- | ---------- |
 | **Classic** (`ClassicLook`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
 | **Retro 60s** (`RetroLook`) | Cream dial that is a pre-rendered picture, slim red needle with a counterweight tail, a peak flag and a chrome-ringed hub. Purely analog. |
+| **Minimal** (`MinimalLook`) | No needle: a thin arc grows out from zero (blue for vacuum, a green-to-red heat ramp for boost) with a glow, around a big number. Drawn in code. |
 
-Pick one for the firmware with `config::kUseRetroLook` in `src/config.h`. In the
+Pick one for the firmware with `config::kLook` in `src/config.h` (`Look::Retro`, `Look::Classic` or `Look::Minimal`). In the
 preview, use the **Look** menu to switch live (that is the switcher the board
 will get once it has an input method).
 

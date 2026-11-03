@@ -20,7 +20,7 @@ Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 5. **Tests** (`test/test_core/`): decode formula incl. edge values, supported and
    unsupported paths, and throttling. Then `tools/coverage.sh` must stay at 100%.
 6. **Display** (if shown): change `GaugeState` / the look(s). Only use glyphs in
-   `SoftCanvas` (`0-9 - + . space A B E F I K L N O P S T`) or add new ones to
+   `SoftCanvas` (`0-9 - + . space A B C E F I K L M N O P S T U V`) or add new ones to
    `kGlyphs`. Run `pio run -e sim -t exec` and inspect `out/sheet.png`.
 7. Confirm the F56 actually answers that PID before trusting it (an ELM327 app,
    `01xx`); say it is unverified until then.

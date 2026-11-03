@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Badge.h"
 #include "Color.h"
 #include "GaugeScale.h"
 #include "IDrawSurface.h"
@@ -24,13 +25,6 @@ class RetroLook : public ILook {
     float flagInnerRadius;   // the peak flag sits between these two radii
     float flagOuterRadius;
     int hubRadius;
-  };
-
-  /// An optional picture laid over the dial, e.g. a model badge. Top-left in pixels.
-  struct Badge {
-    ImageView image;
-    int x = 0;
-    int y = 0;
   };
 
   static constexpr Color kNeedleRed{200, 40, 30};

@@ -9,10 +9,12 @@
 #include "GaugeApp.h"
 #include "ClassicLook.h"
 #include "ManualClock.h"
+#include "MinimalLook.h"
 #include "ReadingSource.h"
 #include "RetroLook.h"
 #include "SoftCanvas.h"
 #include "ThrottledSource.h"
+#include "looks/MinimalLookFactory.h"
 #include "looks/RetroLookFactory.h"
 
 namespace sim {
@@ -36,6 +38,7 @@ struct Rig {
 
   gauge::ClassicLook classic;
   gauge::RetroLook retro{looks::makeRetro()};
+  gauge::MinimalLook minimal{looks::makeMinimal()};
   gauge::GaugeApp app{link, canvas, clock, retro, gauge::GaugeApp::Options{}};
 
   /// Switch the look by name. False if there is no such look.
@@ -44,6 +47,8 @@ struct Rig {
       app.setLook(retro);
     } else if (name == "classic") {
       app.setLook(classic);
+    } else if (name == "minimal") {
+      app.setLook(minimal);
     } else {
       return false;
     }

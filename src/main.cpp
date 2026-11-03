@@ -10,6 +10,7 @@
 #include "BoostSampler.h"
 #include "ClassicLook.h"
 #include "GaugeApp.h"
+#include "MinimalLook.h"
 #include "ReadingMailbox.h"
 #include "SamplerLoop.h"
 #include "config.h"
@@ -17,6 +18,7 @@
 #include "device/LgfxCanvas.h"
 #include "device/SamplerTask.h"
 #include "device/Transport.h"
+#include "looks/MinimalLookFactory.h"
 #include "looks/RetroLookFactory.h"
 
 namespace {
@@ -34,11 +36,22 @@ device::SamplerTask samplerTask(samplerLoop);
 // Looks (the app keeps a reference, so they live for the whole run).
 gauge::ClassicLook classicLook;
 gauge::RetroLook retroLook = looks::makeRetro();
+gauge::MinimalLook minimalLook = looks::makeMinimal();
+
+const gauge::ILook& chosenLook() {
+  switch (config::kLook) {
+    case config::Look::Classic:
+      return classicLook;
+    case config::Look::Minimal:
+      return minimalLook;
+    case config::Look::Retro:
+    default:
+      return retroLook;
+  }
+}
 
 // Consumer side (loop()).
-gauge::GaugeApp app(mailbox, canvas, clock,
-                    config::kUseRetroLook ? static_cast<const gauge::ILook&>(retroLook)
-                                          : static_cast<const gauge::ILook&>(classicLook),
+gauge::GaugeApp app(mailbox, canvas, clock, chosenLook(),
                     [] {
                       gauge::GaugeApp::Options options;
                       options.showFps = config::kShowFps;

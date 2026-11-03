@@ -93,7 +93,7 @@ TEST_CASE("retro look: optional badge is laid over the dial") {
   FlatDial dial(kCream);
   const uint16_t px[] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
   const uint8_t alpha[] = {255, 255, 255, 0};  // last pixel fully transparent
-  RetroLook::Badge badge;
+  Badge badge;
   badge.image = {2, 2, px, alpha};
   badge.x = 20;
   badge.y = 30;

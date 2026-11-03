@@ -57,7 +57,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
-* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`) with two methods,
+* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`, `MinimalLook`) with two methods,
   `drawDial` (static, cached by `FrameRenderer`) and `drawDynamic` (every frame). `GaugeApp`
   keeps a reference to the look, so it must outlive the app; passing a temporary is a
   compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
@@ -93,7 +93,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   stalls). The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
-* `SoftCanvas` fonts only cover `0-9 - + . space A B E F I K L N O P S T`. Using
+* `SoftCanvas` fonts only cover `0-9 - + . space A B C E F I K L M N O P S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the
   glyph to `kGlyphs` in `SoftCanvas.cpp` first.
 * The device font (`fonts::Font0`) and `SoftCanvas` share the 6x8 cell, so sim

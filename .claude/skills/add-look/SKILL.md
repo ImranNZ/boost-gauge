@@ -8,7 +8,7 @@ description: Add a new visual style ("look") to the boost gauge, such as a new d
 A look is an `ILook` (`lib/core/src/ILook.h`) with two methods: `drawDial` (the static
 artwork; `FrameRenderer` runs it once and the canvas caches it) and `drawDynamic` (the
 moving parts, every frame). A look draws only through `IDrawSurface`; it never sees the
-cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` (dial drawn in code) first.
+cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `MinimalLook` (drawn in code; Minimal is the simpler pattern if the design is code-drawn, and shows the optional `Badge`) first.
 
 1. **Artwork + spec.** Static layer only: no needle, readout or live text. Put the scale and
    pointer geometry (range, tick radii, needle length, hub size) in `looks/<name>/spec.json`

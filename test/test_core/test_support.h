@@ -30,6 +30,7 @@
 #include "ImageView.h"
 #include "LinkSupervisor.h"
 #include "ManualClock.h"
+#include "MinimalLook.h"
 #include "ReadingMailbox.h"
 #include "ReadingSource.h"
 #include "RetroLook.h"

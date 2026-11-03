@@ -38,7 +38,7 @@ inline gauge::RetroLook::Spec retroSpec() {
 
 inline gauge::RetroLook makeRetro() {
 #ifdef BOOST_GAUGE_HAS_BADGE
-  gauge::RetroLook::Badge overlay;
+  gauge::Badge overlay;
   overlay.image = {badge::kWidth, badge::kHeight, badge::kRgb565, badge::kAlpha};
   overlay.x = 120 - badge::kWidth / 2;  // centred under the 5 psi numeral
   overlay.y = 80 - badge::kHeight / 2;

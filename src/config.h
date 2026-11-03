@@ -19,8 +19,10 @@ constexpr int kLcdSize = 240;
 constexpr int kLcdSpiHz = 80000000;
 
 // --- Look ---------------------------------------------------------------------
-// true: Retro 60s cream dial. false: Classic dark dial drawn entirely in code.
-constexpr bool kUseRetroLook = true;
+// Retro: cream 60s dial with a red needle. Classic: dark dial with zones, drawn in code.
+// Minimal: no needle, a thin glowing arc around a big number.
+enum class Look { Retro, Classic, Minimal };
+constexpr Look kLook = Look::Retro;
 
 // --- Diagnostics -------------------------------------------------------------
 // Show the measured frames-per-second in the bottom corner of the dial.

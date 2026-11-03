@@ -69,7 +69,7 @@ int runLive(std::string_view initialLook) {
 
   Rig rig;
   if (!rig.selectLook(initialLook)) {
-    std::fprintf(stderr, "unknown look '%.*s' (use retro or classic)\n",
+    std::fprintf(stderr, "unknown look '%.*s' (use retro, classic or minimal)\n",
                  static_cast<int>(initialLook.size()), initialLook.data());
   }
   using Clock = std::chrono::steady_clock;
