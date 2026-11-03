@@ -173,7 +173,8 @@ TEST_CASE("app eases the needle between sparse readings") {
   SoftCanvas canvas(240, 240);
   GaugeApp::Options options;
   options.smoothingMs = 100.0f;
-  GaugeApp app(source, canvas, clock, GaugeView{}, options);
+  GaugeView look;
+  GaugeApp app(source, canvas, clock, look, options);
   GaugeView view;
 
   source.publish(0.0f);
@@ -203,7 +204,8 @@ TEST_CASE("app ignores repeated samples and invalid readings") {
   SoftCanvas canvas(240, 240);
   GaugeApp::Options options;
   options.smoothingMs = 0.0f;
-  GaugeApp app(source, canvas, clock, GaugeView{}, options);
+  GaugeView look;
+  GaugeApp app(source, canvas, clock, look, options);
   GaugeView view;
 
   source.publish(10.0f);
@@ -230,7 +232,8 @@ TEST_CASE("app: fps overlay appears only when enabled") {
     SoftCanvas canvas(240, 240);
     GaugeApp::Options options;
     options.showFps = showFps;
-    GaugeApp app(source, canvas, clock, GaugeView{}, options);
+    GaugeView look;
+    GaugeApp app(source, canvas, clock, look, options);
     source.publish(5.0f);
     for (int i = 0; i < 40; ++i) {  // ~1.3 s at 33 ms: the first fps window completes
       clock.advance(33);

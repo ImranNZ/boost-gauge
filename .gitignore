@@ -2,3 +2,9 @@
 .vscode/
 out/
 *.pyc
+
+# Brand artwork (trademarks): keep local, never commit to the public repo
+/assets/
+
+# Local-only look assets (brand badges generated from /assets)
+/src/looks/local/

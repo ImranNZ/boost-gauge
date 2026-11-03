@@ -45,6 +45,18 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
+* Looks: the app draws through an `ILook` (`GaugeView` = Classic, `RetroLook` = Retro).
+  `GaugeApp` keeps a reference to the look, so it must outlive the app; passing a temporary is
+  a compile error on purpose. `setLook()` discards the canvas's cached dial. See the `add-look` skill.
+* Generated files: `src/looks/RetroDial.h` comes from `looks/retro/dial.svg` via
+  `tools/make_look.py`; never hand-edit it, regenerate. It is big (~470 KB) so avoid reading it.
+* **Brand artwork is never committed.** The Cooper S badge lives in `assets/` and
+  `src/looks/local/` (both in `.gitignore`) and is included via `__has_include`. Do not
+  `git add -f` those, do not copy brand images into tracked folders, and do not upload them
+  anywhere public. The GitHub repo is public.
+* `ICanvas::drawImage` takes an `ImageView` (RGB565 plus optional 8-bit alpha). Opaque images are a
+  bulk copy on the device; images with alpha are blended per pixel, so keep them small.
+
 * Threading model: the sampler (`SamplerLoop`, in `SamplerTask` on core 0) is the only
   thing that touches the OBD client/bus/stream. The render loop (`GaugeApp`, core 1)
   only reads the `ReadingMailbox`. Never call the sampler or a transport from the render
@@ -87,4 +99,4 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 | Gauge look | `lib/core/src/GaugeView.cpp`, then run the sim |
 | Pins / SSID / BLE name | `src/config.h` |
 
-Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`).
+Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`).

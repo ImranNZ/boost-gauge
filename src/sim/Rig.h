@@ -1,14 +1,19 @@
 #pragma once
 
+#include <string_view>
+
 #include "BoostSampler.h"
 #include "CanObdClient.h"
 #include "FakeCanBus.h"
 #include "FakeEcu.h"
 #include "GaugeApp.h"
+#include "GaugeView.h"
 #include "ManualClock.h"
 #include "ReadingSource.h"
+#include "RetroLook.h"
 #include "SoftCanvas.h"
 #include "ThrottledSource.h"
+#include "looks/RetroLookFactory.h"
 
 namespace sim {
 
@@ -28,7 +33,22 @@ struct Rig {
   // Readings arrive at the link's rate, not the display's: ~CAN speed by default.
   gauge::ThrottledSource link{polling, clock, 40};
   gauge::SoftCanvas canvas{kScreen, kScreen, kSupersample};
-  gauge::GaugeApp app{link, canvas, clock};
+
+  gauge::GaugeView classic;
+  gauge::RetroLook retro{looks::makeRetro()};
+  gauge::GaugeApp app{link, canvas, clock, retro, gauge::GaugeApp::Options{}};
+
+  /// Switch the look by name. False if there is no such look.
+  bool selectLook(std::string_view name) {
+    if (name == "retro") {
+      app.setLook(retro);
+    } else if (name == "classic") {
+      app.setLook(classic);
+    } else {
+      return false;
+    }
+    return true;
+  }
 
   /// Run one app iteration and advance simulated time by one frame.
   void step() {

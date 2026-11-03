@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 
 #include "FakeEcu.h"
@@ -20,5 +21,9 @@ bool applyEcuCommand(FakeEcu& ecu, std::string_view line);
 ///
 ///   rate <hz>      deliver fresh readings this often (1..100)
 bool applyRateCommand(ThrottledSource& source, std::string_view line);
+
+/// Recognise "look <name>" and return the name (no spaces). The caller decides
+/// whether that look exists. False if the line is anything else.
+bool parseLookCommand(std::string_view line, std::string& name);
 
 }  // namespace gauge

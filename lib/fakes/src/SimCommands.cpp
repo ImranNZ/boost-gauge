@@ -67,6 +67,19 @@ bool applyEcuCommand(FakeEcu& ecu, std::string_view line) {
   return false;
 }
 
+bool parseLookCommand(std::string_view line, std::string& name) {
+  line = trim(line);
+  constexpr std::string_view kVerb = "look";
+  if (line.substr(0, kVerb.size()) != kVerb) return false;
+  line.remove_prefix(kVerb.size());
+  if (line.empty() || line.front() != ' ') return false;
+
+  const std::string_view argument = trim(line);
+  if (argument.empty() || argument.find(' ') != std::string_view::npos) return false;
+  name.assign(argument);
+  return true;
+}
+
 bool applyRateCommand(ThrottledSource& source, std::string_view line) {
   float hz = 0.0f;
   if (!parseVerbNumber(trim(line), "rate", hz)) return false;

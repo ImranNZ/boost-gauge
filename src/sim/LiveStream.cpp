@@ -46,7 +46,19 @@ void useBinaryStdout() {
 
 }  // namespace
 
-int runLive() {
+namespace {
+
+/// One line from the viewer: an ECU command, a data-rate command or a look switch.
+bool handleCommand(Rig& rig, const std::string& line) {
+  std::string look;
+  if (gauge::applyEcuCommand(rig.ecu, line)) return true;
+  if (gauge::applyRateCommand(rig.link, line)) return true;
+  return gauge::parseLookCommand(line, look) && rig.selectLook(look);
+}
+
+}  // namespace
+
+int runLive(std::string_view initialLook) {
   useBinaryStdout();
 
   static CommandQueue commands;  // outlives the detached reader thread
@@ -56,15 +68,17 @@ int runLive() {
   }).detach();
 
   Rig rig;
+  if (!rig.selectLook(initialLook)) {
+    std::fprintf(stderr, "unknown look '%.*s' (use retro or classic)\n",
+                 static_cast<int>(initialLook.size()), initialLook.data());
+  }
   using Clock = std::chrono::steady_clock;
   auto nextFrame = Clock::now();
 
   for (;;) {
     std::string line;
     while (commands.pop(line)) {
-      if (!gauge::applyEcuCommand(rig.ecu, line) && !gauge::applyRateCommand(rig.link, line)) {
-        std::fprintf(stderr, "ignored command: %s\n", line.c_str());
-      }
+      if (!handleCommand(rig, line)) std::fprintf(stderr, "ignored command: %s\n", line.c_str());
     }
 
     rig.step();

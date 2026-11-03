@@ -71,6 +71,13 @@
       <label class="check"><input type="checkbox" id="crisp"> Show raw pixels</label>
     </div>
     <div class="row">
+      <label for="look">Look</label>
+      <select id="look">
+        <option value="retro" selected>Retro 60s (cream dial)</option>
+        <option value="classic">Classic (dark, code-drawn)</option>
+      </select>
+    </div>
+    <div class="row">
       <label for="rate">Data rate</label>
       <select id="rate">
         <option value="30">30 Hz (every frame)</option>
@@ -103,6 +110,7 @@
   document.getElementById('offline').onclick = () => send('offline');
   document.getElementById('online').onclick = () => send('online');
   document.getElementById('rate').onchange = (event) => send('rate ' + event.target.value);
+  document.getElementById('look').onchange = (event) => send('look ' + event.target.value);
   slider.oninput = () => {
     sliderOut.textContent = Number(slider.value).toFixed(1) + ' psi';
     send('boost ' + slider.value);

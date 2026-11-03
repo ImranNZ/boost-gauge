@@ -18,6 +18,10 @@ constexpr int kLcdSize = 240;
 // screen shows noise or tearing, drop this to 40000000.
 constexpr int kLcdSpiHz = 80000000;
 
+// --- Look ---------------------------------------------------------------------
+// true: Retro 60s cream dial. false: Classic dark dial drawn entirely in code.
+constexpr bool kUseRetroLook = true;
+
 // --- Diagnostics -------------------------------------------------------------
 // Show the measured frames-per-second in the bottom corner of the dial.
 constexpr bool kShowFps = true;

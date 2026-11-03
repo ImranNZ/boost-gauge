@@ -6,6 +6,7 @@
 #include "GaugeView.h"
 #include "ICanvas.h"
 #include "IClock.h"
+#include "ILook.h"
 #include "ReadingSource.h"
 #include "Smoothing.h"
 
@@ -22,17 +23,28 @@ class GaugeApp {
     bool showFps = false;
   };
 
+  /// Uses the Classic look.
   GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock);
-  GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, GaugeView view,
+  /// The look must outlive the app.
+  GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, const ILook& look,
            Options options);
+  GaugeApp(IReadingSource&, ICanvas&, IClock&, ILook&&, Options) = delete;  // would dangle
+
+  /// Switch look. The cached dial belongs to the old one, so it is thrown away.
+  void setLook(const ILook& look);
+  void setLook(ILook&&) = delete;
 
   void tick();
 
  private:
+  GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, const ILook* look,
+           Options options);
+
   IReadingSource& source_;
   ICanvas& canvas_;
   IClock& clock_;
-  GaugeView view_;
+  GaugeView defaultLook_;
+  const ILook* look_;
   Options options_;
 
   Easer easer_;

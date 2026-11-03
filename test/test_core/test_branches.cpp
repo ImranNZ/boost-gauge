@@ -512,7 +512,8 @@ TEST_CASE("app: custom view and options are honoured") {
   GaugeApp::Options options;
   options.smoothingMs = 0.0f;
   options.staleAfterMs = 10;
-  GaugeApp app(source, canvas, clock, GaugeView(config), options);
+  GaugeView look(config);
+  GaugeApp app(source, canvas, clock, look, options);
 
   app.tick();
   client.map = {false, 0, 0};

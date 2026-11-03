@@ -128,6 +128,44 @@ void LgfxCanvas::drawLine(int x0, int y0, int x1, int y1, int thickness,
   frame_.drawWideLine(x0, y0, x1, y1, radius, rgb(color));
 }
 
+void LgfxCanvas::drawImage(const gauge::ImageView& image, int x, int y) {
+  if (image.rgb565 == nullptr) return;
+
+  if (image.alpha == nullptr) {
+    // Opaque (the dial): one bulk copy straight from flash. rgb565_t is the plain
+    // 16-bit RGB565 layout, which is what the generated arrays hold.
+    frame_.pushImage(x, y, image.width, image.height,
+                     reinterpret_cast<const lgfx::rgb565_t*>(image.rgb565));
+    return;
+  }
+
+  // With alpha (a badge): blend pixel by pixel. It is small and drawn once.
+  for (int iy = 0; iy < image.height; ++iy) {
+    for (int ix = 0; ix < image.width; ++ix) {
+      const int px = x + ix;
+      const int py = y + iy;
+      if (px < 0 || py < 0 || px >= frame_.width() || py >= frame_.height()) continue;
+
+      const size_t index = static_cast<size_t>(iy) * static_cast<size_t>(image.width) +
+                           static_cast<size_t>(ix);
+      const int alpha = image.alpha[index];
+      if (alpha == 0) continue;
+      const gauge::Color src = gauge::rgb565ToColor(image.rgb565[index]);
+      if (alpha == 255) {
+        frame_.drawPixel(px, py, rgb(src));
+        continue;
+      }
+      const auto under = frame_.readPixelRGB(px, py);
+      const auto mix = [alpha](int over, int base) {
+        return static_cast<uint8_t>((base * (255 - alpha) + over * alpha + 127) / 255);
+      };
+      frame_.drawPixel(px, py,
+                       frame_.color565(mix(src.r, under.R8()), mix(src.g, under.G8()),
+                                       mix(src.b, under.B8())));
+    }
+  }
+}
+
 void LgfxCanvas::saveBackground() {
   if (!dialAllocated_) return;
   frame_.pushSprite(&dial_, 0, 0);

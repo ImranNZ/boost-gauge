@@ -3,17 +3,26 @@
 namespace gauge {
 
 GaugeApp::GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock)
-    : GaugeApp(source, canvas, clock, GaugeView{}, Options{}) {}
+    : GaugeApp(source, canvas, clock, static_cast<const ILook*>(nullptr), Options{}) {}
 
-GaugeApp::GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, GaugeView view,
+GaugeApp::GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, const ILook& look,
+                   Options options)
+    : GaugeApp(source, canvas, clock, &look, options) {}
+
+GaugeApp::GaugeApp(IReadingSource& source, ICanvas& canvas, IClock& clock, const ILook* look,
                    Options options)
     : source_(source),
       canvas_(canvas),
       clock_(clock),
-      view_(view),
+      look_(look != nullptr ? look : &defaultLook_),
       options_(options),
       easer_(options.smoothingMs),
       peak_(options.peakHoldMs) {}
+
+void GaugeApp::setLook(const ILook& look) {
+  look_ = &look;
+  canvas_.discardBackground();
+}
 
 void GaugeApp::tick() {
   const Sample sample = source_.latest();
@@ -39,7 +48,7 @@ void GaugeApp::tick() {
   fps_.frame(now);
   state_.fps = options_.showFps ? static_cast<int>(fps_.fps() + 0.5f) : 0;
 
-  view_.draw(canvas_, state_);
+  look_->draw(canvas_, state_);
   canvas_.present();
 }
 

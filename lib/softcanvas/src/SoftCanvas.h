@@ -32,8 +32,10 @@ class SoftCanvas : public ICanvas {
   void drawLine(int x0, int y0, int x1, int y1, int thickness, Color color) override;
   void drawText(int x, int y, const char* text, int scale, TextAlign align,
                 Color color) override;
+  void drawImage(const ImageView& image, int x, int y) override;
   void saveBackground() override { background_ = hi_; }
   bool restoreBackground() override;
+  void discardBackground() override { background_.reset(); }
   void present() override { ++framesPresented_; }
 
   /// The frame at logical size (downsampled when supersampling).

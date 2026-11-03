@@ -1,6 +1,9 @@
 #pragma once
 
+#include "GaugeScale.h"
+#include "GaugeState.h"
 #include "ICanvas.h"
+#include "ILook.h"
 
 namespace gauge {
 
@@ -13,32 +16,25 @@ struct GaugeConfig {
   float redFromPsi = 20.0f;
 };
 
-/// What the view needs to draw one frame.
-struct GaugeState {
-  float psi = 0.0f;
-  float peakPsi = 0.0f;
-  bool linked = false;
-  int fps = 0;  // frames per second to show in the corner; 0 hides it
-};
-
-/// Draws the round boost gauge: 270 degree sweep opening at the bottom.
-/// Pure presentation; knows nothing about OBD or hardware.
-class GaugeView {
+/// The "Classic" look: a dark dial drawn entirely in code, with coloured zones
+/// and a big digital readout. Pure presentation; knows nothing about OBD or hardware.
+class GaugeView : public DialCachingLook {
  public:
   static constexpr Color kBackground{0, 0, 0};
   static constexpr Color kNeedle{255, 74, 28};
-  static constexpr float kStartDeg = 135.0f;  // bottom-left
-  static constexpr float kSweepDeg = 270.0f;
+  static constexpr float kStartDeg = GaugeScale::kStartDeg;
+  static constexpr float kSweepDeg = GaugeScale::kSweepDeg;
 
   explicit GaugeView(GaugeConfig config = {}) : config_(config) {}
-
-  void draw(ICanvas& canvas, const GaugeState& state) const;
 
   /// Screen angle (degrees, 0 = 3 o'clock, clockwise) for a pressure.
   float angleFor(float psi) const;
 
+ protected:
+  void drawDial(ICanvas& c) const override;
+  void drawDynamic(ICanvas& c, const GaugeState& state) const override;
+
  private:
-  void drawDial(ICanvas& c, int cx, int cy) const;  // the static artwork, cached
   void drawZones(ICanvas& c, int cx, int cy) const;
   void drawScale(ICanvas& c, int cx, int cy) const;
   void drawPeakMarker(ICanvas& c, int cx, int cy, float peakPsi) const;

@@ -164,6 +164,41 @@ void SoftCanvas::drawText(int x, int y, const char* text, int scale, TextAlign a
   }
 }
 
+void SoftCanvas::drawImage(const ImageView& image, int x, int y) {
+  if (image.rgb565 == nullptr) return;
+
+  for (int iy = 0; iy < image.height; ++iy) {
+    for (int ix = 0; ix < image.width; ++ix) {
+      const int px = x + ix;
+      const int py = y + iy;
+      if (px < 0 || py < 0 || px >= width_ || py >= height_) continue;  // clipped
+
+      const size_t index = static_cast<size_t>(iy) * static_cast<size_t>(image.width) +
+                           static_cast<size_t>(ix);
+      const int alpha = image.alpha != nullptr ? image.alpha[index] : 255;
+      if (alpha == 0) continue;
+      const Color src = rgb565ToColor(image.rgb565[index]);
+
+      // Each source pixel covers a k x k block at the supersampled resolution.
+      for (int sy = 0; sy < k_; ++sy) {
+        for (int sx = 0; sx < k_; ++sx) {
+          const int hx = px * k_ + sx;
+          const int hy = py * k_ + sy;
+          if (alpha == 255) {
+            hi_.set(hx, hy, src);
+            continue;
+          }
+          const Color bg = hi_.get(hx, hy);
+          const auto mix = [alpha](int over, int under) {
+            return static_cast<uint8_t>((under * (255 - alpha) + over * alpha + 127) / 255);
+          };
+          hi_.set(hx, hy, Color{mix(src.r, bg.r), mix(src.g, bg.g), mix(src.b, bg.b)});
+        }
+      }
+    }
+  }
+}
+
 bool SoftCanvas::restoreBackground() {
   if (!background_) return false;
   hi_ = *background_;

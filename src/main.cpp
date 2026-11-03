@@ -15,6 +15,7 @@
 #include "device/ArduinoClock.h"
 #include "device/LgfxCanvas.h"
 #include "device/SamplerTask.h"
+#include "looks/RetroLookFactory.h"
 
 #if defined(TRANSPORT_CAN)
 #include "CanObdClient.h"
@@ -59,12 +60,19 @@ gauge::ReadingMailbox mailbox;
 gauge::SamplerLoop samplerLoop(sampler, mailbox);
 device::SamplerTask samplerTask(samplerLoop);
 
+// Looks (the app keeps a reference, so they live for the whole run).
+gauge::GaugeView classicLook;
+gauge::RetroLook retroLook = looks::makeRetro();
+
 // Consumer side (loop()).
-gauge::GaugeApp app(mailbox, canvas, clock, gauge::GaugeView{}, [] {
-  gauge::GaugeApp::Options options;
-  options.showFps = config::kShowFps;
-  return options;
-}());
+gauge::GaugeApp app(mailbox, canvas, clock,
+                    config::kUseRetroLook ? static_cast<const gauge::ILook&>(retroLook)
+                                          : static_cast<const gauge::ILook&>(classicLook),
+                    [] {
+                      gauge::GaugeApp::Options options;
+                      options.showFps = config::kShowFps;
+                      return options;
+                    }());
 
 }  // namespace
 

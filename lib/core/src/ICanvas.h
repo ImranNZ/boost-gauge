@@ -2,13 +2,10 @@
 
 #include <cstdint>
 
-namespace gauge {
+#include "Color.h"
+#include "ImageView.h"
 
-struct Color {
-  uint8_t r = 0;
-  uint8_t g = 0;
-  uint8_t b = 0;
-};
+namespace gauge {
 
 enum class TextAlign { Left, Center, Right };
 
@@ -39,12 +36,17 @@ class ICanvas {
   /// top of the text; `x` is the left/centre/right per `align`.
   virtual void drawText(int x, int y, const char* text, int scale, TextAlign align,
                         Color color) = 0;
+  /// Copy a picture with its top-left at (x, y), clipped to the canvas. Pixels
+  /// with partial alpha blend over what is already there.
+  virtual void drawImage(const ImageView& image, int x, int y) = 0;
 
   /// Remember the current frame so static artwork (the dial) is drawn once.
   virtual void saveBackground() = 0;
   /// Replace the frame with the saved one. False if nothing is saved (or the
   /// backend cannot cache), in which case the caller must redraw it itself.
   virtual bool restoreBackground() = 0;
+  /// Forget the saved frame (the artwork changed, e.g. a different look).
+  virtual void discardBackground() = 0;
 
   /// Push the finished frame to the display (no-op for offscreen canvases).
   virtual void present() = 0;

@@ -39,20 +39,21 @@ int polarY(int cy, float deg, int r) {
 }  // namespace
 
 float GaugeView::angleFor(float psi) const {
-  const float clamped = std::clamp(psi, config_.minPsi, config_.maxPsi);
-  const float fraction = (clamped - config_.minPsi) / (config_.maxPsi - config_.minPsi);
-  return kStartDeg + fraction * kSweepDeg;
+  return GaugeScale{config_.minPsi, config_.maxPsi}.angleFor(psi);
 }
 
-void GaugeView::draw(ICanvas& c, const GaugeState& state) const {
+void GaugeView::drawDial(ICanvas& c) const {
+  const int cx = c.width() / 2;
+  const int cy = c.height() / 2;
+  c.clear(kBackground);
+  drawZones(c, cx, cy);
+  drawScale(c, cx, cy);
+}
+
+void GaugeView::drawDynamic(ICanvas& c, const GaugeState& state) const {
   const int cx = c.width() / 2;
   const int cy = c.height() / 2;
 
-  // The dial never changes: draw it once, then just restore it each frame.
-  if (!c.restoreBackground()) {
-    drawDial(c, cx, cy);
-    c.saveBackground();
-  }
   if (state.linked) {
     if (state.peakPsi > 0.05f) drawPeakMarker(c, cx, cy, state.peakPsi);
     drawNeedle(c, cx, cy, state.psi);
@@ -60,12 +61,6 @@ void GaugeView::draw(ICanvas& c, const GaugeState& state) const {
   c.fillCircle(cx, cy, 10, kHub);
   c.fillCircle(cx, cy, 4, kBackground);
   drawReadout(c, cx, state);
-}
-
-void GaugeView::drawDial(ICanvas& c, int cx, int cy) const {
-  c.clear(kBackground);
-  drawZones(c, cx, cy);
-  drawScale(c, cx, cy);
 }
 
 void GaugeView::drawZones(ICanvas& c, int cx, int cy) const {

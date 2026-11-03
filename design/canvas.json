@@ -1,0 +1,26 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-03T08:20:00Z" },
+  "title": "Boost Gauge Designs",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 520, "h": 680, "title": "A · Modern Mini", "is_interactive": true },
+    "Retro.dc.html": { "x": 600, "y": 0, "w": 520, "h": 680, "title": "B · Retro 60s Cooper", "is_interactive": true },
+    "Minimal.dc.html": { "x": 0, "y": 800, "w": 520, "h": 680, "title": "C · Digital Minimal", "is_interactive": true },
+    "Motorsport.dc.html": { "x": 600, "y": 800, "w": 520, "h": 680, "title": "D · Motorsport", "is_interactive": true }
+  },
+  "order": ["Main.dc.html", "Retro.dc.html", "Minimal.dc.html", "Motorsport.dc.html"],
+  "notes": {
+    "title": { "x": 0, "y": -260, "text": "Boost gauge: four directions", "kind": "title1", "maxW": 1120 },
+    "how": {
+      "x": 1200,
+      "y": 0,
+      "w": 280,
+      "size": "s",
+      "fill": "blue",
+      "text": "Every gauge is drawn for the real 240 x 240 round display. Run the drive cycle or drag Hold boost, and press Real size to see it at the true 32.5 mm width: that is the legibility test."
+    }
+  },
+  "designSystems": []
+}

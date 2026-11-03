@@ -126,6 +126,10 @@ lib/softcanvas  Software canvas + PNG writer (used by `sim` and render tests)
 src/device      ESP32-only adapters: LgfxCanvas, TwaiBus, BleElmStream, WifiElmStream
 src/sim         PC simulator: `Rig` (stack wired to mocks), stills and live streaming
 tools/preview.* Live browser preview (Python server + page) over the sim's frame stream
+tools/make_look.py  Turns look artwork (SVG, PNG) into the headers the firmware and sim compile in
+looks/          Look artwork sources (retro/dial.svg and its font)
+src/looks/      Generated artwork headers + the factory that builds the Retro look
+                (src/looks/local/ is git-ignored: brand artwork lives only there)
 src/main.cpp    Composition root: wires concrete classes, picks transport
 src/config.h    Pins, SSID, addresses
 test/test_core  doctest suites
@@ -156,7 +160,9 @@ abstract classes, DI is constructor injection, and doctest is your xUnit/Jest.
   and the canvas caches it (`saveBackground` / `restoreBackground`; on the device
   the cache lives in PSRAM). Each frame only draws the needle and readout. If
   the cache is unavailable the view just redraws the dial every frame.
-* Text still uses the built-in 5x7 bitmap font. Smooth fonts are the next step.
+* Text drawn live (the Classic look's readout, NO LINK, fps) still uses the built-in
+  5x7 bitmap font. The Retro look's numerals and labels are part of its dial
+  picture, so they are proper Jost lettering.
 * **The screen never waits on the car.** Sampling runs on its own task and the
   render loop just reads the latest value from the mailbox, so a slow dongle or a
   dropped link cannot lower the frame rate or freeze the display.
@@ -172,7 +178,50 @@ abstract classes, DI is constructor injection, and doctest is your xUnit/Jest.
 None of the frame-rate numbers are measured on hardware yet; they come from the
 SPI maths and the PC preview.
 
+## Looks
+
+A **look** (`ILook`) is a complete visual style. The app hands it the current
+state each frame and it draws. Two exist today:
+
+| Look | What it is |
+| ---- | ---------- |
+| **Classic** (`GaugeView`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
+| **Retro 60s** (`RetroLook`) | Cream dial that is a pre-rendered picture, slim red needle with a counterweight tail, a peak flag and a chrome-ringed hub. Purely analog. |
+
+Pick one for the firmware with `config::kUseRetroLook` in `src/config.h`. In the
+preview, use the **Look** menu to switch live (that is the switcher the board
+will get once it has an input method).
+
+**How the Retro look is built.** The static dial is `looks/retro/dial.svg`. A script
+renders it with resvg, dithers it to RGB565 and writes `src/looks/RetroDial.h`
+(a 115 KB array that lives in flash). At run time `RetroLook` copies that picture
+to the screen once, the canvas caches it, and each frame only the needle, flag and
+hub are drawn on top.
+
+```bash
+pip install resvg-py pillow fonttools
+python tools/make_look.py dial looks/retro/dial.svg src/looks/RetroDial.h
+```
+
+Edit the SVG, re-run the command, and the sim preview and firmware both pick up
+the change. The design mockups the SVG came from are on the design canvas
+(see the project's Artifact link).
+
+**The Cooper S badge** is brand artwork, so it is never committed. Put your PNG in
+`assets/` (git-ignored), then:
+
+```bash
+python tools/make_look.py badge assets/brand/cooper-s.png src/looks/local/CooperSBadge.h --width 70
+```
+
+If `src/looks/local/CooperSBadge.h` exists, the Retro look draws the badge under the
+5 psi numeral; if not, it is simply left out and everything still builds.
+
 ## Common tasks
+
+**Add a look:** see the `add-look` skill (`.claude/skills/add-look/SKILL.md`). In short:
+design the artwork, generate its picture, write an `ILook` (usually a
+`DialCachingLook`), register it in the sim's `Rig::selectLook` and add tests.
 
 **Add a transport** (e.g. Bluetooth Classic): implement `IByteStream` (ELM327
 text) or `ICanBus` (raw CAN) in `src/device/`, add a `-DTRANSPORT_X` env in
