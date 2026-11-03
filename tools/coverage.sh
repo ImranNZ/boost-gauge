@@ -48,6 +48,9 @@ grep -q "Status: SUCCESS" "$log" || { cat "$log"; echo "TESTS FAILED"; exit 1; }
 common=(-r . --object-directory .pio/build/coverage
         --filter 'lib/core' --filter 'lib/softcanvas'
         --exclude-throw-branches --exclude-unreachable-branches
+        # Constructors can be emitted twice (C1/C2) and templates once per instance;
+        # a line counts as covered if any copy ran.
+        --merge-lines
         # A lone "}" is where the compiler hangs destructor/unwind cleanup; no logic.
         --exclude-lines-by-pattern '^\s*}\s*$')
 
