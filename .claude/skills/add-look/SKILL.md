@@ -29,7 +29,7 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
 5. **Register it:**
    - sim: add the name to `Rig::selectLook` (`src/sim/Rig.h`) and an `<option>` in
      `tools/preview.html`;
-   - firmware: extend the choice in `src/config.h` / `src/main.cpp`.
+   - firmware: add it to `config::Look` in `src/config.h` and to `chosenLook()` in `src/main.cpp`.
 6. **Tests** (`test/test_core/test_retro_look.cpp` has the pattern, helpers in
    `test_support.h`): the needle lands at the right angle for several pressures, NO LINK,
    the peak marker, the fps label, every optional part. Dial caching is `FrameRenderer`'s
