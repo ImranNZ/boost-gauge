@@ -2,13 +2,13 @@
 
 #include <optional>
 
+#include "gauge/GaugeScale.h"
+#include "gauge/GaugeState.h"
+#include "looks/ILook.h"
 #include "render/Badge.h"
 #include "render/Color.h"
 #include "render/Font.h"
-#include "gauge/GaugeScale.h"
-#include "gauge/GaugeState.h"
 #include "render/IDrawSurface.h"
-#include "looks/ILook.h"
 
 namespace gauge {
 
@@ -37,8 +37,8 @@ class MotorsportLook : public ILook {
     Font caption;
   };
 
-  explicit MotorsportLook(Fonts fonts) : fonts_(fonts) {}
-  MotorsportLook(Fonts fonts, Badge badge) : fonts_(fonts), badge_(badge) {}
+  explicit MotorsportLook(const Fonts& fonts) : fonts_(fonts) {}
+  MotorsportLook(const Fonts& fonts, const Badge& badge) : fonts_(fonts), badge_(badge) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;

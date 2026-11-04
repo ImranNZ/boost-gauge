@@ -58,7 +58,7 @@ bool handleCommand(Rig& rig, const std::string& line) {
 
 }  // namespace
 
-int runLive(std::string_view initialLook) {
+int runLive(std::string_view initialLook, bool paced) {
   useBinaryStdout();
 
   static CommandQueue commands;  // outlives the detached reader thread
@@ -69,7 +69,8 @@ int runLive(std::string_view initialLook) {
 
   Rig rig;
   if (!rig.selectLook(initialLook)) {
-    std::fprintf(stderr, "unknown look '%.*s' (use retro, classic, minimal, motorsport or modern)\n",
+    std::fprintf(stderr,
+                 "unknown look '%.*s' (use retro, classic, minimal, motorsport or modern)\n",
                  static_cast<int>(initialLook.size()), initialLook.data());
   }
   using Clock = std::chrono::steady_clock;
@@ -88,6 +89,7 @@ int runLive(std::string_view initialLook) {
                     std::fflush(stdout) == 0;
     if (!ok) return 0;  // the viewer went away
 
+    if (!paced) continue;
     nextFrame += std::chrono::milliseconds(Rig::kFrameMs);
     std::this_thread::sleep_until(nextFrame);
   }

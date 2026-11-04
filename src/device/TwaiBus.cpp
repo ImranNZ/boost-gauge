@@ -12,9 +12,9 @@ namespace device {
 bool TwaiBus::begin() {
   if (started_) return true;
 
-  const twai_general_config_t general = TWAI_GENERAL_CONFIG_DEFAULT(
-      static_cast<gpio_num_t>(config::kCanTx), static_cast<gpio_num_t>(config::kCanRx),
-      TWAI_MODE_NORMAL);
+  const twai_general_config_t general =
+      TWAI_GENERAL_CONFIG_DEFAULT(static_cast<gpio_num_t>(config::kCanTx),
+                                  static_cast<gpio_num_t>(config::kCanRx), TWAI_MODE_NORMAL);
   const twai_timing_config_t timing = TWAI_TIMING_CONFIG_500KBITS();
   const twai_filter_config_t filter = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 

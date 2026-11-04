@@ -40,7 +40,7 @@ TEST_CASE("minimal look: draws the track and scale once, then restores them") {
   state.linked = true;
   drawFrame(look, canvas, state);
   CHECK(same(canvas.image().get(5, 5), MinimalLook::kBackground));
-  CHECK(same(canvas.image().get(120, 20), MinimalLook::kTrack));  // top of the empty track
+  CHECK(same(canvas.image().get(120, 20), MinimalLook::kTrack));          // top of the empty track
   CHECK(countColor(canvas, Color{138, 147, 157}, 0, 0, 240, 240) > 100);  // scale labels
 
   canvas.clear(kWhite);  // wreck the frame: the cached dial must come back
@@ -53,7 +53,7 @@ TEST_CASE("minimal look: boost grows the arc clockwise from zero, in the ramp co
   const SoftCanvas canvas = draw(look, 10.0f);
   const Color arc = MinimalLook::colorFor(10.0f);
 
-  CHECK(same(pointOnNeedle(canvas, 5.0f, 100.0f), arc));    // between zero and the tip
+  CHECK(same(pointOnNeedle(canvas, 5.0f, 100.0f), arc));  // between zero and the tip
   CHECK(same(pointOnNeedle(canvas, 15.0f, 100.0f), MinimalLook::kTrack));  // beyond the tip
   CHECK(same(pointOnNeedle(canvas, -8.0f, 100.0f), MinimalLook::kTrack));  // the vacuum side
 }
@@ -94,12 +94,12 @@ TEST_CASE("minimal look: readout and mode label follow the sign") {
   const Color boost = MinimalLook::colorFor(8.0f);
 
   const SoftCanvas inBoost = draw(look, 8.0f);
-  CHECK(countColor(inBoost, boost, 80, 66, 160, 84) > 20);    // BOOST label
+  CHECK(countColor(inBoost, boost, 80, 66, 160, 84) > 20);  // BOOST label
   CHECK(countColor(inBoost, vacuum, 80, 66, 160, 84) == 0);
   CHECK(countColor(inBoost, kWhite, 40, 100, 200, 140) > 100);  // the big number
 
   const SoftCanvas inVacuum = draw(look, -8.0f);
-  CHECK(countColor(inVacuum, vacuum, 80, 66, 160, 84) > 20);   // VACUUM label
+  CHECK(countColor(inVacuum, vacuum, 80, 66, 160, 84) > 20);  // VACUUM label
 }
 
 TEST_CASE("minimal look: peak text only with a peak") {
@@ -116,7 +116,7 @@ TEST_CASE("minimal look: unlinked hides the arc and says NO LINK") {
 
   CHECK(same(pointOnNeedle(canvas, 5.0f, 100.0f), MinimalLook::kTrack));
   CHECK(countColor(canvas, Color{255, 77, 77}, 80, 66, 160, 84) > 20);  // the banner
-  CHECK(countColor(canvas, kWhite, 40, 100, 200, 140) == 0);             // no live number
+  CHECK(countColor(canvas, kWhite, 40, 100, 200, 140) == 0);            // no live number
 }
 
 TEST_CASE("minimal look: fps label only for a positive value") {

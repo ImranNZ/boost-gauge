@@ -25,8 +25,7 @@ bool Elm327Client::begin() {
   }
 
   ObdData probe;
-  return query(obd::kModeCurrentData, obd::kPidSupported01To20, probe,
-               options_.probeTimeoutMs);
+  return query(obd::kModeCurrentData, obd::kPidSupported01To20, probe, options_.probeTimeoutMs);
 }
 
 bool Elm327Client::readPid(uint8_t mode, uint8_t pid, ObdData& out) {

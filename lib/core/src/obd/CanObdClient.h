@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "obd/ICanBus.h"
 #include "base/IClock.h"
+#include "obd/ICanBus.h"
 #include "obd/IObdClient.h"
 
 namespace gauge {

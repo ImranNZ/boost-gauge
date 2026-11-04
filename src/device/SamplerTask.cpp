@@ -10,8 +10,8 @@ constexpr BaseType_t kCore = 0;         // loop() runs on core 1
 }  // namespace
 
 void SamplerTask::start() {
-  xTaskCreatePinnedToCore(&SamplerTask::entry, "sampler", kStackBytes, this, kPriority,
-                          nullptr, kCore);
+  xTaskCreatePinnedToCore(&SamplerTask::entry, "sampler", kStackBytes, this, kPriority, nullptr,
+                          kCore);
 }
 
 void SamplerTask::entry(void* self) {

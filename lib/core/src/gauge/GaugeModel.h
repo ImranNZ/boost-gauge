@@ -4,8 +4,8 @@
 
 #include "gauge/FpsCounter.h"
 #include "gauge/GaugeState.h"
-#include "sampling/ReadingSource.h"
 #include "gauge/Smoothing.h"
+#include "sampling/ReadingSource.h"
 
 namespace gauge {
 
@@ -15,7 +15,7 @@ namespace gauge {
 class GaugeModel {
  public:
   struct Options {
-    float smoothingMs = 80.0f;     // needle easing time constant; 0 = no easing
+    float smoothingMs = 80.0f;  // needle easing time constant; 0 = no easing
     uint32_t peakHoldMs = 5000;
     uint32_t staleAfterMs = 1500;  // no valid reading for this long => "NO LINK"
     bool showFps = false;

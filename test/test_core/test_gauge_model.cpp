@@ -97,7 +97,7 @@ TEST_CASE("gauge model: holds the peak, then lets it go") {
   model.update(sample(4.0f, 2), 500);
   CHECK(model.state().peakPsi == doctest::Approx(12.0f));  // held
   model.update(sample(4.0f, 2), 1500);
-  CHECK(model.state().peakPsi == doctest::Approx(4.0f));   // released
+  CHECK(model.state().peakPsi == doctest::Approx(4.0f));  // released
 }
 
 TEST_CASE("gauge model: reports fps only when asked to") {

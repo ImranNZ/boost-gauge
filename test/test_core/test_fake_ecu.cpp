@@ -13,7 +13,7 @@ TEST_CASE("fake ecu: PIDs, clamping, profile and offline") {
   CHECK(d.count == 4);
   REQUIRE(ecu.answer(obd::kModeCurrentData, obd::kPidBaroKpa, d));
   CHECK(d.bytes[0] == 101);
-  CHECK_FALSE(ecu.answer(0x09, obd::kPidMapKpa, d));         // wrong mode
+  CHECK_FALSE(ecu.answer(0x09, obd::kPidMapKpa, d));        // wrong mode
   CHECK_FALSE(ecu.answer(obd::kModeCurrentData, 0xEE, d));  // unknown pid
 
   ecu.holdMapKpa(999.0f);  // clamps to a byte

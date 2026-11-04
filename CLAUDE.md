@@ -65,6 +65,13 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
   `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
   hand-edit them, regenerate. `src/looks/retro/RetroDial.h` is big (~470 KB): avoid reading it.
+* **Format before you commit.** `python tools/format.py` (clang-format, `.clang-format`); CI fails on
+  an unformatted file. `tools/static_analysis.sh` (cppcheck) must be clean: fix a finding, or suppress it
+  with `// cppcheck-suppress <id>` and a reason. Generated files are not formatted.
+* **Visual changes need new reference images.** `tools/check_renders.py` compares every look with
+  `test/golden/` and CI fails on a difference. After an intended change to a look, a font or the
+  canvas, look at the result, then `python tools/check_renders.py --update` and commit `test/golden/`
+  with the change. A failure you did not expect is a regression: read `out/render-diff/`.
 * **README media must not contain the badge.** `docs/media/` is regenerated with
   `python tools/make_media.py`, which builds the `sim-media` env (`-DBOOST_GAUGE_NO_BADGE`). Never
   screenshot the normal sim or the live preview for anything committed: they show the local badge.

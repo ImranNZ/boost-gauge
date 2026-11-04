@@ -28,7 +28,7 @@ TEST_CASE("elm parse: rejects failures and other PIDs") {
   CHECK_FALSE(parseObdReply("?\r", 0x01, 0x0B, d));
   CHECK_FALSE(parseObdReply("", 0x01, 0x0B, d));
   CHECK_FALSE(parseObdReply("41 0C 1A F8", 0x01, 0x0B, d));  // RPM, not MAP
-  CHECK_FALSE(parseObdReply("41 0B", 0x01, 0x0B, d));  // header, no data
+  CHECK_FALSE(parseObdReply("41 0B", 0x01, 0x0B, d));        // header, no data
 }
 
 TEST_CASE("elm parse: lowercase hex and odd/short/over-long lines") {
@@ -36,13 +36,13 @@ TEST_CASE("elm parse: lowercase hex and odd/short/over-long lines") {
   CHECK(parseObdReply("41 0b 7a", 0x01, 0x0B, d));
   CHECK(d.bytes[0] == 0x7A);
 
-  CHECK_FALSE(parseObdReply("41 0B 7", 0x01, 0x0B, d));      // too short
-  CHECK_FALSE(parseObdReply("41 0B 7A 1", 0x01, 0x0B, d));    // odd nibble count
+  CHECK_FALSE(parseObdReply("41 0B 7", 0x01, 0x0B, d));     // too short
+  CHECK_FALSE(parseObdReply("41 0B 7A 1", 0x01, 0x0B, d));  // odd nibble count
   CHECK_FALSE(parseObdReply("4", 0x01, 0x0B, d));
-  CHECK_FALSE(parseObdReply("41 0G 7A", 0x01, 0x0B, d));      // not hex (upper)
-  CHECK_FALSE(parseObdReply("41 0g 7A", 0x01, 0x0B, d));      // not hex (lower)
-  CHECK_FALSE(parseObdReply("\t41 0B 7A", 0x01, 0x0B, d));    // control char
-  CHECK_FALSE(parseObdReply("42 0B 7A", 0x01, 0x0B, d));  // wrong mode
+  CHECK_FALSE(parseObdReply("41 0G 7A", 0x01, 0x0B, d));    // not hex (upper)
+  CHECK_FALSE(parseObdReply("41 0g 7A", 0x01, 0x0B, d));    // not hex (lower)
+  CHECK_FALSE(parseObdReply("\t41 0B 7A", 0x01, 0x0B, d));  // control char
+  CHECK_FALSE(parseObdReply("42 0B 7A", 0x01, 0x0B, d));    // wrong mode
 }
 
 TEST_CASE("elm parse: keeps at most four data bytes and tolerates long lines") {
@@ -204,9 +204,9 @@ TEST_CASE("elm327 fake adapter: echo, unknown command, reset") {
   };
 
   CHECK(send("ATE1").find("OK") != std::string::npos);
-  CHECK(send("hello") == "hello\r?\r\r>");           // echo + unknown command
-  CHECK(send("AT E0") == "AT E0\rOK\r\r>");           // last echoed command
-  CHECK(send("hello") == "?\r\r>");                   // echo now off
+  CHECK(send("hello") == "hello\r?\r\r>");   // echo + unknown command
+  CHECK(send("AT E0") == "AT E0\rOK\r\r>");  // last echoed command
+  CHECK(send("hello") == "?\r\r>");          // echo now off
   CHECK(send("ATZ").find("ELM327") != std::string::npos);
   CHECK(send("0100").find("SEARCHING") != std::string::npos);
   CHECK(send("0100").find("SEARCHING") == std::string::npos);
