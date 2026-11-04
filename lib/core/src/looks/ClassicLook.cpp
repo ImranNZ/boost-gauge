@@ -65,8 +65,8 @@ void ClassicLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
 
 void ClassicLook::drawZones(IDrawSurface& c, int cx, int cy) const {
   struct Zone {
-    float from;
-    float to;
+    float from = 0.0f;
+    float to = 0.0f;
     Color color;
   };
   const Zone zones[] = {
@@ -89,16 +89,15 @@ void ClassicLook::drawScale(IDrawSurface& c, int cx, int cy) const {
     const bool major = (i % config_.minorPerMajor) == 0;
     const float deg = angleFor(psi);
     const int inner = major ? kMajorInner : kMinorInner;
-    c.drawLine(polarX(cx, deg, inner), polarY(cy, deg, inner),
-               polarX(cx, deg, kTickOuter), polarY(cy, deg, kTickOuter),
-               major ? 2 : 1, kTick);
+    c.drawLine(polarX(cx, deg, inner), polarY(cy, deg, inner), polarX(cx, deg, kTickOuter),
+               polarY(cy, deg, kTickOuter), major ? 2 : 1, kTick);
 
     if (major) {
       char label[8];
       std::snprintf(label, sizeof(label), "%d", static_cast<int>(std::lround(psi)));
       // Scale-2 glyphs are 16 px tall; centre vertically on the radius.
-      c.drawText(polarX(cx, deg, kLabelRadius), polarY(cy, deg, kLabelRadius) - 8, label,
-                 2, TextAlign::Center, kLabel);
+      c.drawText(polarX(cx, deg, kLabelRadius), polarY(cy, deg, kLabelRadius) - 8, label, 2,
+                 TextAlign::Center, kLabel);
     }
   }
 }

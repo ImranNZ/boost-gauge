@@ -11,6 +11,8 @@ namespace device {
 class LgfxCanvas : public gauge::ICanvas {
  public:
   LgfxCanvas();
+  LgfxCanvas(const LgfxCanvas&) = delete;
+  LgfxCanvas& operator=(const LgfxCanvas&) = delete;
 
   /// Initialise the panel and allocate the frame buffer. False if out of memory.
   bool begin();
@@ -20,12 +22,11 @@ class LgfxCanvas : public gauge::ICanvas {
 
   void clear(gauge::Color color) override;
   void fillCircle(int cx, int cy, int radius, gauge::Color color) override;
-  void fillArc(int cx, int cy, int innerRadius, int outerRadius, float startDeg,
-               float endDeg, gauge::Color color) override;
+  void fillArc(int cx, int cy, int innerRadius, int outerRadius, float startDeg, float endDeg,
+               gauge::Color color) override;
   void drawWedge(float x0, float y0, float x1, float y1, float r0, float r1,
                  gauge::Color color) override;
-  void drawLine(int x0, int y0, int x1, int y1, int thickness,
-                gauge::Color color) override;
+  void drawLine(int x0, int y0, int x1, int y1, int thickness, gauge::Color color) override;
   void drawText(int x, int y, const char* text, int scale, gauge::TextAlign align,
                 gauge::Color color) override;
   void drawImage(const gauge::ImageView& image, int x, int y) override;
@@ -48,7 +49,7 @@ class LgfxCanvas : public gauge::ICanvas {
   lgfx::LGFX_Sprite frame_;  // what we draw into; internal RAM for speed
   lgfx::LGFX_Sprite dial_;   // cached static dial; PSRAM (115 KB we cannot spare in DRAM)
   bool dialAllocated_ = false;
-  bool hasDial_ = false;     // dial_ holds a saved frame
+  bool hasDial_ = false;  // dial_ holds a saved frame
 };
 
 }  // namespace device

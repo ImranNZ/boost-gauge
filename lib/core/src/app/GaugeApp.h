@@ -1,10 +1,10 @@
 #pragma once
 
-#include "looks/FrameRenderer.h"
-#include "gauge/GaugeModel.h"
-#include "render/ICanvas.h"
 #include "base/IClock.h"
+#include "gauge/GaugeModel.h"
+#include "looks/FrameRenderer.h"
 #include "looks/ILook.h"
+#include "render/ICanvas.h"
 #include "sampling/ReadingSource.h"
 
 namespace gauge {

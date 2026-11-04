@@ -52,10 +52,9 @@ bool BleElmStream::bindUartService(NimBLEClient& client) {
     }
     if (notify == nullptr || write == nullptr) continue;
 
-    const bool subscribed = notify->subscribe(
-        true, [this](NimBLERemoteCharacteristic*, uint8_t* data, size_t length, bool) {
-          onNotify(data, length);
-        });
+    const bool subscribed =
+        notify->subscribe(true, [this](NimBLERemoteCharacteristic*, uint8_t* data, size_t length,
+                                       bool) { onNotify(data, length); });
     if (!subscribed) continue;
 
     tx_ = write;

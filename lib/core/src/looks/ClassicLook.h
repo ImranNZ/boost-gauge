@@ -1,10 +1,10 @@
 #pragma once
 
-#include "render/Color.h"
 #include "gauge/GaugeScale.h"
 #include "gauge/GaugeState.h"
-#include "render/IDrawSurface.h"
 #include "looks/ILook.h"
+#include "render/Color.h"
+#include "render/IDrawSurface.h"
 
 namespace gauge {
 
@@ -12,7 +12,7 @@ struct ClassicLookConfig {
   float minPsi = -15.0f;
   float maxPsi = 25.0f;
   float majorStepPsi = 5.0f;
-  int minorPerMajor = 2;       // minor tick every majorStep / minorPerMajor
+  int minorPerMajor = 2;  // minor tick every majorStep / minorPerMajor
   float amberFromPsi = 15.0f;
   float redFromPsi = 20.0f;
 };
@@ -26,7 +26,7 @@ class ClassicLook : public ILook {
   static constexpr float kStartDeg = GaugeScale::kStartDeg;
   static constexpr float kSweepDeg = GaugeScale::kSweepDeg;
 
-  explicit ClassicLook(ClassicLookConfig config = {}) : config_(config) {}
+  explicit ClassicLook(const ClassicLookConfig& config = {}) : config_(config) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;

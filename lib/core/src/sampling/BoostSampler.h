@@ -2,9 +2,9 @@
 
 #include <cstdint>
 
-#include "sampling/AmbientPressure.h"
 #include "base/IClock.h"
 #include "obd/IObdClient.h"
+#include "sampling/AmbientPressure.h"
 #include "sampling/LinkSupervisor.h"
 
 namespace gauge {

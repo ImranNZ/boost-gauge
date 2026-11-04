@@ -1,8 +1,8 @@
 #pragma once
 
 #include "gauge/GaugeState.h"
-#include "render/ICanvas.h"
 #include "looks/ILook.h"
+#include "render/ICanvas.h"
 
 namespace gauge {
 

@@ -4,8 +4,7 @@
 
 namespace gauge {
 
-CanObdClient::CanObdClient(ICanBus& bus, IClock& clock)
-    : CanObdClient(bus, clock, Options{}) {}
+CanObdClient::CanObdClient(ICanBus& bus, IClock& clock) : CanObdClient(bus, clock, Options{}) {}
 
 CanObdClient::CanObdClient(ICanBus& bus, IClock& clock, Options options)
     : bus_(bus), clock_(clock), options_(options) {}
