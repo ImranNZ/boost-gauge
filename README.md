@@ -1,5 +1,7 @@
 # Boost Gauge
 
+[![CI](https://github.com/ImranNZ/boost-gauge/actions/workflows/ci.yml/badge.svg)](https://github.com/ImranNZ/boost-gauge/actions/workflows/ci.yml)
+
 A digital boost gauge for an F56 Mini Cooper S (B48), running on a Waveshare
 [ESP32-S3-LCD-1.28-B](https://www.waveshare.com/product/esp32-s3-lcd-1.28-b.htm)
 (240x240 round GC9A01 display). It reads manifold absolute pressure (OBD-II
@@ -27,7 +29,7 @@ Markdown has no tabs, so pick your system below.
 
 ```bash
 winget install BrechtSanders.WinLibs.POSIX.UCRT
-pip install platformio gcovr
+pip install -r requirements.txt   # platformio + gcovr, the versions CI uses
 ```
 
 Run the `tools/*.sh` scripts from Git Bash.
@@ -43,7 +45,7 @@ environment inside the repo:
 xcode-select --install          # Apple clang (g++) and git
 python3 -m venv .venv
 source .venv/bin/activate       # repeat in every new terminal
-pip install platformio gcovr
+pip install -r requirements.txt   # platformio + gcovr, the versions CI uses
 ```
 
 Inside the venv, `python` and `python3` both work. `tools/coverage.sh` picks the right
@@ -62,7 +64,7 @@ then `pipx install platformio` and `pipx install gcovr`; `tools/coverage.sh` fin
 sudo apt install build-essential python3-venv   # or your distro's equivalent
 python3 -m venv .venv
 source .venv/bin/activate       # repeat in every new terminal
-pip install platformio gcovr
+pip install -r requirements.txt   # platformio + gcovr, the versions CI uses
 ```
 
 Newer distros also block system-wide pip (PEP 668), hence the venv.
@@ -118,6 +120,27 @@ Stop the preview before rebuilding the sim (Windows locks `program.exe` while it
 
 For still images instead, `pio run -e sim -t exec` writes `out/sheet.png` (8
 frames of the drive) and `out/no_link.png`.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` is one pipeline in three gated stages, so nothing expensive runs once
+something cheap has failed:
+
+| Stage | Jobs | Runs on |
+| ----- | ---- | ------- |
+| **1. Test** | `tools/coverage.sh` on Linux (the `lib/core` layering, all unit tests, 100% line and branch coverage); the same tests on macOS under Apple clang, which counts coverage differently from GCC; the simulator build | every pull request and push |
+| **2. Build** | All four ESP32 environments (`device-demo`, `-can`, `-ble`, `-wifi`) compile | after stage 1 passes |
+| **3. Publish** | Bundle the firmware images (`firmware`, `bootloader`, `partitions`, `boot_app0`) with `SHA256SUMS` | after stage 2, on pushes only |
+
+A pull request runs stages 1 and 2 and publishes nothing. A **merge to `main`** also keeps the
+bundle as a build artifact for 30 days (a flashable "latest main"). A **version tag** publishes a
+GitHub Release with the images attached:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Run `tools/coverage.sh` locally before pushing to catch failures early.
 
 ## Put it on the board
 

@@ -114,6 +114,13 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
 
+## Pull requests and CI
+
+Change `main` through a pull request. CI (`.github/workflows/ci.yml`) runs gated stages: test (coverage
+gate, macOS unit tests, sim build), then the four firmware builds, then, on a push only, publish
+(an artifact for `main`, a GitHub Release for a `v*` tag). Run the `check` skill locally first; the
+firmware envs you did not touch are the slowest thing CI checks, so build the ones you did.
+
 ## Layout of lib/core/src
 
 Grouped by domain, each folder depending only on the ones before it: `base` (IClock) <- `obd`
