@@ -405,11 +405,20 @@ another car:
 | Area | What the gauge assumes | If your car differs |
 | ---- | ---------------------- | ------------------- |
 | **Bus protocol** | Direct CAN is ISO 15765-4 (11-bit IDs, 500 kbit/s by default): most cars from about 2008 | Set `kCanBitrateKbps` for a 250 kbit/s car. For 29-bit CAN, older K-line / J1850 cars, or trucks use an **ELM327 dongle** and set `kElmProtocol` (`"0"` = automatic) |
-| **PID `0B` (manifold pressure)** | Required | Nearly every turbo car has it; EVs and some others do not |
-| **PID `33` (barometric)** | Optional: it falls back to standard atmosphere (101.3 kPa) | Boost is then a few psi off at altitude or in bad weather |
+| **PID `0B` (manifold pressure)** | Required. The gauge asks the car which PIDs it implements; if `0B` is not among them it shows no reading (NO LINK) without hammering the bus | Nearly every turbo car has it; EVs and some others do not |
+| **PID `33` (barometric)** | Optional: if the car does not report it, it is not asked, and standard atmosphere (101.3 kPa) is used | Boost is then a few psi off at altitude or in bad weather |
 | **PID `0B` range** | One byte: 255 kPa absolute, about 22 psi of boost at sea level | Higher-boost or tuned cars saturate; a newer standard PID has two bytes (not used yet) |
 | **Direct boost PIDs** | Not used | Some cars, mostly diesels, report boost directly (e.g. `6F`, `70`, `87`) |
 | **Manufacturer data** | Not used: mode 01 only, read-only | Oil temperature and similar sit in manufacturer-specific services, outside the standard |
+
+**PID discovery.** Each time the link comes up the gauge reads the car's standard support bitmaps
+(PIDs `00`, `20`, `40` ... , each range's last bit saying whether another follows) and adapts. A car
+that does not answer the discovery is simply treated as before, and a range it never answered is
+"unknown", never "unsupported". Set `config::kLogPidSupport` to print what the car reports to the
+serial console: a quick PID scanner for trying another car.
+
+Boost PIDs beyond `0B` (`6F`, `70`, `87`) are **not used yet**: their byte layouts are not clear
+from the sources checked, and `70` is a 10-byte reply that needs multi-frame handling.
 
 It has not been verified on any car yet, so "should work on an OBD-II car that reports PID `0B`"
 is the honest claim. If you try it on another car, please report what happened.

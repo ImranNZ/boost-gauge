@@ -38,6 +38,12 @@ constexpr Look kLook = Look::Retro;
 // looks/<name>/spec.json).
 inline constexpr gauge::GaugeProfile kProfile = gauge::GaugeProfile::psi();
 
+// --- PID discovery -----------------------------------------------------------
+// Each time the link comes up the gauge asks the car which mode 01 PIDs it implements. Set this to
+// print the answer to the serial console (115200 baud): the "PID scanner", handy for seeing what
+// another car offers before trusting the gauge on it.
+constexpr bool kLogPidSupport = false;
+
 // --- Diagnostics -------------------------------------------------------------
 // Show the measured frames-per-second in the bottom corner of the dial.
 constexpr bool kShowFps = true;

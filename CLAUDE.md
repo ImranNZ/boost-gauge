@@ -127,7 +127,8 @@ The code uses standard OBD-II only; the Mini is the default setup and the first 
 assumption. Keep it that way: car- and owner-dependent values (unit, range, zones, bus protocol, CAN
 speed) belong in `GaugeProfile` and `src/config.h`, not in a look or the sampler. The Mini
 branding (badge, "Modern Mini" look) stays optional. The README's "Other cars" table says what is
-and is not portable; keep it accurate when you change protocol or PID handling.
+and is not portable (`PidSupport` discovers what a car implements; never use a PID whose layout you
+have not verified); keep it accurate when you change protocol or PID handling.
 
 ## Pull requests and CI
 

@@ -11,6 +11,7 @@
 #include "config.h"
 #include "device/ArduinoClock.h"
 #include "device/LgfxCanvas.h"
+#include "device/PidLog.h"
 #include "device/SamplerTask.h"
 #include "device/Transport.h"
 #include "looks/ClassicLook.h"
@@ -32,7 +33,11 @@ device::LgfxCanvas canvas;
 
 // Producer side (sampler task).
 device::Transport transport(clock);
-gauge::BoostSampler sampler(transport.client(), clock);
+gauge::BoostSampler sampler(transport.client(), clock, [] {
+  gauge::BoostSampler::Options options;
+  if (config::kLogPidSupport) options.onDiscovered = device::logPidSupport;
+  return options;
+}());
 gauge::ReadingMailbox mailbox;
 gauge::SamplerLoop samplerLoop(sampler, mailbox);
 device::SamplerTask samplerTask(samplerLoop);

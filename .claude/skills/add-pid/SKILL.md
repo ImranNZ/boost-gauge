@@ -15,8 +15,11 @@ Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 3. **Sampling**: extend `BoostSampler` only if it is part of boost; otherwise add a collaborator beside
    `AmbientPressure` / `LinkSupervisor` and a coordinator (single responsibility). Throttle slow-changing values like baro does
    (`AmbientPressure::Options::refreshMs` / `retryMs`) so unsupported PIDs don't stall every frame.
+   The car's PID discovery (`obd/PidSupport.h`) says whether it implements the PID: use
+   `support.knows(pid) && !support.supports(pid)` to skip a PID the car does not report, and treat
+   an unknown one as possibly supported.
 4. **Fake ECU**: teach `FakeEcu::answer` (`lib/fakes/src/FakeEcu.cpp`) to return
-   it, and advertise it in the `0x00` supported-PIDs bitmask if relevant.
+   it, and list it with `FakeEcu::setSupported` (the support bitmaps are generated from that set).
 5. **Tests** (`test/test_core/`): decode formula incl. edge values, supported and
    unsupported paths, and throttling. Then `tools/coverage.sh` must stay at 100%.
 6. **Display** (if shown): change `GaugeState` / the look(s). Only use glyphs in
