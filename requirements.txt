@@ -2,3 +2,4 @@
 # Dependabot proposes updates. The look/font/media generators need more: see tools/*.py.
 platformio==6.2.0
 gcovr==8.8
+pillow==12.0.0   # tools/check_renders.py (and make_media.py)

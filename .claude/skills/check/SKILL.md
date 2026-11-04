@@ -17,10 +17,12 @@ description: Run the full verification for the boost gauge (unit tests, 100% cov
    colours, NO LINK banner. For motion, run `python tools/preview.py --no-browser`
    in the background, open `http://127.0.0.1:8765` in the browser pane, and use
    the page controls (`drive`, `boost <psi>`, `offline`/`online`); stop it afterwards.
-3. If firmware code (`src/**`) changed, compile the affected environment(s):
+3. If any look, font or canvas code changed, run `python tools/check_renders.py` (it compares every
+   look against `test/golden/`; on an intended change look at the result, then `--update` and commit).
+4. If firmware code (`src/**`) changed, compile the affected environment(s):
    `pio run -e device-demo` always, plus `device-can` / `device-ble` /
    `device-wifi` if their adapters changed.
-4. Report: test counts, coverage numbers, which envs compiled, and anything not
+5. Report: test counts, coverage numbers, which envs compiled, and anything not
    verified (hardware behaviour is never verified here; say so).
 
 If coverage drops below 100%, add tests; do not lower the gate or exclude code
