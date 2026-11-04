@@ -1,7 +1,7 @@
 #include "device/LgfxCanvas.h"
 
-#include "render/ArcCoverage.h"
 #include "config.h"
+#include "render/ArcCoverage.h"
 
 namespace device {
 
@@ -97,10 +97,9 @@ void LgfxCanvas::fillArc(int cx, int cy, int innerRadius, int outerRadius, float
 
   for (int y = cy - reach; y <= cy + reach; ++y) {
     for (int x = cx - reach; x <= cx + reach; ++x) {
-      const float coverage = gauge::arcCoverage(static_cast<float>(x - cx),
-                                                static_cast<float>(y - cy),
-                                                static_cast<float>(innerRadius),
-                                                static_cast<float>(outerRadius), start, sweep);
+      const float coverage = gauge::arcCoverage(
+          static_cast<float>(x - cx), static_cast<float>(y - cy), static_cast<float>(innerRadius),
+          static_cast<float>(outerRadius), start, sweep);
       if (coverage <= 0.0f) continue;
       if (coverage >= 1.0f) {
         frame_.drawPixel(x, y, rgb(color));
@@ -117,8 +116,7 @@ void LgfxCanvas::drawWedge(float x0, float y0, float x1, float y1, float r0, flo
   frame_.drawWedgeLine(x0, y0, x1, y1, r0, r1, rgb(color));
 }
 
-void LgfxCanvas::drawLine(int x0, int y0, int x1, int y1, int thickness,
-                          gauge::Color color) {
+void LgfxCanvas::drawLine(int x0, int y0, int x1, int y1, int thickness, gauge::Color color) {
   const float radius = static_cast<float>(thickness < 1 ? 1 : thickness) * 0.5f;
   frame_.drawWideLine(x0, y0, x1, y1, radius, rgb(color));
 }
@@ -141,8 +139,8 @@ void LgfxCanvas::drawImage(const gauge::ImageView& image, int x, int y) {
       const int py = y + iy;
       if (px < 0 || py < 0 || px >= frame_.width() || py >= frame_.height()) continue;
 
-      const size_t index = static_cast<size_t>(iy) * static_cast<size_t>(image.width) +
-                           static_cast<size_t>(ix);
+      const size_t index =
+          static_cast<size_t>(iy) * static_cast<size_t>(image.width) + static_cast<size_t>(ix);
       const int alpha = image.alpha[index];
       if (alpha == 0) continue;
       const gauge::Color src = gauge::rgb565ToColor(image.rgb565[index]);

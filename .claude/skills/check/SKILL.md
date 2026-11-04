@@ -5,6 +5,8 @@ description: Run the full verification for the boost gauge (unit tests, 100% cov
 
 # Verify the boost gauge
 
+0. Run `python tools/format.py` and `tools/static_analysis.sh` (CI fails on an unformatted file or a
+   cppcheck finding).
 1. Run `tools/coverage.sh`. It first checks the `lib/core/src` layering (`tools/check_layers.py`),
    then must end with `[doctest] Status: SUCCESS!` and
    line/branch/function coverage all `100.0%`. If PlatformIO prints SKIPPED or

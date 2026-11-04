@@ -65,8 +65,8 @@ void ModernLook::drawNeedle(IDrawSurface& c, float cx, float cy, float deg) cons
 // A slim tapered pointer with a short tail, from anti-aliased wedges.
 void ModernLook::drawNeedleShape(IDrawSurface& c, float cx, float cy, float dx, float dy,
                                  Color color) const {
-  c.drawWedge(cx, cy, cx + dx * spec_.needleLength, cy + dy * spec_.needleLength,
-              kNeedleBaseRadius, kNeedleTipRadius, color);
+  c.drawWedge(cx, cy, cx + dx * spec_.needleLength, cy + dy * spec_.needleLength, kNeedleBaseRadius,
+              kNeedleTipRadius, color);
   c.drawWedge(cx - dx * spec_.tailLength, cy - dy * spec_.tailLength, cx, cy, kTailEndRadius,
               kNeedleBaseRadius, color);
 }

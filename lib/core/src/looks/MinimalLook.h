@@ -2,13 +2,13 @@
 
 #include <optional>
 
+#include "gauge/GaugeScale.h"
+#include "gauge/GaugeState.h"
+#include "looks/ILook.h"
 #include "render/Badge.h"
 #include "render/Color.h"
 #include "render/Font.h"
-#include "gauge/GaugeScale.h"
-#include "gauge/GaugeState.h"
 #include "render/IDrawSurface.h"
-#include "looks/ILook.h"
 
 namespace gauge {
 
@@ -27,8 +27,8 @@ class MinimalLook : public ILook {
     Font label;
   };
 
-  explicit MinimalLook(Fonts fonts) : fonts_(fonts) {}
-  MinimalLook(Fonts fonts, Badge badge) : fonts_(fonts), badge_(badge) {}
+  explicit MinimalLook(const Fonts& fonts) : fonts_(fonts) {}
+  MinimalLook(const Fonts& fonts, const Badge& badge) : fonts_(fonts), badge_(badge) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;

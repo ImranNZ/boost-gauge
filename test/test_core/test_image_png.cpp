@@ -1,11 +1,11 @@
 // The Image bitmap and the PNG writer.
 
-#include "test_support.h"
-
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+
+#include "test_support.h"
 
 using namespace support;
 
@@ -116,8 +116,7 @@ TEST_CASE("image: bounds-checked set/get, fill and blit") {
 TEST_CASE("png writer: valid structure, CRCs, Adler and pixel data") {
   Image img(240, 240);  // 172,800 bytes raw => several stored blocks
   for (int y = 0; y < 240; ++y)
-    for (int x = 0; x < 240; ++x)
-      img.set(x, y, Color{uint8_t(x), uint8_t(y), uint8_t(x ^ y)});
+    for (int x = 0; x < 240; ++x) img.set(x, y, Color{uint8_t(x), uint8_t(y), uint8_t(x ^ y)});
 
   const std::string path = tempPng("boost_gauge_test_big.png");
   REQUIRE(writePng(img, path));

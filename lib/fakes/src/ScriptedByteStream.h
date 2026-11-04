@@ -12,8 +12,7 @@ namespace gauge {
 /// then goes silent. Lets tests force timeouts, errors and oversize replies.
 class ScriptedByteStream : public IByteStream {
  public:
-  explicit ScriptedByteStream(std::vector<std::string> replies)
-      : replies_(std::move(replies)) {}
+  explicit ScriptedByteStream(std::vector<std::string> replies) : replies_(std::move(replies)) {}
 
   bool connect() override {
     connected_ = true;

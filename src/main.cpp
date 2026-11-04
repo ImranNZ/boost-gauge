@@ -7,23 +7,23 @@
 
 #include <Arduino.h>
 
-#include "sampling/BoostSampler.h"
-#include "looks/ClassicLook.h"
 #include "app/GaugeApp.h"
-#include "looks/MinimalLook.h"
-#include "looks/ModernLook.h"
-#include "looks/MotorsportLook.h"
-#include "sampling/ReadingMailbox.h"
-#include "sampling/SamplerLoop.h"
 #include "config.h"
 #include "device/ArduinoClock.h"
 #include "device/LgfxCanvas.h"
 #include "device/SamplerTask.h"
 #include "device/Transport.h"
+#include "looks/ClassicLook.h"
+#include "looks/MinimalLook.h"
+#include "looks/ModernLook.h"
+#include "looks/MotorsportLook.h"
 #include "looks/minimal/MinimalLookFactory.h"
 #include "looks/modern/ModernLookFactory.h"
 #include "looks/motorsport/MotorsportLookFactory.h"
 #include "looks/retro/RetroLookFactory.h"
+#include "sampling/BoostSampler.h"
+#include "sampling/ReadingMailbox.h"
+#include "sampling/SamplerLoop.h"
 
 namespace {
 
@@ -61,12 +61,11 @@ const gauge::ILook& chosenLook() {
 }
 
 // Consumer side (loop()).
-gauge::GaugeApp app(mailbox, canvas, clock, chosenLook(),
-                    [] {
-                      gauge::GaugeApp::Options options;
-                      options.showFps = config::kShowFps;
-                      return options;
-                    }());
+gauge::GaugeApp app(mailbox, canvas, clock, chosenLook(), [] {
+  gauge::GaugeApp::Options options;
+  options.showFps = config::kShowFps;
+  return options;
+}());
 
 }  // namespace
 

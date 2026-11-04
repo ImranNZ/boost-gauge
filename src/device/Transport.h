@@ -13,8 +13,8 @@
 
 #if defined(TRANSPORT_CAN)
 
-#include "obd/CanObdClient.h"
 #include "device/TwaiBus.h"
+#include "obd/CanObdClient.h"
 
 namespace device {
 class Transport {
@@ -30,8 +30,8 @@ class Transport {
 
 #elif defined(TRANSPORT_BLE)
 
-#include "obd/Elm327Client.h"
 #include "device/BleElmStream.h"
+#include "obd/Elm327Client.h"
 
 namespace device {
 class Transport {
@@ -47,8 +47,8 @@ class Transport {
 
 #elif defined(TRANSPORT_WIFI)
 
-#include "obd/Elm327Client.h"
 #include "device/WifiElmStream.h"
+#include "obd/Elm327Client.h"
 
 namespace device {
 class Transport {
@@ -64,9 +64,9 @@ class Transport {
 
 #elif defined(TRANSPORT_DEMO)
 
-#include "obd/CanObdClient.h"
 #include "FakeCanBus.h"
 #include "FakeEcu.h"
+#include "obd/CanObdClient.h"
 
 namespace device {
 /// No car: a simulated engine computer driving itself through a scripted cycle.

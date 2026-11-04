@@ -14,14 +14,12 @@ struct Keyframe {
 };
 
 constexpr Keyframe kProfile[] = {
-    {0.0f, -11.0f},   // idle
-    {3.0f, -11.0f},
-    {5.0f, 17.0f},    // floor it
-    {8.0f, 17.5f},
-    {10.0f, -12.0f},  // lift off
-    {14.0f, -5.0f},   // cruise
-    {17.0f, 6.0f},    // light throttle
-    {20.0f, -11.0f},  // back to idle
+    {0.0f, -11.0f},                    // idle
+    {3.0f, -11.0f},  {5.0f, 17.0f},    // floor it
+    {8.0f, 17.5f},   {10.0f, -12.0f},  // lift off
+    {14.0f, -5.0f},                    // cruise
+    {17.0f, 6.0f},                     // light throttle
+    {20.0f, -11.0f},                   // back to idle
 };
 
 float smoothstep(float t) { return t * t * (3.0f - 2.0f * t); }

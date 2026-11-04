@@ -62,7 +62,8 @@ TEST_CASE("modern look: needle follows the pressure, with a tail and a hub") {
 TEST_CASE("modern look: needle casts a shadow down and to the right") {
   FlatDial dial(kCream);
   ModernLook look(dial.view(), kSpec, fonts());
-  const SoftCanvas canvas = draw(look, -15.0f + 45.0f / 6.75f);  // pointing left, level with the pivot
+  const SoftCanvas canvas =
+      draw(look, -15.0f + 45.0f / 6.75f);  // pointing left, level with the pivot
 
   // Left of the pivot, along the needle: orange. A couple of pixels below it: its shadow.
   CHECK(same(canvas.image().get(60, 120), ModernLook::kNeedle));
