@@ -22,8 +22,8 @@ TEST_CASE("font: width adds the advances, plus tracking between characters") {
   CHECK(label().width("") == 0);
   CHECK(label().width("A") == 8);
   CHECK(label().width("AB") == 16);
-  CHECK(label().width("AB", 3) == 19);   // tracking goes between, not after
-  CHECK(label().width("A B") == 24);  // a space advances like any other character
+  CHECK(label().width("AB", 3) == 19);  // tracking goes between, not after
+  CHECK(label().width("A B") == 24);    // a space advances like any other character
 }
 
 TEST_CASE("font: characters the font lacks take no space and draw nothing") {
@@ -42,10 +42,10 @@ TEST_CASE("font: draws each glyph from its offset, on the baseline") {
   // 'A' covers x 11..16, y 10..19; 'B' starts one advance (8) later.
   CHECK(same(canvas.image().get(11, 10), kWhite));
   CHECK(same(canvas.image().get(16, 19), kWhite));
-  CHECK(same(canvas.image().get(10, 10), kBlack));   // left of the glyph
-  CHECK(same(canvas.image().get(17, 15), kBlack));   // the gap between glyphs
-  CHECK(same(canvas.image().get(19, 15), kWhite));   // 'B'
-  CHECK(same(canvas.image().get(11, 20), kBlack));   // nothing below the baseline
+  CHECK(same(canvas.image().get(10, 10), kBlack));  // left of the glyph
+  CHECK(same(canvas.image().get(17, 15), kBlack));  // the gap between glyphs
+  CHECK(same(canvas.image().get(19, 15), kWhite));  // 'B'
+  CHECK(same(canvas.image().get(11, 20), kBlack));  // nothing below the baseline
   CHECK(countNonBlack(canvas.image()) == 2 * 6 * 10);
 }
 

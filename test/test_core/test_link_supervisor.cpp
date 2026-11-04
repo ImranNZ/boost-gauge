@@ -54,7 +54,7 @@ TEST_CASE("link supervisor: a run of failures takes the link down, then it recon
   link.noteFailure();
   CHECK(link.ensureLinked());  // two failures: still considered up
 
-  link.noteFailure();          // the third
+  link.noteFailure();  // the third
   clock.advance(500);
   CHECK(link.ensureLinked());  // it was down, so this reconnects
   CHECK(client.beginCalls == 2);

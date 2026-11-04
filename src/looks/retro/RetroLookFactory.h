@@ -31,8 +31,8 @@ inline gauge::ImageView retroDial() {
 }
 
 inline gauge::RetroLook::Spec retroSpec() {
-  return {retro::kMinPsi,         retro::kMaxPsi,          retro::kNeedleLength,
-          retro::kTailLength,     retro::kFlagInnerRadius, retro::kFlagOuterRadius,
+  return {retro::kMinPsi,     retro::kMaxPsi,          retro::kNeedleLength,
+          retro::kTailLength, retro::kFlagInnerRadius, retro::kFlagOuterRadius,
           retro::kHubRadius};
 }
 

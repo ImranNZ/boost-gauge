@@ -1,0 +1,4 @@
+# Google-ish style at 100 columns, which is how the code has been written.
+# Generated files (src/looks/fonts/, *Dial.h, *Spec.h) are not formatted: see tools/format.py.
+BasedOnStyle: Google
+ColumnLimit: 100

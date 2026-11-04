@@ -42,8 +42,8 @@ TEST_CASE("ecu commands: rejects unknown and malformed input") {
   CHECK_FALSE(applyEcuCommand(ecu, ""));
   CHECK_FALSE(applyEcuCommand(ecu, "   "));
   CHECK_FALSE(applyEcuCommand(ecu, "launch"));
-  CHECK_FALSE(applyEcuCommand(ecu, "boost"));        // missing argument
-  CHECK_FALSE(applyEcuCommand(ecu, "boostabc"));     // no separator
+  CHECK_FALSE(applyEcuCommand(ecu, "boost"));     // missing argument
+  CHECK_FALSE(applyEcuCommand(ecu, "boostabc"));  // no separator
   CHECK_FALSE(applyEcuCommand(ecu, "boost abc"));
   CHECK_FALSE(applyEcuCommand(ecu, "boost 5 psi"));  // trailing junk
   CHECK_FALSE(applyEcuCommand(ecu, "boost 1234567890123456789012345678901234567890"));  // too long
@@ -79,12 +79,12 @@ TEST_CASE("rate command sets the interval and validates input") {
   CHECK(applyRateCommand(source, "rate 100"));
   CHECK(source.intervalMs() == 10);
 
-  CHECK_FALSE(applyRateCommand(source, "rate 0"));     // below range
-  CHECK_FALSE(applyRateCommand(source, "rate 500"));   // above range
+  CHECK_FALSE(applyRateCommand(source, "rate 0"));    // below range
+  CHECK_FALSE(applyRateCommand(source, "rate 500"));  // above range
   CHECK_FALSE(applyRateCommand(source, "rate fast"));
   CHECK_FALSE(applyRateCommand(source, "rate"));
-  CHECK_FALSE(applyRateCommand(source, "boost 5"));    // not a rate command
-  CHECK(source.intervalMs() == 10);                    // unchanged by failures
+  CHECK_FALSE(applyRateCommand(source, "boost 5"));  // not a rate command
+  CHECK(source.intervalMs() == 10);                  // unchanged by failures
 }
 
 TEST_CASE("parseLookCommand recognises 'look <name>'") {

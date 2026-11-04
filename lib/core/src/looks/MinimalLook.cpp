@@ -18,7 +18,7 @@ constexpr Color kNoLink{255, 77, 77};
 
 // The heat ramp for boost: pressure and colour at each stop, blended in between.
 struct Stop {
-  float psi;
+  float psi = 0.0f;
   Color color;
 };
 constexpr Stop kRamp[] = {
@@ -145,8 +145,7 @@ void MinimalLook::drawReadout(IDrawSurface& c, const GaugeState& state) const {
     std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.psi));
     fonts_.number.draw(c, kCx, numberBaseline, text, TextAlign::Center, kText);
   } else {
-    fonts_.label.draw(c, kCx, kModeBaseline, "NO LINK", TextAlign::Center, kNoLink,
-                      kModeTracking);
+    fonts_.label.draw(c, kCx, kModeBaseline, "NO LINK", TextAlign::Center, kNoLink, kModeTracking);
     fonts_.number.draw(c, kCx, numberBaseline, "--.-", TextAlign::Center, kLabel);
   }
   fonts_.label.draw(c, kCx, kUnitBaseline, "PSI", TextAlign::Center, kLabel, kUnitTracking);

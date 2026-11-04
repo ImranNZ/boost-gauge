@@ -69,7 +69,8 @@ int runLive(std::string_view initialLook, bool paced) {
 
   Rig rig;
   if (!rig.selectLook(initialLook)) {
-    std::fprintf(stderr, "unknown look '%.*s' (use retro, classic, minimal, motorsport or modern)\n",
+    std::fprintf(stderr,
+                 "unknown look '%.*s' (use retro, classic, minimal, motorsport or modern)\n",
                  static_cast<int>(initialLook.size()), initialLook.data());
   }
   using Clock = std::chrono::steady_clock;

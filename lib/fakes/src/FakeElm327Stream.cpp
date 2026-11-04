@@ -28,7 +28,7 @@ int FakeElm327Stream::read() {
   return static_cast<unsigned char>(out_[outPos_++]);
 }
 
-void FakeElm327Stream::handleCommand(std::string command) {
+void FakeElm327Stream::handleCommand(const std::string& command) {
   std::string cmd;
   for (char c : command) {
     if (c != ' ') cmd += static_cast<char>(std::toupper(static_cast<unsigned char>(c)));

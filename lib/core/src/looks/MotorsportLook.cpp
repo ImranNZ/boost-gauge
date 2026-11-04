@@ -143,8 +143,7 @@ void MotorsportLook::drawReadout(IDrawSurface& c, const GaugeState& state) const
                        state.psi > kShiftPsi ? kHotText : kWhite);
   } else {
     fonts_.number.draw(c, kCx, numberBaseline, "--.-", TextAlign::Center, kLabel);
-    fonts_.caption.draw(c, kCx, kBoostBaseline, "NO LINK", TextAlign::Center, kRed,
-                        kBoostTracking);
+    fonts_.caption.draw(c, kCx, kBoostBaseline, "NO LINK", TextAlign::Center, kRed, kBoostTracking);
   }
 
   if (state.linked && state.peakPsi > kMinDrawnPsi) {

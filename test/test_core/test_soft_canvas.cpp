@@ -129,8 +129,8 @@ TEST_CASE("drawMask: tints with the colour, using the mask as coverage") {
   c.clear(Color{0, 0, 100});
   c.drawMask(mask, 3, 4, Color{200, 0, 0});
 
-  CHECK(same(c.image().get(3, 4), Color{200, 0, 0}));    // fully covered
-  CHECK(same(c.image().get(4, 4), Color{0, 0, 100}));    // no coverage: untouched
+  CHECK(same(c.image().get(3, 4), Color{200, 0, 0}));  // fully covered
+  CHECK(same(c.image().get(4, 4), Color{0, 0, 100}));  // no coverage: untouched
   CHECK(same(c.image().get(3, 5), blend(Color{0, 0, 100}, Color{200, 0, 0}, 128)));
   CHECK(same(c.image().get(4, 5), Color{200, 0, 0}));
 }
@@ -187,11 +187,11 @@ TEST_CASE("drawImage: ignores a null picture and clips on every edge") {
   c.drawImage(image, 0, -1);  // top edge
   CHECK(same(c.image().get(0, 0), kWhite));
   c.clear(kBlack);
-  c.drawImage(image, 3, 0);   // right edge: only x = 3 lands
+  c.drawImage(image, 3, 0);  // right edge: only x = 3 lands
   CHECK(same(c.image().get(3, 0), kWhite));
   CHECK(same(c.image().get(2, 0), kBlack));
   c.clear(kBlack);
-  c.drawImage(image, 0, 3);   // bottom edge
+  c.drawImage(image, 0, 3);  // bottom edge
   CHECK(same(c.image().get(0, 3), kWhite));
   CHECK(same(c.image().get(0, 2), kBlack));
 }
@@ -207,7 +207,7 @@ TEST_CASE("drawImage: alpha skips, blends and overwrites") {
   CHECK(same(c.image().get(0, 0), Color{100, 100, 100}));  // alpha 0: unchanged
   const Color blended = c.image().get(1, 0);
   CHECK(blended.r > 100);
-  CHECK(blended.r < 255);  // halfway-ish between the background and white
+  CHECK(blended.r < 255);                    // halfway-ish between the background and white
   CHECK(same(c.image().get(2, 0), kWhite));  // alpha 255: replaced
 }
 
@@ -253,7 +253,7 @@ TEST_CASE("supersampling: edges blend instead of stepping") {
 TEST_CASE("supersampling: arcs, lines and text render at scale") {
   SoftCanvas c(60, 60, 3);
   c.fillArc(30, 30, 15, 25, 0.0f, 90.0f, kWhite);
-  CHECK(same(c.image().get(30 + 20, 30 + 1), kWhite));   // inside the ring, near 3 o'clock
+  CHECK(same(c.image().get(30 + 20, 30 + 1), kWhite));  // inside the ring, near 3 o'clock
   CHECK(same(c.image().get(30 - 20, 30), kBlack));
 
   c.clear(kBlack);
