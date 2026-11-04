@@ -9,6 +9,11 @@ PID `0B`) and barometric pressure (PID `33`) and shows **boost in psi**
 You do not need the hardware to work on this. The gauge logic, the OBD
 protocols and the rendering all run on your PC against a simulated ECU.
 
+<p align="center">
+  <img src="docs/media/looks.png" alt="The five looks: Modern Mini, Retro 60s, Minimal, Motorsport and Classic" width="100%">
+</p>
+<p align="center"><sub>Five looks, rendered by the simulator against the mock ECU (<code>tools/make_media.py</code>).</sub></p>
+
 ## Get started (5 minutes, no hardware)
 
 ### 1. Install the tools
@@ -183,7 +188,9 @@ src/main.cpp    Composition root: wires concrete classes, picks transport
 src/config.h    Pins, SSID, addresses
 test/test_core  doctest suites, one file per unit
 tools/          preview.py + preview.html (live browser preview), make_look.py (dial
-                headers), make_font.py + fonts.json (glyph tables), coverage.sh
+                headers), make_font.py + fonts.json (glyph tables), make_media.py (the
+                README pictures), check_layers.py, coverage.sh
+docs/media/     The README pictures: a still and a 10 s animation (WebP) per look
 ```
 
 Headers are included by their path under `lib/core/src` (`#include "obd/Elm327Client.h"`).
@@ -251,15 +258,17 @@ SPI maths and the PC preview.
 A **look** (`ILook`) is a complete visual style. The app hands it the current
 state each frame and it draws. Five exist today:
 
-| Look | What it is |
-| ---- | ---------- |
-| **Classic** (`ClassicLook`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
-| **Retro 60s** (`RetroLook`) | Cream dial that is a pre-rendered picture, slim red needle with a counterweight tail, a peak flag and a chrome-ringed hub. Purely analog. |
-| **Minimal** (`MinimalLook`) | No needle: a thin arc grows out from zero (blue for vacuum, a green-to-red heat ramp for boost) with a glow, around a big number. Drawn in code. |
-| **Motorsport** (`MotorsportLook`) | A 40-segment bar (one per psi) that lights up through blue, teal, lime, amber and red, a bold readout, and a rim that pulses red past 20 psi like a shift light. Drawn in code. |
-| **Modern Mini** (`ModernLook`) | Chrome ring and black dial with amber and red bands as a pre-rendered picture, an orange needle with a short tail, a peak flag, a chrome hub, and the digital readout in its own window. The F56 interior, as a gauge. |
+| | Look | What it is |
+| --- | ---- | ---------- |
+| <img src="docs/media/modern.webp" alt="modern look, animated" width="140"> | **Modern Mini** (`ModernLook`) | Chrome ring and black dial with amber and red bands as a pre-rendered picture, an orange needle with a short tail, a peak flag, a chrome hub, and the digital readout in its own window. The F56 interior, as a gauge. |
+| <img src="docs/media/retro.webp" alt="retro look, animated" width="140"> | **Retro 60s** (`RetroLook`) | Cream dial that is a pre-rendered picture, slim red needle with a counterweight tail, a peak flag and a chrome-ringed hub. Purely analog. |
+| <img src="docs/media/minimal.webp" alt="minimal look, animated" width="140"> | **Minimal** (`MinimalLook`) | No needle: a thin arc grows out from zero (blue for vacuum, a green-to-red heat ramp for boost) with a glow, around a big number. Drawn in code. |
+| <img src="docs/media/motorsport.webp" alt="motorsport look, animated" width="140"> | **Motorsport** (`MotorsportLook`) | A 40-segment bar (one per psi) that lights up through blue, teal, lime, amber and red, a bold readout, and a rim that pulses red past 20 psi like a shift light. Drawn in code. |
+| <img src="docs/media/classic.webp" alt="classic look, animated" width="140"> | **Classic** (`ClassicLook`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
 
 **Fonts.** Minimal and Motorsport draw their text with real typefaces (Outfit; Saira Condensed, both SIL OFL) instead of the board's 6x8 pixel font. `tools/fonts.json` lists each font, size, weight and characters; `python tools/make_font.py` renders them with FreeType into anti-aliased glyph tables in `src/looks/fonts/` (committed, never hand-edited). A look draws them through `Font::draw`, which uses the `IDrawSurface::drawMask` primitive, so the PC sim and the LCD agree. Add a font by adding an entry to `tools/fonts.json` and re-running the script (needs `pip install pillow`).
+
+**The pictures** above are recorded from the simulator by `python tools/make_media.py` (a still and a 10 s drive-cycle animation per look, in `docs/media/`). It uses a `sim-media` build that leaves the Cooper S badge out, because the badge is brand artwork and this repo is public. Re-run it after changing a look.
 
 Pick one for the firmware with `config::kLook` in `src/config.h` (`Look::Retro`, `Look::Classic`, `Look::Minimal`, `Look::Motorsport` or `Look::Modern`). In the
 preview, use the **Look** menu to switch live (that is the switcher the board

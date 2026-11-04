@@ -10,7 +10,7 @@
 #include "looks/fonts/OutfitLight62.h"
 #include "looks/fonts/OutfitMedium12.h"
 
-#if __has_include("looks/local/BadgeLight.h")
+#if __has_include("looks/local/BadgeLight.h") && !defined(BOOST_GAUGE_NO_BADGE)
 #include "looks/local/BadgeLight.h"
 #define BOOST_GAUGE_MINIMAL_HAS_BADGE 1
 #endif

@@ -12,7 +12,7 @@
 #include "looks/retro/RetroDial.h"
 #include "looks/retro/RetroSpec.h"
 
-#if __has_include("looks/local/Badge.h")
+#if __has_include("looks/local/Badge.h") && !defined(BOOST_GAUGE_NO_BADGE)
 #include "looks/local/Badge.h"
 #define BOOST_GAUGE_HAS_BADGE 1
 #endif

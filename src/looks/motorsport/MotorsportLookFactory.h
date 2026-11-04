@@ -11,7 +11,7 @@
 #include "looks/fonts/SairaSemiBold12.h"
 #include "looks/fonts/SairaSemiBold14.h"
 
-#if __has_include("looks/local/BadgeLight.h")
+#if __has_include("looks/local/BadgeLight.h") && !defined(BOOST_GAUGE_NO_BADGE)
 #include "looks/local/BadgeLight.h"
 #define BOOST_GAUGE_MOTORSPORT_HAS_BADGE 1
 #endif

@@ -65,6 +65,9 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
   `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
   hand-edit them, regenerate. `src/looks/retro/RetroDial.h` is big (~470 KB): avoid reading it.
+* **README media must not contain the badge.** `docs/media/` is regenerated with
+  `python tools/make_media.py`, which builds the `sim-media` env (`-DBOOST_GAUGE_NO_BADGE`). Never
+  screenshot the normal sim or the live preview for anything committed: they show the local badge.
 * **Brand artwork is never committed.** The Cooper S badge lives in `assets/` and
   `src/looks/local/` (both in `.gitignore`) and is included via `__has_include`: `Badge.h` (dark
   lettering, for the cream Retro dial) and `BadgeLight.h` (namespace `badge_light`, for the dark looks). Do not
