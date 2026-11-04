@@ -2,15 +2,15 @@
 
 #include <optional>
 
+#include "gauge/GaugeScale.h"
+#include "gauge/GaugeState.h"
+#include "looks/ILook.h"
+#include "looks/PointerSpec.h"
 #include "render/Badge.h"
 #include "render/Color.h"
 #include "render/Font.h"
-#include "gauge/GaugeScale.h"
-#include "gauge/GaugeState.h"
 #include "render/IDrawSurface.h"
-#include "looks/ILook.h"
 #include "render/ImageView.h"
-#include "looks/PointerSpec.h"
 
 namespace gauge {
 
@@ -31,9 +31,9 @@ class ModernLook : public ILook {
   static constexpr Color kNeedle{255, 90, 31};
   static constexpr Color kFlag{244, 241, 234};
 
-  ModernLook(ImageView dial, Spec spec, Fonts fonts)
+  ModernLook(ImageView dial, Spec spec, const Fonts& fonts)
       : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, fonts_(fonts) {}
-  ModernLook(ImageView dial, Spec spec, Fonts fonts, Badge badge)
+  ModernLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge& badge)
       : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, fonts_(fonts), badge_(badge) {}
 
   void drawDial(IDrawSurface& c) const override;
@@ -41,8 +41,7 @@ class ModernLook : public ILook {
 
  private:
   void drawNeedle(IDrawSurface& c, float cx, float cy, float deg) const;
-  void drawNeedleShape(IDrawSurface& c, float cx, float cy, float dx, float dy,
-                       Color color) const;
+  void drawNeedleShape(IDrawSurface& c, float cx, float cy, float dx, float dy, Color color) const;
   void drawPeakFlag(IDrawSurface& c, float cx, float cy, float deg) const;
   void drawHub(IDrawSurface& c, int cx, int cy) const;
   void drawReadout(IDrawSurface& c, const GaugeState& state) const;

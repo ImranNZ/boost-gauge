@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "obd/IByteStream.h"
 #include "base/IClock.h"
+#include "obd/IByteStream.h"
 #include "obd/IObdClient.h"
 
 namespace gauge {

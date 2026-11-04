@@ -3,8 +3,8 @@
 // Builds the Motorsport look. Shared by the firmware and the PC sim.
 //
 // Like the Retro look, it picks up the locally generated badge (see
-// RetroLookFactory.h) when src/looks/local/BadgeLight.h (the light variant, for dark dials) exists; the badge is brand
-// artwork and is never committed.
+// RetroLookFactory.h) when src/looks/local/BadgeLight.h (the light variant, for dark dials) exists;
+// the badge is brand artwork and is never committed.
 
 #include "looks/MotorsportLook.h"
 #include "looks/fonts/SairaBold70.h"
@@ -25,7 +25,8 @@ inline gauge::MotorsportLook::Fonts motorsportFonts() {
 inline gauge::MotorsportLook makeMotorsport() {
 #ifdef BOOST_GAUGE_MOTORSPORT_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565, badge_light::kAlpha};
+  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
+                   badge_light::kAlpha};
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above the BOOST label
   overlay.y = 64 - badge_light::kHeight / 2;
   return gauge::MotorsportLook(motorsportFonts(), overlay);

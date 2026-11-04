@@ -35,9 +35,8 @@ constexpr int kFpsOffsetY = 68;
 RetroLook::RetroLook(ImageView dial, Spec spec)
     : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi} {}
 
-RetroLook::RetroLook(ImageView dial, Spec spec, Badge badge)
-    : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, badge_(badge),
-      hasBadge_(true) {}
+RetroLook::RetroLook(ImageView dial, Spec spec, const Badge& badge)
+    : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, badge_(badge), hasBadge_(true) {}
 
 void RetroLook::drawDial(IDrawSurface& c) const {
   c.drawImage(dial_, 0, 0);
@@ -78,8 +77,8 @@ void RetroLook::drawNeedle(IDrawSurface& c, float cx, float cy, float deg) const
 void RetroLook::drawNeedleShape(IDrawSurface& c, float cx, float cy, float dx, float dy,
                                 Color color) const {
   const float tail = spec_.tailLength;
-  c.drawWedge(cx, cy, cx + dx * spec_.needleLength, cy + dy * spec_.needleLength,
-              kNeedleBaseRadius, kNeedleTipRadius, color);
+  c.drawWedge(cx, cy, cx + dx * spec_.needleLength, cy + dy * spec_.needleLength, kNeedleBaseRadius,
+              kNeedleTipRadius, color);
   c.drawWedge(cx - dx * tail, cy - dy * tail, cx, cy, kTailEndRadius, kTailBaseRadius, color);
   c.drawWedge(cx - dx * (tail - 2.0f), cy - dy * (tail - 2.0f), cx - dx * (tail + 0.5f),
               cy - dy * (tail + 0.5f), kCounterweightRadius, kCounterweightRadius, color);

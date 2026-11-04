@@ -25,7 +25,7 @@ class FakeElm327Stream : public IByteStream {
   void dropLink() { connected_ = false; }
 
  private:
-  void handleCommand(std::string command);
+  void handleCommand(const std::string& command);
 
   const FakeEcu& ecu_;
   bool connected_ = false;

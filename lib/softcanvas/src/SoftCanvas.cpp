@@ -144,8 +144,7 @@ void SoftCanvas::drawLine(int x0, int y0, int x1, int y1, int thickness, Color c
   strokeSegment(hi_, centre(x0), centre(y0), centre(x1), centre(y1), radius, radius, color);
 }
 
-void SoftCanvas::drawText(int x, int y, const char* text, int scale, TextAlign align,
-                          Color color) {
+void SoftCanvas::drawText(int x, int y, const char* text, int scale, TextAlign align, Color color) {
   const int length = static_cast<int>(std::strlen(text));
   const int width = length * 6 * scale;
   int left = x;
@@ -177,8 +176,8 @@ void SoftCanvas::drawImage(const ImageView& image, int x, int y) {
       const int py = y + iy;
       if (px < 0 || py < 0 || px >= width_ || py >= height_) continue;  // clipped
 
-      const size_t index = static_cast<size_t>(iy) * static_cast<size_t>(image.width) +
-                           static_cast<size_t>(ix);
+      const size_t index =
+          static_cast<size_t>(iy) * static_cast<size_t>(image.width) + static_cast<size_t>(ix);
       const int alpha = image.alpha != nullptr ? image.alpha[index] : 255;
       if (alpha == 0) continue;
       const Color src = rgb565ToColor(image.rgb565[index]);

@@ -1,12 +1,12 @@
 #pragma once
 
+#include "gauge/GaugeScale.h"
+#include "looks/ILook.h"
+#include "looks/PointerSpec.h"
 #include "render/Badge.h"
 #include "render/Color.h"
-#include "gauge/GaugeScale.h"
 #include "render/IDrawSurface.h"
-#include "looks/ILook.h"
 #include "render/ImageView.h"
-#include "looks/PointerSpec.h"
 
 namespace gauge {
 
@@ -22,7 +22,7 @@ class RetroLook : public ILook {
   static constexpr Color kInk{28, 26, 22};
 
   RetroLook(ImageView dial, Spec spec);
-  RetroLook(ImageView dial, Spec spec, Badge badge);
+  RetroLook(ImageView dial, Spec spec, const Badge& badge);
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;

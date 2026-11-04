@@ -128,7 +128,7 @@ something cheap has failed:
 
 | Stage | Jobs | Runs on |
 | ----- | ---- | ------- |
-| **1. Test** | `tools/coverage.sh` on Linux (the `lib/core` layering, all unit tests, 100% line and branch coverage); the same tests on macOS under Apple clang, which counts coverage differently from GCC; the simulator build; **render regression** (below) | every pull request and push |
+| **1. Test** | `tools/coverage.sh` on Linux (the `lib/core` layering, all unit tests, 100% line and branch coverage); the same tests on macOS under Apple clang, which counts coverage differently from GCC; the simulator build; **render regression** (below); **format** (`clang-format`, `.clang-format`: Google style at 100 columns); **static analysis** (`cppcheck`, any finding fails) | every pull request and push |
 | **2. Build** | All four ESP32 environments (`device-demo`, `-can`, `-ble`, `-wifi`) compile | after stage 1 passes |
 | **3. Publish** | Bundle the firmware images (`firmware`, `bootloader`, `partitions`, `boot_app0`) with `SHA256SUMS` | after stage 2, on pushes only |
 
@@ -154,6 +154,15 @@ them as a `render-diff` artifact). If the change is intended, re-record and comm
 ```bash
 python tools/check_renders.py --update
 ```
+
+### Formatting and static analysis
+
+`python tools/format.py` formats the hand-written C++ with `clang-format` (the style is in
+`.clang-format`; `--check` only reports). Generated files (the font tables and the `*Dial.h` /
+`*Spec.h` headers) are skipped. `tools/static_analysis.sh` runs `cppcheck` and fails on any
+warning; silence a false alarm with `// cppcheck-suppress <id>` and a comment saying why. CI runs
+both, so run them before you push. `clang-format` is pinned in `requirements.txt`; `cppcheck` ships
+with the WinLibs compiler on Windows (`apt install cppcheck` / `brew install cppcheck` elsewhere).
 
 ## Put it on the board
 
@@ -225,7 +234,8 @@ src/config.h    Pins, SSID, addresses
 test/test_core  doctest suites, one file per unit
 tools/          preview.py + preview.html (live browser preview), make_look.py (dial
                 headers), make_font.py + fonts.json (glyph tables), make_media.py (the
-                README pictures), check_renders.py (visual regression), check_layers.py, coverage.sh
+                README pictures), check_renders.py (visual regression), check_layers.py, format.py,
+                static_analysis.sh, coverage.sh
 test/golden/    The stored renders check_renders.py compares against
 docs/media/     The README pictures: a still and a 10 s animation (WebP) per look
 ```

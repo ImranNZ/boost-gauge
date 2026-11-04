@@ -8,7 +8,9 @@ BoostSampler::BoostSampler(IObdClient& client, IClock& clock)
     : BoostSampler(client, clock, Options{}) {}
 
 BoostSampler::BoostSampler(IObdClient& client, IClock& clock, Options options)
-    : client_(client), link_(client, clock, options.link), ambient_(client, clock, options.ambient) {}
+    : client_(client),
+      link_(client, clock, options.link),
+      ambient_(client, clock, options.ambient) {}
 
 BoostReading BoostSampler::sample() {
   if (!link_.ensureLinked()) return {};
