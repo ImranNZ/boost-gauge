@@ -9,11 +9,11 @@
 retro  Builds the Retro 60s dial from looks/retro/spec.json + dial.svg.in: fills the
        graduations, numerals and red band from the spec, renders the SVG at 240x240
        (resvg), dithers to RGB565, and writes two committed headers:
-         src/looks/RetroDial.h   the picture
-         src/looks/RetroSpec.h   the geometry the C++ draws with (needle length, scale...)
+         src/looks/retro/RetroDial.h   the picture
+         src/looks/retro/RetroSpec.h   the geometry the C++ draws with (needle length, scale...)
        The spec is the single source of truth: the picture and the code cannot drift.
 modern The same pipeline for the Modern Mini dial (looks/modern/): chrome ring, black
-       face, coloured bands. Writes src/looks/ModernDial.h and src/looks/ModernSpec.h.
+       face, coloured bands. Writes src/looks/modern/ModernDial.h and ModernSpec.h.
 badge  Scales a PNG with transparency to its on-screen size and writes RGB565 colour
        + 8-bit alpha. For brand artwork: write it under src/looks/local/, which is
        git-ignored, and never commit it.
@@ -207,7 +207,7 @@ def cmd_dial(name: str):
         "// RGB565, row-major, opaque.\n"
         + c_array("kDialRgb565", to_rgb565(im, dither=True), "uint16_t", 16, 4)
     )
-    dial_h = ROOT / "src" / "looks" / f"{prefix}Dial.h"
+    dial_h = ROOT / "src" / "looks" / name / f"{prefix}Dial.h"
     dial_h.parent.mkdir(parents=True, exist_ok=True)
     dial_h.write_text(header(f"from looks/{name}/dial.svg.in + spec.json", f"looks::{name}", dial_body))
 
@@ -223,7 +223,7 @@ def cmd_dial(name: str):
         f"inline constexpr float kFlagOuterRadius = {cfloat(p['flagOuterRadius'])};\n"
         f"inline constexpr int kHubRadius = {int(p['hubRadius'])};\n"
     )
-    spec_h = ROOT / "src" / "looks" / f"{prefix}Spec.h"
+    spec_h = ROOT / "src" / "looks" / name / f"{prefix}Spec.h"
     spec_h.write_text(header(f"from looks/{name}/spec.json", f"looks::{name}", spec_body))
     print(f"wrote {dial_h.name} ({dial_h.stat().st_size // 1024} KB) and {spec_h.name}; "
           f"preview: out/dial_render.png")

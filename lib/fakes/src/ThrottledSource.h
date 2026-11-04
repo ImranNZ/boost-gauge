@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "IClock.h"
-#include "ReadingSource.h"
+#include "base/IClock.h"
+#include "sampling/ReadingSource.h"
 
 namespace gauge {
 

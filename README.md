@@ -153,26 +153,41 @@ read-only mode 01 requests are sent.
 
 All pins, the BLE dongle name hint, WiFi SSID and the dongle address live in
 [`src/config.h`](src/config.h). Gauge range, zones and tick spacing are
-`ClassicLookConfig` in [`lib/core/src/ClassicLook.h`](lib/core/src/ClassicLook.h).
+`ClassicLookConfig` in [`lib/core/src/looks/ClassicLook.h`](lib/core/src/looks/ClassicLook.h).
 
 ## How the repo is organised
 
 ```
-lib/core        Hardware-free logic. Fully unit tested.
+lib/core/src/   Hardware-free logic, fully unit tested. Grouped by domain; each folder
+                depends only on the ones above it (no cycles):
+  base/           IClock                                    (the lowest layer)
+  obd/            what we say to the car: IObdClient, ICanBus, IByteStream,
+                  Elm327Client / Parse, CanObdClient, Units
+  sampling/       readings off the link: BoostSampler, LinkSupervisor, AmbientPressure,
+                  SamplerLoop, ReadingMailbox, ReadingSource
+  gauge/          the value shown: GaugeModel, GaugeState, GaugeScale, Smoothing, FpsCounter
+  render/         the drawing toolkit: IDrawSurface, IFrameCache, ICanvas, Font,
+                  ImageView, Color, Badge, ArcCoverage
+  looks/          ILook, FrameRenderer and the five looks (Classic, Retro, Modern,
+                  Minimal, Motorsport)
+  app/            GaugeApp: source -> model -> renderer       (the top layer)
 lib/fakes       Test doubles: FakeEcu, FakeCanBus, FakeElm327Stream, ...
 lib/softcanvas  Software canvas + PNG writer (used by `sim` and render tests)
 src/device      ESP32-only adapters: LgfxCanvas, TwaiBus, BleElmStream, WifiElmStream
 src/sim         PC simulator: `Rig` (stack wired to mocks), stills and live streaming
-tools/preview.* Live browser preview (Python server + page) over the sim's frame stream
-tools/make_look.py  Turns look artwork (SVG, PNG) into the headers the firmware and sim compile in
-looks/          Look artwork sources (retro/: spec.json, dial.svg.in, its font)
-src/looks/      Generated artwork headers + the factory that builds the Retro look
-                (src/looks/local/ is git-ignored: brand artwork lives only there)
+src/looks/      Per look: generated dial + spec headers and the factory that builds it
+                (retro/, modern/, minimal/, motorsport/); fonts/ holds the generated glyph
+                tables; local/ is git-ignored: brand artwork lives only there
+looks/          Look artwork sources: spec.json, dial.svg.in and the fonts, per look
 src/main.cpp    Composition root: wires concrete classes, picks transport
 src/config.h    Pins, SSID, addresses
-test/test_core  doctest suites
-tools/          coverage.sh and its PlatformIO helper
+test/test_core  doctest suites, one file per unit
+tools/          preview.py + preview.html (live browser preview), make_look.py (dial
+                headers), make_font.py + fonts.json (glyph tables), coverage.sh
 ```
+
+Headers are included by their path under `lib/core/src` (`#include "obd/Elm327Client.h"`).
+
 
 The design is a small set of narrow interfaces with the hardware behind them:
 
@@ -254,8 +269,8 @@ will get once it has an input method).
 for the scale and pointer geometry (scale range, tick radii, needle length, hub size).
 `tools/make_look.py retro` uses it twice: it fills the graduations, numerals and red
 band into `looks/retro/dial.svg.in`, renders that with resvg and dithers it to RGB565
-(`src/looks/RetroDial.h`, a 115 KB array in flash), and it writes the same numbers
-to `src/looks/RetroSpec.h`, which `RetroLook` draws the needle with. So the picture
+(`src/looks/retro/RetroDial.h`, a 115 KB array in flash), and it writes the same numbers
+to `src/looks/retro/RetroSpec.h`, which `RetroLook` draws the needle with. So the picture
 and the code cannot drift apart; a `static_assert` in the factory also checks the
 start angle and sweep against `GaugeScale`. At run time the picture is drawn once, the
 canvas caches it, and each frame only the needle, flag and hub are drawn on top.
@@ -291,10 +306,10 @@ text) or `ICanBus` (raw CAN) in `src/device/`, add a `-DTRANSPORT_X` env in
 `src/main.cpp`. Nothing in `lib/core` changes.
 
 **Show another PID**: see the pattern in `BoostSampler` (read via
-`IObdClient::readPid`, add the PID constant in `IObdClient.h`, teach `FakeEcu`
+`IObdClient::readPid`, add the PID constant in `obd/IObdClient.h`, teach `FakeEcu`
 to answer it, test it).
 
-**Change the look**: edit `ClassicLook.cpp`, run `python tools/preview.py`, and
+**Change the look**: edit `lib/core/src/looks/ClassicLook.cpp`, run `python tools/preview.py`, and
 watch it update (stop and re-run after each edit; it rebuilds the sim).
 
 **Add a mock control**: add a command in `lib/fakes/src/SimCommands.cpp` (with a

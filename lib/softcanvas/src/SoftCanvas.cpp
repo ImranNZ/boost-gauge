@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "ArcCoverage.h"
+#include "render/ArcCoverage.h"
 
 namespace gauge {
 namespace {

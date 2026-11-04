@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "IClock.h"
-#include "IObdClient.h"
+#include "base/IClock.h"
+#include "obd/IObdClient.h"
 
 namespace gauge {
 

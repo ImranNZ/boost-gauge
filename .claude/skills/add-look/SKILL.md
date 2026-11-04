@@ -5,7 +5,7 @@ description: Add a new visual style ("look") to the boost gauge, such as a new d
 
 # Add a look
 
-A look is an `ILook` (`lib/core/src/ILook.h`) with two methods: `drawDial` (the static
+A look is an `ILook` (`lib/core/src/looks/ILook.h`) with two methods: `drawDial` (the static
 artwork; `FrameRenderer` runs it once and the canvas caches it) and `drawDynamic` (the
 moving parts, every frame). A look draws only through `IDrawSurface`; it never sees the
 cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `MinimalLook` (drawn in code; Minimal is the simpler pattern if the design is code-drawn, and shows the optional `Badge`) first.
@@ -18,16 +18,16 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
    (SIL OFL) under `looks/<name>/fonts/`, list it in `tools/fonts.json`, run
    `python tools/make_font.py`, and pass the resulting `Font`s to the look (see `MinimalLook`).
 2. **Generate.** Add a `<name>` command to `tools/make_look.py` (copy `retro`) that writes
-   `src/looks/<Name>Dial.h` and `src/looks/<Name>Spec.h` from the spec. The picture and the
+   `src/looks/<name>/<Name>Dial.h` and `<Name>Spec.h` from the spec. The picture and the
    code must read the same numbers: never hard-code geometry in the look class. Commit the
    generated headers (never edit them by hand) and look at `out/dial_render.png`.
-3. **Look class** in `lib/core/src/<Name>Look.h/.cpp`, `namespace gauge`, no hardware
+3. **Look class** in `lib/core/src/looks/<Name>Look.h/.cpp`, `namespace gauge`, no hardware
    headers. Use only `IDrawSurface` primitives so the PC sim and the board match. Needles
    are `drawWedge` with float coordinates; pictures go through `drawImage`. Use
    `GaugeScale` for pressure -> angle.
-4. **Factory** in `src/looks/<Name>LookFactory.h` that wraps the generated arrays in
+4. **Factory** in `src/looks/<name>/<Name>LookFactory.h` that wraps the generated arrays in
    `ImageView`s and fills the look's `Spec`, shared by `src/main.cpp` and the sim. Add
-   `static_assert`s for anything the C++ also hard-codes (see `RetroLookFactory.h`).
+   `static_assert`s for anything the C++ also hard-codes (see `src/looks/retro/RetroLookFactory.h`).
 5. **Register it:**
    - sim: add the name to `Rig::selectLook` (`src/sim/Rig.h`) and an `<option>` in
      `tools/preview.html`;

@@ -1,6 +1,6 @@
 #include "device/LgfxCanvas.h"
 
-#include "ArcCoverage.h"
+#include "render/ArcCoverage.h"
 #include "config.h"
 
 namespace device {

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "ICanvas.h"
+#include "render/ICanvas.h"
 
 namespace gauge {
 

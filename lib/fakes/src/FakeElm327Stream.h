@@ -3,7 +3,7 @@
 #include <string>
 
 #include "FakeEcu.h"
-#include "IByteStream.h"
+#include "obd/IByteStream.h"
 
 namespace gauge {
 

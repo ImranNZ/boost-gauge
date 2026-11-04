@@ -8,9 +8,9 @@ description: Add another OBD-II value to the boost gauge (e.g. intake air temp, 
 Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 
 1. **Constant**: add `kPid<Name>` in the `obd` namespace in
-   `lib/core/src/IObdClient.h` with a comment giving the unit/scaling.
+   `lib/core/src/obd/IObdClient.h` with a comment giving the unit/scaling.
 2. **Decode**: put the formula (e.g. `A - 40` for coolant °C, `(256A+B)/4` for
-   RPM) in a small pure function in `lib/core/src` (a header like `Units.h`, or a
+   RPM) in a small pure function in `lib/core/src` (a header like `obd/Units.h`, or a
    new one). `ObdData` holds up to 4 data bytes (`bytes[0]` = A).
 3. **Sampling**: extend `BoostSampler` only if it is part of boost; otherwise add a collaborator beside
    `AmbientPressure` / `LinkSupervisor` and a coordinator (single responsibility). Throttle slow-changing values like baro does

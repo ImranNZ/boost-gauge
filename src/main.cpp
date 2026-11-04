@@ -7,23 +7,23 @@
 
 #include <Arduino.h>
 
-#include "BoostSampler.h"
-#include "ClassicLook.h"
-#include "GaugeApp.h"
-#include "MinimalLook.h"
-#include "ModernLook.h"
-#include "MotorsportLook.h"
-#include "ReadingMailbox.h"
-#include "SamplerLoop.h"
+#include "sampling/BoostSampler.h"
+#include "looks/ClassicLook.h"
+#include "app/GaugeApp.h"
+#include "looks/MinimalLook.h"
+#include "looks/ModernLook.h"
+#include "looks/MotorsportLook.h"
+#include "sampling/ReadingMailbox.h"
+#include "sampling/SamplerLoop.h"
 #include "config.h"
 #include "device/ArduinoClock.h"
 #include "device/LgfxCanvas.h"
 #include "device/SamplerTask.h"
 #include "device/Transport.h"
-#include "looks/MinimalLookFactory.h"
-#include "looks/ModernLookFactory.h"
-#include "looks/MotorsportLookFactory.h"
-#include "looks/RetroLookFactory.h"
+#include "looks/minimal/MinimalLookFactory.h"
+#include "looks/modern/ModernLookFactory.h"
+#include "looks/motorsport/MotorsportLookFactory.h"
+#include "looks/retro/RetroLookFactory.h"
 
 namespace {
 

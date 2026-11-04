@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SamplerLoop.h"
+#include "sampling/SamplerLoop.h"
 
 namespace device {
 

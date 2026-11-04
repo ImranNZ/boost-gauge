@@ -2,7 +2,7 @@
 
 #include <WiFi.h>
 
-#include "IByteStream.h"
+#include "obd/IByteStream.h"
 
 namespace device {
 

@@ -5,7 +5,7 @@
   python tools/make_font.py OutfitLight62
 
 Each font becomes src/looks/fonts/<name>.h: one 8-bit coverage bitmap per glyph
-(anti-aliased by FreeType), plus the metrics to lay them out (see lib/core/src/Font.h).
+(anti-aliased by FreeType), plus the metrics to lay them out (see lib/core/src/render/Font.h).
 The headers are committed; never edit them by hand, change tools/fonts.json and
 re-run. Only the characters listed are included, which keeps flash use small.
 
@@ -88,7 +88,7 @@ def build(spec: dict) -> str:
         "",
         "#include <cstdint>",
         "",
-        '#include "Font.h"',
+        '#include "render/Font.h"',
         "",
         "namespace looks::fonts {",
         "",

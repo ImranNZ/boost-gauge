@@ -64,7 +64,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * Generated files: `src/looks/fonts/*.h` come from `tools/fonts.json` via `python tools/make_font.py`
   (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
   `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
-  hand-edit them, regenerate. `RetroDial.h` is big (~470 KB): avoid reading it.
+  hand-edit them, regenerate. `src/looks/retro/RetroDial.h` is big (~470 KB): avoid reading it.
 * **Brand artwork is never committed.** The Cooper S badge lives in `assets/` and
   `src/looks/local/` (both in `.gitignore`) and is included via `__has_include`: `Badge.h` (dark
   lettering, for the cream Retro dial) and `BadgeLight.h` (namespace `badge_light`, for the dark looks). Do not
@@ -95,7 +95,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   stalls). The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
-* Looks that need nice type take a `Font` (`lib/core/src/Font.h`) and draw with `Font::draw`; only
+* Looks that need nice type take a `Font` (`lib/core/src/render/Font.h`) and draw with `Font::draw`; only
   the built-in bitmap font below is limited to its glyph list.
 * The built-in `SoftCanvas` font only covers `0-9 - + . space A B C E F I K L M N O P S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the
@@ -111,13 +111,21 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
 
+## Layout of lib/core/src
+
+Grouped by domain, each folder depending only on the ones before it: `base` (IClock) <- `obd`
+<- `sampling` <- `gauge` <- `looks` (with `render`, the drawing toolkit) <- `app` (GaugeApp).
+Include by path (`#include "obd/Elm327Client.h"`). A new file goes in the folder for what it is
+about; if it needs something from a folder later in that list, it belongs later too. Do not add
+upward includes (e.g. `gauge/` must not include `looks/`), and do not put files at the root.
+
 ## Where things go
 
 | Change | Edit |
 | ------ | ---- |
 | New data source / link | new class in `src/device/` + a branch in `src/device/Transport.h` + env in `platformio.ini` |
-| New PID | constant in `IObdClient.h`, `FakeEcu::answer`, a collaborator beside `AmbientPressure` / `BoostSampler`, tests |
-| Tune the Classic look | `lib/core/src/ClassicLook.cpp`, then run the sim |
+| New PID | constant in `obd/IObdClient.h`, `FakeEcu::answer`, a collaborator beside `AmbientPressure` / `BoostSampler`, tests |
+| Tune the Classic look | `lib/core/src/looks/ClassicLook.cpp`, then run the sim |
 | Tune the Retro look | `looks/retro/spec.json` or `dial.svg.in`, then `python tools/make_look.py retro` |
 | Pins / SSID / BLE name | `src/config.h` |
 

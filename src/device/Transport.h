@@ -8,12 +8,12 @@
 // Adding a transport: write its adapter in src/device/, add a branch here and an
 // environment in platformio.ini. Nothing else changes.
 
-#include "IClock.h"
-#include "IObdClient.h"
+#include "base/IClock.h"
+#include "obd/IObdClient.h"
 
 #if defined(TRANSPORT_CAN)
 
-#include "CanObdClient.h"
+#include "obd/CanObdClient.h"
 #include "device/TwaiBus.h"
 
 namespace device {
@@ -30,7 +30,7 @@ class Transport {
 
 #elif defined(TRANSPORT_BLE)
 
-#include "Elm327Client.h"
+#include "obd/Elm327Client.h"
 #include "device/BleElmStream.h"
 
 namespace device {
@@ -47,7 +47,7 @@ class Transport {
 
 #elif defined(TRANSPORT_WIFI)
 
-#include "Elm327Client.h"
+#include "obd/Elm327Client.h"
 #include "device/WifiElmStream.h"
 
 namespace device {
@@ -64,7 +64,7 @@ class Transport {
 
 #elif defined(TRANSPORT_DEMO)
 
-#include "CanObdClient.h"
+#include "obd/CanObdClient.h"
 #include "FakeCanBus.h"
 #include "FakeEcu.h"
 

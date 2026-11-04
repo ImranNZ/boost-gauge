@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "FakeEcu.h"
-#include "ICanBus.h"
+#include "obd/ICanBus.h"
 
 namespace gauge {
 

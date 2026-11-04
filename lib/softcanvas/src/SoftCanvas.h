@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "ICanvas.h"
+#include "render/ICanvas.h"
 #include "Image.h"
 
 namespace gauge {

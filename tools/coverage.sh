@@ -10,6 +10,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Layering first: it is instant, and a violation is a design error, not a test failure.
+if python3 -c "" >/dev/null 2>&1; then py=python3; else py=python; fi
+"$py" tools/check_layers.py
+
 # The gate is defined for GCC. Apple's "g++" is really clang, which counts default
 # member initialisers and branches differently. On macOS build with Homebrew's GCC
 # (brew install gcc) when it is there; without it we still run, but only report.

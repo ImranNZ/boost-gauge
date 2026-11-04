@@ -2,8 +2,8 @@
 
 #include <NimBLEDevice.h>
 
-#include "IByteStream.h"
-#include "SpscRing.h"
+#include "obd/IByteStream.h"
+#include "sampling/SpscRing.h"
 
 namespace device {
 

@@ -5,7 +5,8 @@ description: Run the full verification for the boost gauge (unit tests, 100% cov
 
 # Verify the boost gauge
 
-1. Run `tools/coverage.sh`. It must end with `[doctest] Status: SUCCESS!` and
+1. Run `tools/coverage.sh`. It first checks the `lib/core/src` layering (`tools/check_layers.py`),
+   then must end with `[doctest] Status: SUCCESS!` and
    line/branch/function coverage all `100.0%`. If PlatformIO prints SKIPPED or
    `0 test cases`, ignore that; read doctest's own summary.
    - If a command isn't found on Windows, prepend the WinLibs `mingw64/bin` and

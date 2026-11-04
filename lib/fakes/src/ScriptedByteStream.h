@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "IByteStream.h"
+#include "obd/IByteStream.h"
 
 namespace gauge {
 

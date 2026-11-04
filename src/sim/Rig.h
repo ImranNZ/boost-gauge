@@ -2,24 +2,24 @@
 
 #include <string_view>
 
-#include "BoostSampler.h"
-#include "CanObdClient.h"
+#include "sampling/BoostSampler.h"
+#include "obd/CanObdClient.h"
 #include "FakeCanBus.h"
 #include "FakeEcu.h"
-#include "GaugeApp.h"
-#include "ClassicLook.h"
+#include "app/GaugeApp.h"
+#include "looks/ClassicLook.h"
 #include "ManualClock.h"
-#include "MinimalLook.h"
-#include "ModernLook.h"
-#include "MotorsportLook.h"
-#include "ReadingSource.h"
-#include "RetroLook.h"
+#include "looks/MinimalLook.h"
+#include "looks/ModernLook.h"
+#include "looks/MotorsportLook.h"
+#include "sampling/ReadingSource.h"
+#include "looks/RetroLook.h"
 #include "SoftCanvas.h"
 #include "ThrottledSource.h"
-#include "looks/MinimalLookFactory.h"
-#include "looks/ModernLookFactory.h"
-#include "looks/MotorsportLookFactory.h"
-#include "looks/RetroLookFactory.h"
+#include "looks/minimal/MinimalLookFactory.h"
+#include "looks/modern/ModernLookFactory.h"
+#include "looks/motorsport/MotorsportLookFactory.h"
+#include "looks/retro/RetroLookFactory.h"
 
 namespace sim {
 

@@ -2,7 +2,7 @@
 
 #include <LovyanGFX.hpp>
 
-#include "ICanvas.h"
+#include "render/ICanvas.h"
 
 namespace device {
 
