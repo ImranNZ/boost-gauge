@@ -11,18 +11,21 @@ namespace gauge {
 Elm327Client::Elm327Client(IByteStream& stream, IClock& clock)
     : Elm327Client(stream, clock, Options{}) {}
 
-Elm327Client::Elm327Client(IByteStream& stream, IClock& clock, Options options)
+Elm327Client::Elm327Client(IByteStream& stream, IClock& clock, const Options& options)
     : stream_(stream), clock_(clock), options_(options) {}
 
 bool Elm327Client::begin() {
   if (!stream_.connect()) return false;
 
   if (!transact("ATZ", options_.resetTimeoutMs)) return false;
-  // Echo off, linefeeds off, headers off, ISO 15765-4 CAN 11-bit 500 kbaud.
-  static constexpr const char* kSetup[] = {"ATE0", "ATL0", "ATH0", "ATSP6"};
+  // Echo off, linefeeds off, headers off, then the bus protocol (see Options::protocol).
+  static constexpr const char* kSetup[] = {"ATE0", "ATL0", "ATH0"};
   for (const char* command : kSetup) {
     if (!transact(command, options_.commandTimeoutMs)) return false;
   }
+  char protocol[8];
+  std::snprintf(protocol, sizeof(protocol), "ATSP%s", options_.protocol);
+  if (!transact(protocol, options_.commandTimeoutMs)) return false;
 
   ObdData probe;
   return query(obd::kModeCurrentData, obd::kPidSupported01To20, probe, options_.probeTimeoutMs);

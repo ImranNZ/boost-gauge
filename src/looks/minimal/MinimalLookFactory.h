@@ -21,16 +21,16 @@ inline gauge::MinimalLook::Fonts minimalFonts() {
   return {fonts::outfitLight62(), fonts::outfitMedium12()};
 }
 
-inline gauge::MinimalLook makeMinimal() {
+inline gauge::MinimalLook makeMinimal(const gauge::GaugeProfile& profile = {}) {
 #ifdef BOOST_GAUGE_MINIMAL_HAS_BADGE
   gauge::Badge overlay;
   overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
                    badge_light::kAlpha};
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above the mode label
   overlay.y = 62 - badge_light::kHeight / 2;
-  return gauge::MinimalLook(minimalFonts(), overlay);
+  return gauge::MinimalLook(minimalFonts(), profile, overlay);
 #else
-  return gauge::MinimalLook(minimalFonts());
+  return gauge::MinimalLook(minimalFonts(), profile);
 #endif
 }
 

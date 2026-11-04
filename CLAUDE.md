@@ -1,6 +1,6 @@
 # Boost Gauge: guidance for Claude
 
-ESP32-S3 round-display boost gauge for an F56 Mini Cooper S. C++17, PlatformIO,
+ESP32-S3 round-display boost gauge for turbocharged cars, built around an F56 Mini Cooper S. C++17, PlatformIO,
 Arduino framework on device. The owner's background is .NET/TypeScript, so
 explain C++-specific idioms (headers, RAII, `constexpr`, lifetimes) briefly
 when they matter.
@@ -120,6 +120,14 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * Angles: 0 = 3 o'clock, clockwise (screen space), everywhere.
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
+
+## Not Mini-specific
+
+The code uses standard OBD-II only; the Mini is the default setup and the first test car, not an
+assumption. Keep it that way: car- and owner-dependent values (unit, range, zones, bus protocol, CAN
+speed) belong in `GaugeProfile` and `src/config.h`, not in a look or the sampler. The Mini
+branding (badge, "Modern Mini" look) stays optional. The README's "Other cars" table says what is
+and is not portable; keep it accurate when you change protocol or PID handling.
 
 ## Pull requests and CI
 

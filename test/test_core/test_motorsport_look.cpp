@@ -6,6 +6,11 @@ using namespace support;
 
 namespace {
 
+const MotorsportLook& defaultLook() {
+  static const MotorsportLook look(motorsportFonts());
+  return look;
+}
+
 constexpr Color kOff = MotorsportLook::kSegmentOff;
 constexpr Color kRed = MotorsportLook::kRed;
 constexpr Color kAmber = MotorsportLook::kAmber;
@@ -32,31 +37,31 @@ Color onSegment(const SoftCanvas& canvas, int index, float radius = 99.0f) {
 }  // namespace
 
 TEST_CASE("motorsport look: segment colours step blue, teal, lime, amber, red") {
-  CHECK(same(MotorsportLook::segmentColor(0), Color{59, 139, 255}));
-  CHECK(same(MotorsportLook::segmentColor(14), Color{59, 139, 255}));  // -0.5 psi
-  CHECK(same(MotorsportLook::segmentColor(15), Color{25, 211, 162}));  // +0.5 psi
-  CHECK(same(MotorsportLook::segmentColor(24), Color{25, 211, 162}));
-  CHECK(same(MotorsportLook::segmentColor(25), Color{155, 224, 74}));  // 10.5 psi
-  CHECK(same(MotorsportLook::segmentColor(29), Color{155, 224, 74}));
-  CHECK(same(MotorsportLook::segmentColor(30), Color{255, 176, 32}));  // 15.5 psi
-  CHECK(same(MotorsportLook::segmentColor(34), Color{255, 176, 32}));
-  CHECK(same(MotorsportLook::segmentColor(35), kRed));  // 20.5 psi
-  CHECK(same(MotorsportLook::segmentColor(39), kRed));
+  CHECK(same(defaultLook().segmentColor(0), Color{59, 139, 255}));
+  CHECK(same(defaultLook().segmentColor(14), Color{59, 139, 255}));  // -0.5 psi
+  CHECK(same(defaultLook().segmentColor(15), Color{25, 211, 162}));  // +0.5 psi
+  CHECK(same(defaultLook().segmentColor(24), Color{25, 211, 162}));
+  CHECK(same(defaultLook().segmentColor(25), Color{155, 224, 74}));  // 10.5 psi
+  CHECK(same(defaultLook().segmentColor(29), Color{155, 224, 74}));
+  CHECK(same(defaultLook().segmentColor(30), Color{255, 176, 32}));  // 15.5 psi
+  CHECK(same(defaultLook().segmentColor(34), Color{255, 176, 32}));
+  CHECK(same(defaultLook().segmentColor(35), kRed));  // 20.5 psi
+  CHECK(same(defaultLook().segmentColor(39), kRed));
 }
 
 TEST_CASE("motorsport look: a segment lights once the pressure is past its middle") {
-  CHECK(MotorsportLook::isLit(0, -14.5f));
-  CHECK_FALSE(MotorsportLook::isLit(0, -14.6f));
-  CHECK(MotorsportLook::isLit(39, 24.5f));
-  CHECK_FALSE(MotorsportLook::isLit(39, 24.4f));
+  CHECK(defaultLook().isLit(0, -14.5f));
+  CHECK_FALSE(defaultLook().isLit(0, -14.6f));
+  CHECK(defaultLook().isLit(39, 24.5f));
+  CHECK_FALSE(defaultLook().isLit(39, 24.4f));
 }
 
 TEST_CASE("motorsport look: a pressure maps to its segment, clamped to the bar") {
-  CHECK(MotorsportLook::segmentFor(-15.0f) == 0);
-  CHECK(MotorsportLook::segmentFor(-40.0f) == 0);
-  CHECK(MotorsportLook::segmentFor(0.0f) == 15);
-  CHECK(MotorsportLook::segmentFor(17.3f) == 32);
-  CHECK(MotorsportLook::segmentFor(60.0f) == 39);
+  CHECK(defaultLook().segmentFor(-15.0f) == 0);
+  CHECK(defaultLook().segmentFor(-40.0f) == 0);
+  CHECK(defaultLook().segmentFor(0.0f) == 15);
+  CHECK(defaultLook().segmentFor(17.3f) == 32);
+  CHECK(defaultLook().segmentFor(60.0f) == 39);
 }
 
 TEST_CASE("motorsport look: draws the dim bar, rim and labels once, then restores them") {
@@ -81,10 +86,10 @@ TEST_CASE("motorsport look: lights segments up to the pressure, each in its zone
   MotorsportLook look(motorsportFonts());
   const SoftCanvas canvas = draw(look, 8.2f);
 
-  CHECK(same(onSegment(canvas, 0), MotorsportLook::segmentColor(0)));  // vacuum blue
-  CHECK(same(onSegment(canvas, 10), MotorsportLook::segmentColor(10)));
-  CHECK(same(onSegment(canvas, 22), MotorsportLook::segmentColor(22)));  // last lit (7.5)
-  CHECK(same(onSegment(canvas, 23), kOff));                              // 8.5 is above 8.2
+  CHECK(same(onSegment(canvas, 0), defaultLook().segmentColor(0)));  // vacuum blue
+  CHECK(same(onSegment(canvas, 10), defaultLook().segmentColor(10)));
+  CHECK(same(onSegment(canvas, 22), defaultLook().segmentColor(22)));  // last lit (7.5)
+  CHECK(same(onSegment(canvas, 23), kOff));                            // 8.5 is above 8.2
   CHECK(same(onSegment(canvas, 39), kOff));
 }
 
@@ -93,7 +98,7 @@ TEST_CASE("motorsport look: at full scale every segment is lit") {
   const SoftCanvas canvas = draw(look, 25.0f);
   for (int i : {0, 15, 25, 30, 39}) {
     CAPTURE(i);
-    CHECK(same(onSegment(canvas, i), MotorsportLook::segmentColor(i)));
+    CHECK(same(onSegment(canvas, i), defaultLook().segmentColor(i)));
   }
 }
 
@@ -173,10 +178,63 @@ TEST_CASE("motorsport look: optional badge is laid over the dial") {
   badge.image = {2, 2, px, alpha};
   badge.x = 20;
   badge.y = 30;
-  MotorsportLook look(motorsportFonts(), badge);
+  MotorsportLook look(motorsportFonts(), GaugeProfile{}, badge);
 
   SoftCanvas canvas(240, 240);
   drawFrame(look, canvas, GaugeState{});
   CHECK(same(canvas.image().get(20, 30), kWhite));
   CHECK(same(canvas.image().get(21, 31), MotorsportLook::kBackground));  // transparent corner
+}
+
+TEST_CASE("motorsport look: a bar profile sizes the bar, zones and shift light in bar") {
+  const GaugeProfile profile = GaugeProfile::bar();
+  const GaugeScale scale = profile.scale();
+  MotorsportLook look(motorsportFonts(), profile);
+
+  CHECK(look.segmentCount() == 27);                          // 2.7 bar in 0.1 bar steps
+  CHECK(same(look.segmentColor(0), Color{59, 139, 255}));    // vacuum
+  CHECK(same(look.segmentColor(10), Color{25, 211, 162}));   // 0.05 bar
+  CHECK(same(look.segmentColor(17), Color{155, 224, 74}));   // 0.75 bar: past two thirds of amber
+  CHECK(same(look.segmentColor(20), Color{255, 176, 32}));   // 1.05 bar: amber
+  CHECK(same(look.segmentColor(24), MotorsportLook::kRed));  // 1.45 bar: red
+  CHECK(look.segmentFor(0.05f) == 10);
+  CHECK(look.isLit(10, 0.06f));
+  CHECK_FALSE(look.isLit(10, 0.04f));
+
+  // 10 psi is 0.69 bar: segments up to the one centred on 0.65 bar are lit.
+  const auto onSegment = [&](const SoftCanvas& canvas, int i) {
+    return pointOnNeedle(canvas, -1.0f + (static_cast<float>(i) + 0.5f) * 0.1f, 99.0f, scale);
+  };
+  SoftCanvas canvas(240, 240);
+  GaugeState state;
+  state.linked = true;
+  state.psi = 10.0f;
+  drawFrame(look, canvas, state);
+  CHECK(same(onSegment(canvas, 0), look.segmentColor(0)));
+  CHECK(same(onSegment(canvas, 16), look.segmentColor(16)));
+  CHECK(same(onSegment(canvas, 17), MotorsportLook::kSegmentOff));
+
+  // The rim pulses past 1.4 bar (20.3 psi), not before.
+  const auto rim = [&](float psi) {
+    SoftCanvas c(240, 240);
+    GaugeState s;
+    s.linked = true;
+    s.psi = psi;
+    s.timeMs = 141;  // the pulse at its brightest
+    drawFrame(look, c, s);
+    return c.image().get(120, 3);
+  };
+  CHECK(same(rim(21.0f), MotorsportLook::kRed));
+  CHECK(same(rim(18.0f), MotorsportLook::kRimOff));
+}
+
+TEST_CASE("motorsport look: the segment count stays sensible for any range") {
+  const GaugeProfile huge{Unit::Psi, 0.0f, 100000.0f, 5.0f, 20.0f, 25.0f};
+  const GaugeProfile tiny{Unit::Psi, 0.0f, 0.0001f, 5.0f, 20.0f, 25.0f};
+  const MotorsportLook many(motorsportFonts(), huge);
+  const MotorsportLook one(motorsportFonts(), tiny);
+  CHECK(many.segmentCount() == 200);
+  CHECK(one.segmentCount() == 1);
+  CHECK(one.segmentFor(50.0f) == 0);
+  CHECK(many.segmentFor(-5.0f) == 0);
 }

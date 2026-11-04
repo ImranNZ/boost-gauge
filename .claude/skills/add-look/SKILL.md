@@ -25,6 +25,9 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
    headers. Use only `IDrawSurface` primitives so the PC sim and the board match. Needles
    are `drawWedge` with float coordinates; pictures go through `drawImage`. Use
    `GaugeScale` for pressure -> angle.
+   A code-drawn look takes a `GaugeProfile` (`gauge/GaugeProfile.h`) and uses it for the scale
+   range, zone thresholds, unit label and number formatting instead of hard-coding psi numbers (see
+   `MinimalLook`); convert `state.psi` with `profile.toDisplay()` once, then work in that unit.
 4. **Factory** in `src/looks/<name>/<Name>LookFactory.h` that wraps the generated arrays in
    `ImageView`s and fills the look's `Spec`, shared by `src/main.cpp` and the sim. Add
    `static_assert`s for anything the C++ also hard-codes (see `src/looks/retro/RetroLookFactory.h`).

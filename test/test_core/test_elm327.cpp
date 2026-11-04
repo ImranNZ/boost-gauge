@@ -214,3 +214,30 @@ TEST_CASE("elm327 fake adapter: echo, unknown command, reset") {
   const uint8_t lf = '\n';
   CHECK(stream.write(&lf, 1) == 1);  // bare LF is ignored
 }
+
+TEST_CASE("elm327: the bus protocol is configurable") {
+  ManualClock clock;
+  ScriptedByteStream stream(happyHandshake());
+  Elm327Client::Options options;
+  options.protocol = "0";  // automatic
+  Elm327Client client(stream, clock, options);
+  REQUIRE(client.begin());
+  const std::vector<std::string> expected = {"ATZ", "ATE0", "ATL0", "ATH0", "ATSP0", "0100"};
+  CHECK(stream.commands() == expected);
+
+  ScriptedByteStream nineStream(happyHandshake());
+  Elm327Client::Options nine;
+  nine.protocol = "9";  // CAN, 29-bit IDs, 250 kbit/s
+  Elm327Client nineClient(nineStream, clock, nine);
+  REQUIRE(nineClient.begin());
+  CHECK(nineStream.commands()[4] == "ATSP9");
+}
+
+TEST_CASE("elm327: an adapter that rejects the protocol setting fails begin") {
+  ManualClock clock;
+  // Reset and the first three settings answer; the protocol command never does.
+  ScriptedByteStream stream({"\r\rELM327 v1.5\r\r>", kOk, kOk, kOk});
+  Elm327Client client(stream, clock);
+  CHECK_FALSE(client.begin());
+  CHECK(stream.commands().back() == "ATSP6");
+}

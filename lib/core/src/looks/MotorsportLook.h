@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "gauge/GaugeProfile.h"
 #include "gauge/GaugeScale.h"
 #include "gauge/GaugeState.h"
 #include "looks/ILook.h"
@@ -12,9 +13,10 @@
 
 namespace gauge {
 
-/// The "Motorsport" look: a segmented bar (one segment per psi) that lights up
-/// through blue, teal, lime, amber and red, with a bold readout and a rim that
-/// pulses red past 20 psi like a shift light. Drawn entirely in code.
+/// The "Motorsport" look: a segmented bar that lights up through blue, teal, lime, amber and
+/// red, with a bold readout and a rim that pulses red past the red zone like a shift light.
+/// Drawn entirely in code. The scale, zones, segment size and unit come from a GaugeProfile
+/// (one segment per psi, 40 across the default).
 class MotorsportLook : public ILook {
  public:
   static constexpr Color kBackground{6, 7, 10};
@@ -22,11 +24,6 @@ class MotorsportLook : public ILook {
   static constexpr Color kRimOff{42, 47, 54};
   static constexpr Color kRed{255, 59, 48};
   static constexpr Color kAmber{255, 176, 32};
-
-  /// One segment per psi across the -15..25 scale.
-  static constexpr int kSegments = 40;
-  /// Pressure above which the rim pulses.
-  static constexpr float kShiftPsi = 20.0f;
 
   /// The typefaces it needs: a large bold (slanted) one for the number, a small one for
   /// the scale labels and a slightly larger one for BOOST, PSI and the peak. All three
@@ -37,27 +34,33 @@ class MotorsportLook : public ILook {
     Font caption;
   };
 
-  explicit MotorsportLook(const Fonts& fonts) : fonts_(fonts) {}
-  MotorsportLook(const Fonts& fonts, const Badge& badge) : fonts_(fonts), badge_(badge) {}
+  explicit MotorsportLook(const Fonts& fonts, const GaugeProfile& profile = {});
+  MotorsportLook(const Fonts& fonts, const GaugeProfile& profile, const Badge& badge);
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
 
-  /// Colour of a lit segment (index 0 = -15 psi): blue for vacuum, then teal, lime, amber, red.
-  static Color segmentColor(int index);
-  /// Whether segment `index` is lit at this pressure.
-  static bool isLit(int index, float psi);
-  /// Index of the segment a pressure falls in, clamped to the bar.
-  static int segmentFor(float psi);
+  /// How many segments make up the bar.
+  int segmentCount() const { return segments_; }
+  /// Colour of a lit segment (index 0 is the bottom of the scale): blue for vacuum, then teal,
+  /// lime, amber and red.
+  Color segmentColor(int index) const;
+  /// Whether segment `index` is lit at this number (in the profile's unit).
+  bool isLit(int index, float value) const;
+  /// Index of the segment a number falls in, clamped to the bar.
+  int segmentFor(float value) const;
 
  private:
   void drawSegment(IDrawSurface& c, int index, float inset, Color color) const;
-  void drawBar(IDrawSurface& c, float psi) const;
-  void drawPeak(IDrawSurface& c, float peakPsi, float psi) const;
+  float segmentStartDeg(int index) const;
+  void drawBar(IDrawSurface& c, float value) const;
+  void drawPeak(IDrawSurface& c, float peakValue, float value) const;
   void drawRim(IDrawSurface& c, const GaugeState& state) const;
   void drawReadout(IDrawSurface& c, const GaugeState& state) const;
 
   Fonts fonts_;
+  GaugeProfile profile_;
+  int segments_;
   std::optional<Badge> badge_;
 };
 

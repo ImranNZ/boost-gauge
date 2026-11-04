@@ -2,11 +2,13 @@
 
 [![CI](https://github.com/ImranNZ/boost-gauge/actions/workflows/ci.yml/badge.svg)](https://github.com/ImranNZ/boost-gauge/actions/workflows/ci.yml)
 
-A digital boost gauge for an F56 Mini Cooper S (B48), running on a Waveshare
+A digital boost gauge for turbocharged cars, running on a Waveshare
 [ESP32-S3-LCD-1.28-B](https://www.waveshare.com/product/esp32-s3-lcd-1.28-b.htm)
-(240x240 round GC9A01 display). It reads manifold absolute pressure (OBD-II
-PID `0B`) and barometric pressure (PID `33`) and shows **boost in psi**
-(negative = vacuum) with a needle, peak hold and a NO LINK state.
+(240x240 round GC9A01 display). It reads manifold absolute pressure (standard OBD-II
+PID `0B`) and barometric pressure (PID `33`) and shows **boost** (negative = vacuum) in psi, bar
+or kPa, with a needle or bar, peak hold and a NO LINK state. It was built around an F56 Mini
+Cooper S (B48), which is the default setup and the car it is meant to be tested on first; see
+[Other cars](#other-cars) for what carries over. Nothing has been run on real hardware yet.
 
 You do not need the hardware to work on this. The gauge logic, the OBD
 protocols and the rendering all run on your PC against a simulated ECU.
@@ -206,8 +208,15 @@ read-only mode 01 requests are sent.
 ### Settings
 
 All pins, the BLE dongle name hint, WiFi SSID and the dongle address live in
-[`src/config.h`](src/config.h). Gauge range, zones and tick spacing are
-`ClassicLookConfig` in [`lib/core/src/looks/ClassicLook.h`](lib/core/src/looks/ClassicLook.h).
+[`src/config.h`](src/config.h), and so do:
+
+* **`kProfile`** (a `GaugeProfile`): the unit (psi, bar or kPa), the scale's range, and where the
+  amber and red zones start. The default is the original psi gauge, -15 to +25, red from 20, which
+  suits a stock turbo. `GaugeProfile::bar()` and `::kpa()` are metric equivalents, and every field
+  can be set for a car with more or less boost. Classic, Minimal and Motorsport follow it; Retro and
+  Modern are pictures of a psi dial (see `looks/<name>/spec.json`).
+* **`kElmProtocol`**: the dongle's bus protocol (`"6"` is CAN 11-bit 500 kbit/s; `"0"` searches).
+* **`kCanBitrateKbps`**: the bus speed for direct CAN (125, 250, 500 or 1000).
 
 ## How the repo is organised
 
@@ -383,14 +392,32 @@ test), then a button in `tools/preview.html` that sends it.
 | `pio test` says `SKIPPED, 0 test cases` | Known PlatformIO doctest reporting quirk; run `tools/coverage.sh` |
 | Screen colours inverted | Toggle `cfg.invert` in `src/device/LgfxCanvas.cpp` |
 | Gauge shows NO LINK in the car | Check wiring/pairing; confirm the car answers PID `0B` (try `010B` in an ELM327 terminal app) |
-| Needle scale looks wrong | Confirm `GaugeConfig` min/max for your tune; boost is MAP minus barometric |
+| Needle scale looks wrong | Check `kProfile` in `src/config.h` (min/max and zones) for your car; boost is MAP minus barometric |
+
+## Other cars
+
+The code uses only standard OBD-II (SAE J1979, mode 01), nothing specific to the Mini: its brand
+is the badge, the "Modern Mini" look and the default scale. What decides whether it works on
+another car:
+
+| Area | What the gauge assumes | If your car differs |
+| ---- | ---------------------- | ------------------- |
+| **Bus protocol** | Direct CAN is ISO 15765-4 (11-bit IDs, 500 kbit/s by default): most cars from about 2008 | Set `kCanBitrateKbps` for a 250 kbit/s car. For 29-bit CAN, older K-line / J1850 cars, or trucks use an **ELM327 dongle** and set `kElmProtocol` (`"0"` = automatic) |
+| **PID `0B` (manifold pressure)** | Required | Nearly every turbo car has it; EVs and some others do not |
+| **PID `33` (barometric)** | Optional: it falls back to standard atmosphere (101.3 kPa) | Boost is then a few psi off at altitude or in bad weather |
+| **PID `0B` range** | One byte: 255 kPa absolute, about 22 psi of boost at sea level | Higher-boost or tuned cars saturate; a newer standard PID has two bytes (not used yet) |
+| **Direct boost PIDs** | Not used | Some cars, mostly diesels, report boost directly (e.g. `6F`, `70`, `87`) |
+| **Manufacturer data** | Not used: mode 01 only, read-only | Oil temperature and similar sit in manufacturer-specific services, outside the standard |
+
+It has not been verified on any car yet, so "should work on an OBD-II car that reports PID `0B`"
+is the honest claim. If you try it on another car, please report what happened.
 
 ## Not yet verified on real hardware
 
 These can only be confirmed with the board and car:
 
 * LCD colour inversion and arc angle convention (`LgfxCanvas.cpp`)
-* CAN pin choice, and that PIDs `0B`/`33` respond on your F56
+* CAN pin choice, and that PIDs `0B`/`33` respond on your car (an F56 is the first test)
 * BLE dongle GATT layout (services `FFF0`/`FFE0`/`18F0` are assumed)
 
 ## Known MVP limits
