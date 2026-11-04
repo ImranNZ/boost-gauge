@@ -24,6 +24,7 @@
 #include "app/GaugeApp.h"
 #include "gauge/FpsCounter.h"
 #include "gauge/GaugeModel.h"
+#include "gauge/GaugeProfile.h"
 #include "gauge/GaugeScale.h"
 #include "gauge/Smoothing.h"
 #include "looks/ClassicLook.h"
@@ -86,8 +87,9 @@ inline int countColor(const SoftCanvas& canvas, Color c, int x0, int y0, int x1,
 
 /// The pixel `radius` from the dial centre along the angle for `psi` (default
 /// -15..25 scale). Negative radius looks behind the pivot (the needle's tail).
-inline Color pointOnNeedle(const SoftCanvas& canvas, float psi, float radius) {
-  const float rad = GaugeScale{}.angleFor(psi) * 3.14159265f / 180.0f;
+inline Color pointOnNeedle(const SoftCanvas& canvas, float psi, float radius,
+                           GaugeScale scale = GaugeScale{}) {
+  const float rad = scale.angleFor(psi) * 3.14159265f / 180.0f;
   return canvas.image().get(120 + static_cast<int>(std::lround(std::cos(rad) * radius)),
                             120 + static_cast<int>(std::lround(std::sin(rad) * radius)));
 }

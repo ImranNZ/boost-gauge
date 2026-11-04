@@ -26,4 +26,7 @@ bool applyRateCommand(ThrottledSource& source, std::string_view line);
 /// whether that look exists. False if the line is anything else.
 bool parseLookCommand(std::string_view line, std::string& name);
 
+/// Recognise "unit <name>" (psi, bar or kpa) and return the name, as parseLookCommand does.
+bool parseUnitCommand(std::string_view line, std::string& name);
+
 }  // namespace gauge

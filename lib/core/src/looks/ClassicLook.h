@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gauge/GaugeProfile.h"
 #include "gauge/GaugeScale.h"
 #include "gauge/GaugeState.h"
 #include "looks/ILook.h"
@@ -8,17 +9,9 @@
 
 namespace gauge {
 
-struct ClassicLookConfig {
-  float minPsi = -15.0f;
-  float maxPsi = 25.0f;
-  float majorStepPsi = 5.0f;
-  int minorPerMajor = 2;  // minor tick every majorStep / minorPerMajor
-  float amberFromPsi = 15.0f;
-  float redFromPsi = 20.0f;
-};
-
 /// The "Classic" look: a dark dial drawn entirely in code, with coloured zones
-/// and a big digital readout. Pure presentation; knows nothing about OBD or hardware.
+/// and a big digital readout. Pure presentation; knows nothing about OBD or hardware. The
+/// scale, zones and unit come from a GaugeProfile.
 class ClassicLook : public ILook {
  public:
   static constexpr Color kBackground{0, 0, 0};
@@ -26,22 +19,25 @@ class ClassicLook : public ILook {
   static constexpr float kStartDeg = GaugeScale::kStartDeg;
   static constexpr float kSweepDeg = GaugeScale::kSweepDeg;
 
-  explicit ClassicLook(const ClassicLookConfig& config = {}) : config_(config) {}
+  /// A minor graduation between each pair of labelled ones.
+  static constexpr int kMinorPerMajor = 2;
+
+  explicit ClassicLook(const GaugeProfile& profile = {}) : profile_(profile) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
 
-  /// Screen angle (degrees, 0 = 3 o'clock, clockwise) for a pressure.
-  float angleFor(float psi) const;
+  /// Screen angle (degrees, 0 = 3 o'clock, clockwise) for a number in the profile's unit.
+  float angleFor(float value) const;
 
  private:
   void drawZones(IDrawSurface& c, int cx, int cy) const;
   void drawScale(IDrawSurface& c, int cx, int cy) const;
-  void drawPeakMarker(IDrawSurface& c, int cx, int cy, float peakPsi) const;
-  void drawNeedle(IDrawSurface& c, int cx, int cy, float psi) const;
+  void drawPeakMarker(IDrawSurface& c, int cx, int cy, float peakValue) const;
+  void drawNeedle(IDrawSurface& c, int cx, int cy, float value) const;
   void drawReadout(IDrawSurface& c, int cx, const GaugeState& state) const;
 
-  ClassicLookConfig config_;
+  GaugeProfile profile_;
 };
 
 }  // namespace gauge

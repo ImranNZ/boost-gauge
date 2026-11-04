@@ -38,9 +38,7 @@ int polarY(int cy, float deg, int r) {
 
 }  // namespace
 
-float ClassicLook::angleFor(float psi) const {
-  return GaugeScale{config_.minPsi, config_.maxPsi}.angleFor(psi);
-}
+float ClassicLook::angleFor(float value) const { return profile_.scale().angleFor(value); }
 
 void ClassicLook::drawDial(IDrawSurface& c) const {
   const int cx = c.width() / 2;
@@ -55,8 +53,8 @@ void ClassicLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   const int cy = c.height() / 2;
 
   if (state.linked) {
-    if (state.peakPsi > 0.05f) drawPeakMarker(c, cx, cy, state.peakPsi);
-    drawNeedle(c, cx, cy, state.psi);
+    if (state.peakPsi > 0.05f) drawPeakMarker(c, cx, cy, profile_.toDisplay(state.peakPsi));
+    drawNeedle(c, cx, cy, profile_.toDisplay(state.psi));
   }
   c.fillCircle(cx, cy, 10, kHub);
   c.fillCircle(cx, cy, 4, kBackground);
@@ -70,10 +68,10 @@ void ClassicLook::drawZones(IDrawSurface& c, int cx, int cy) const {
     Color color;
   };
   const Zone zones[] = {
-      {config_.minPsi, 0.0f, kVacuum},
-      {0.0f, config_.amberFromPsi, kNormal},
-      {config_.amberFromPsi, config_.redFromPsi, kAmber},
-      {config_.redFromPsi, config_.maxPsi, kRed},
+      {profile_.min, 0.0f, kVacuum},
+      {0.0f, profile_.amberFrom, kNormal},
+      {profile_.amberFrom, profile_.redFrom, kAmber},
+      {profile_.redFrom, profile_.max, kRed},
   };
   for (const Zone& z : zones) {
     c.fillArc(cx, cy, kZoneInner, kZoneOuter, angleFor(z.from), angleFor(z.to), z.color);
@@ -81,20 +79,21 @@ void ClassicLook::drawZones(IDrawSurface& c, int cx, int cy) const {
 }
 
 void ClassicLook::drawScale(IDrawSurface& c, int cx, int cy) const {
-  const float step = config_.majorStepPsi / static_cast<float>(config_.minorPerMajor);
+  const float step = profile_.majorStep / static_cast<float>(kMinorPerMajor);
   for (int i = 0;; ++i) {
-    const float psi = config_.minPsi + static_cast<float>(i) * step;
-    if (psi > config_.maxPsi + 1e-3f) break;
+    const float value = profile_.min + static_cast<float>(i) * step;
+    if (value > profile_.max + 1e-3f) break;
 
-    const bool major = (i % config_.minorPerMajor) == 0;
-    const float deg = angleFor(psi);
+    const bool major = (i % kMinorPerMajor) == 0;
+    const float deg = angleFor(value);
     const int inner = major ? kMajorInner : kMinorInner;
     c.drawLine(polarX(cx, deg, inner), polarY(cy, deg, inner), polarX(cx, deg, kTickOuter),
                polarY(cy, deg, kTickOuter), major ? 2 : 1, kTick);
 
     if (major) {
       char label[8];
-      std::snprintf(label, sizeof(label), "%d", static_cast<int>(std::lround(psi)));
+      std::snprintf(label, sizeof(label), "%.*f", profile_.labelDecimals(),
+                    static_cast<double>(value));
       // Scale-2 glyphs are 16 px tall; centre vertically on the radius.
       c.drawText(polarX(cx, deg, kLabelRadius), polarY(cy, deg, kLabelRadius) - 8, label, 2,
                  TextAlign::Center, kLabel);
@@ -102,15 +101,15 @@ void ClassicLook::drawScale(IDrawSurface& c, int cx, int cy) const {
   }
 }
 
-void ClassicLook::drawPeakMarker(IDrawSurface& c, int cx, int cy, float peakPsi) const {
-  const float deg = angleFor(peakPsi);
+void ClassicLook::drawPeakMarker(IDrawSurface& c, int cx, int cy, float peakValue) const {
+  const float deg = angleFor(peakValue);
   c.drawLine(polarX(cx, deg, kMajorInner - 6), polarY(cy, deg, kMajorInner - 6),
              polarX(cx, deg, kTickOuter), polarY(cy, deg, kTickOuter), 3, kText);
 }
 
-void ClassicLook::drawNeedle(IDrawSurface& c, int cx, int cy, float psi) const {
+void ClassicLook::drawNeedle(IDrawSurface& c, int cx, int cy, float value) const {
   // Float coordinates (no rounding) so the needle glides instead of stepping.
-  const float rad = angleFor(psi) * kDegToRad;
+  const float rad = angleFor(value) * kDegToRad;
   const float tipX = static_cast<float>(cx) + std::cos(rad) * kNeedleLength;
   const float tipY = static_cast<float>(cy) + std::sin(rad) * kNeedleLength;
   c.drawWedge(static_cast<float>(cx), static_cast<float>(cy), tipX, tipY, kNeedleBaseRadius,
@@ -120,18 +119,20 @@ void ClassicLook::drawNeedle(IDrawSurface& c, int cx, int cy, float psi) const {
 void ClassicLook::drawReadout(IDrawSurface& c, int cx, const GaugeState& state) const {
   char text[16];
   if (state.linked) {
-    std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.psi));
+    std::snprintf(text, sizeof(text), "%.*f", profile_.decimals(),
+                  static_cast<double>(profile_.toDisplay(state.psi)));
   } else {
     std::snprintf(text, sizeof(text), "--.-");
   }
   // Sits in the gap under the hub, clear of the bottom-corner scale labels.
   c.drawText(cx, 134, text, 4, TextAlign::Center, state.linked ? kText : kDim);
-  c.drawText(cx, 170, "PSI", 2, TextAlign::Center, kDim);
+  c.drawText(cx, 170, profile_.unitLabel(), 2, TextAlign::Center, kDim);
 
   if (!state.linked) {
     c.drawText(cx, 74, "NO LINK", 2, TextAlign::Center, kRed);
   } else if (state.peakPsi > 0.05f) {
-    std::snprintf(text, sizeof(text), "PK %.1f", static_cast<double>(state.peakPsi));
+    std::snprintf(text, sizeof(text), "PK %.*f", profile_.decimals(),
+                  static_cast<double>(profile_.toDisplay(state.peakPsi)));
     c.drawText(cx, 204, text, 2, TextAlign::Center, kDim);
   }
 

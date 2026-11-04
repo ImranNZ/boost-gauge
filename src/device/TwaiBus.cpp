@@ -8,6 +8,16 @@
 #include "config.h"
 
 namespace device {
+namespace {
+
+twai_timing_config_t timingFor(int kbps) {
+  if (kbps == 125) return TWAI_TIMING_CONFIG_125KBITS();
+  if (kbps == 250) return TWAI_TIMING_CONFIG_250KBITS();
+  if (kbps == 1000) return TWAI_TIMING_CONFIG_1MBITS();
+  return TWAI_TIMING_CONFIG_500KBITS();
+}
+
+}  // namespace
 
 bool TwaiBus::begin() {
   if (started_) return true;
@@ -15,7 +25,7 @@ bool TwaiBus::begin() {
   const twai_general_config_t general =
       TWAI_GENERAL_CONFIG_DEFAULT(static_cast<gpio_num_t>(config::kCanTx),
                                   static_cast<gpio_num_t>(config::kCanRx), TWAI_MODE_NORMAL);
-  const twai_timing_config_t timing = TWAI_TIMING_CONFIG_500KBITS();
+  const twai_timing_config_t timing = timingFor(config::kCanBitrateKbps);
   const twai_filter_config_t filter = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   if (twai_driver_install(&general, &timing, &filter) != ESP_OK) return false;

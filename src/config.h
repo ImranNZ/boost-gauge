@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gauge/GaugeProfile.h"
+
 // Board and deployment settings. Everything environment-specific lives here so
 // the rest of the firmware never hard-codes a pin, SSID or address.
 
@@ -26,9 +28,29 @@ constexpr int kLcdSpiHz = 80000000;
 enum class Look { Retro, Classic, Minimal, Motorsport, Modern };
 constexpr Look kLook = Look::Retro;
 
+// --- Gauge profile -----------------------------------------------------------
+// What the gauge shows and where its zones start: the unit (psi, bar or kPa), the scale's range
+// and the amber and red points. The default is psi, -15 to +25, red from 20: a stock turbo
+// like the F56's. `GaugeProfile::bar()` and `GaugeProfile::kpa()` are metric equivalents, and
+// every field can be set for a car with more or less boost, e.g.
+//   gauge::GaugeProfile{gauge::Unit::Psi, -15, 35, 5, 25, 30}   // a tuned car
+// Classic, Minimal and Motorsport follow it. Retro and Modern are pictures of a psi dial (see
+// looks/<name>/spec.json).
+inline constexpr gauge::GaugeProfile kProfile = gauge::GaugeProfile::psi();
+
 // --- Diagnostics -------------------------------------------------------------
 // Show the measured frames-per-second in the bottom corner of the dial.
 constexpr bool kShowFps = true;
+
+// --- Car bus protocol ---------------------------------------------------------
+// ELM327 dongles (BLE and WiFi): the adapter's `ATSP` protocol digit. "6" is ISO 15765-4 CAN,
+// 11-bit IDs, 500 kbit/s: the F56, and most cars from about 2008. "0" lets the dongle search for
+// whatever the car speaks (slower to connect); see Elm327Client::Options for the others, e.g. "7"
+// for 29-bit CAN or "8" for 250 kbit/s.
+constexpr const char* kElmProtocol = "6";
+// Direct CAN (TRANSPORT_CAN): the bus speed in kbit/s: 125, 250, 500 or 1000. The direct client
+// speaks 11-bit OBD-II only; for a 29-bit car use an ELM327 dongle with protocol "7" or "9".
+constexpr int kCanBitrateKbps = 500;
 
 // --- CAN (TRANSPORT_CAN): SN65HVD230 transceiver on two spare header pins --
 // VERIFY against the header silkscreen of your board before wiring; these two

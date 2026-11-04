@@ -3,10 +3,13 @@
 namespace gauge {
 
 constexpr float kKpaPerPsi = 6.894757f;
+constexpr float kPsiPerBar = 14.503774f;
 constexpr float kStdAtmosphereKpa = 101.325f;
 
 constexpr float kpaToPsi(float kpa) { return kpa / kKpaPerPsi; }
 constexpr float psiToKpa(float psi) { return psi * kKpaPerPsi; }
+constexpr float psiToBar(float psi) { return psi / kPsiPerBar; }
+constexpr float barToPsi(float bar) { return bar * kPsiPerBar; }
 
 /// Gauge boost in psi from absolute manifold pressure and ambient pressure
 /// (both kPa). Negative result means manifold vacuum.

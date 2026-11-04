@@ -111,12 +111,12 @@ TEST_CASE("app: custom look and options are honoured") {
   BoostSampler sampler(client, clock);
   PollingSource source(sampler);
   SoftCanvas canvas(240, 240);
-  ClassicLookConfig config;
-  config.maxPsi = 30.0f;
+  GaugeProfile profile;
+  profile.max = 30.0f;
   GaugeApp::Options options;
   options.smoothingMs = 0.0f;
   options.staleAfterMs = 10;
-  ClassicLook look(config);
+  ClassicLook look(profile);
   GaugeApp app(source, canvas, clock, look, options);
 
   app.tick();

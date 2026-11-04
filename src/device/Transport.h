@@ -30,16 +30,23 @@ class Transport {
 
 #elif defined(TRANSPORT_BLE)
 
+#include "config.h"
 #include "device/BleElmStream.h"
 #include "obd/Elm327Client.h"
 
 namespace device {
 class Transport {
  public:
-  explicit Transport(gauge::IClock& clock) : client_(stream_, clock) {}
+  explicit Transport(gauge::IClock& clock) : client_(stream_, clock, options()) {}
   gauge::IObdClient& client() { return client_; }
 
  private:
+  static gauge::Elm327Client::Options options() {
+    gauge::Elm327Client::Options options;
+    options.protocol = config::kElmProtocol;
+    return options;
+  }
+
   BleElmStream stream_;
   gauge::Elm327Client client_;
 };
@@ -47,16 +54,23 @@ class Transport {
 
 #elif defined(TRANSPORT_WIFI)
 
+#include "config.h"
 #include "device/WifiElmStream.h"
 #include "obd/Elm327Client.h"
 
 namespace device {
 class Transport {
  public:
-  explicit Transport(gauge::IClock& clock) : client_(stream_, clock) {}
+  explicit Transport(gauge::IClock& clock) : client_(stream_, clock, options()) {}
   gauge::IObdClient& client() { return client_; }
 
  private:
+  static gauge::Elm327Client::Options options() {
+    gauge::Elm327Client::Options options;
+    options.protocol = config::kElmProtocol;
+    return options;
+  }
+
   WifiElmStream stream_;
   gauge::Elm327Client client_;
 };

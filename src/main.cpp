@@ -38,10 +38,10 @@ gauge::SamplerLoop samplerLoop(sampler, mailbox);
 device::SamplerTask samplerTask(samplerLoop);
 
 // Looks (the app keeps a reference, so they live for the whole run).
-gauge::ClassicLook classicLook;
+gauge::ClassicLook classicLook(config::kProfile);
 gauge::RetroLook retroLook = looks::makeRetro();
-gauge::MinimalLook minimalLook = looks::makeMinimal();
-gauge::MotorsportLook motorsportLook = looks::makeMotorsport();
+gauge::MinimalLook minimalLook = looks::makeMinimal(config::kProfile);
+gauge::MotorsportLook motorsportLook = looks::makeMotorsport(config::kProfile);
 gauge::ModernLook modernLook = looks::makeModern();
 
 const gauge::ILook& chosenLook() {
