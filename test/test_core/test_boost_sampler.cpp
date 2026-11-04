@@ -154,3 +154,126 @@ TEST_CASE("sampler: unsupported baro PID is not queried on every sample") {
   }
   CHECK(client.baroReads == 1);
 }
+
+namespace {
+
+/// Wraps a client and counts how often each PID was asked for.
+class CountingClient : public IObdClient {
+ public:
+  explicit CountingClient(IObdClient& inner) : inner_(inner) {}
+  bool begin() override {
+    ++begins;
+    return inner_.begin();
+  }
+  bool readPid(uint8_t mode, uint8_t pid, ObdData& out) override {
+    ++asked[pid];
+    return inner_.readPid(mode, pid, out);
+  }
+
+  int begins = 0;
+  std::array<int, 256> asked{};
+
+ private:
+  IObdClient& inner_;
+};
+
+int discoveries = 0;
+bool sawBaro = false;
+
+}  // namespace
+
+TEST_CASE("sampler: a car that does not report barometric pressure is never asked for it") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+  ecu.setSupported(obd::kPidBaroKpa, false);
+  ecu.holdMapKpa(150.0f);
+  FakeCanBus bus(ecu);
+  CanObdClient inner(bus, clock);
+  CountingClient client(inner);
+  BoostSampler sampler(client, clock);
+
+  for (int i = 0; i < 20; ++i) {
+    clock.advance(20000);  // long enough that a baro read would be due every time
+    const BoostReading r = sampler.sample();
+    REQUIRE(r.valid);
+    CHECK(r.psi == doctest::Approx(boostPsi(150.0f, kStdAtmosphereKpa)));
+  }
+  CHECK(client.asked[obd::kPidBaroKpa] == 0);
+  CHECK(sampler.support().knows(obd::kPidBaroKpa));
+  CHECK_FALSE(sampler.support().supports(obd::kPidBaroKpa));
+}
+
+TEST_CASE("sampler: a car with no manifold pressure shows no boost and is left alone") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+  ecu.setSupported(obd::kPidMapKpa, false);
+  FakeCanBus bus(ecu);
+  CanObdClient inner(bus, clock);
+  CountingClient client(inner);
+  BoostSampler sampler(client, clock);
+
+  for (int i = 0; i < 30; ++i) {
+    clock.advance(33);
+    CHECK_FALSE(sampler.sample().valid);
+  }
+  CHECK(client.asked[obd::kPidMapKpa] == 0);  // not asked, so no failures and no reconnect storm
+  CHECK(client.begins == 1);
+}
+
+TEST_CASE("sampler: when discovery fails it assumes nothing and carries on as before") {
+  ManualClock clock;
+  StubObdClient client;  // answers PID 00 with one byte: not a bitmap
+  client.map = {true, 1, 150};
+  client.baro = {true, 1, 100};
+  BoostSampler sampler(client, clock);
+
+  const BoostReading r = sampler.sample();
+  REQUIRE(r.valid);
+  CHECK(r.psi == doctest::Approx(boostPsi(150.0f, 100.0f)));
+  CHECK_FALSE(sampler.support().knows(obd::kPidMapKpa));
+}
+
+TEST_CASE("sampler: the car is rediscovered after the link comes back") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+  ecu.holdMapKpa(130.0f);
+  FakeCanBus bus(ecu);
+  CanObdClient inner(bus, clock);
+  CountingClient client(inner);
+  BoostSampler::Options options;
+  options.link.failuresBeforeReconnect = 2;
+  options.link.reconnectIntervalMs = 1000;
+  BoostSampler sampler(client, clock, options);
+
+  REQUIRE(sampler.sample().valid);
+  CHECK(client.asked[obd::kPidSupported01To20] == 1);
+
+  ecu.setOnline(false);
+  CHECK_FALSE(sampler.sample().valid);
+  CHECK_FALSE(sampler.sample().valid);
+  ecu.setOnline(true);
+  clock.advance(1500);
+  REQUIRE(sampler.sample().valid);
+  CHECK(client.asked[obd::kPidSupported01To20] == 2);  // asked again on the new connection
+}
+
+TEST_CASE("sampler: reports what the car supports to a listener") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+  ecu.setSupported(obd::kPidBaroKpa, false);
+  FakeCanBus bus(ecu);
+  CanObdClient client(bus, clock);
+  BoostSampler::Options options;
+  options.onDiscovered = [](const PidSupport& support) {
+    ++discoveries;
+    sawBaro = support.supports(obd::kPidBaroKpa);
+  };
+  BoostSampler sampler(client, clock, options);
+  discoveries = 0;
+  sawBaro = true;
+
+  sampler.sample();
+  sampler.sample();
+  CHECK(discoveries == 1);  // once per connection, not per sample
+  CHECK_FALSE(sawBaro);
+}

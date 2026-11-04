@@ -25,6 +25,10 @@ class AmbientPressure {
   /// Ambient pressure in kPa, asking the car first if a read is due.
   float kpa();
 
+  /// Whether the car can report barometric pressure at all (learned from PID discovery). When it
+  /// cannot, the car is never asked and standard atmosphere is used.
+  void setAvailable(bool available);
+
   /// Forget what was learned (the car may have been somewhere else): read again
   /// at the next opportunity.
   void invalidate();
@@ -35,6 +39,7 @@ class AmbientPressure {
   Options options_;
 
   float kpa_ = kStdAtmosphereKpa;
+  bool available_ = true;
   bool known_ = false;
   bool tried_ = false;
   uint32_t triedAtMs_ = 0;

@@ -44,3 +44,30 @@ TEST_CASE("drive profile: bounded, periodic, hits both extremes") {
   CHECK(driveProfileBoostPsi(1234) == doctest::Approx(driveProfileBoostPsi(21234)));
   CHECK(driveProfileBoostPsi(19999) == doctest::Approx(-11.0f).epsilon(0.01));
 }
+
+TEST_CASE("fake ecu: the support bitmaps follow the PIDs it implements") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+  ObdData d;
+
+  // By default 0B and 33: PID 00 has 0B and says a second range exists; PID 20 has 33 and no more.
+  REQUIRE(ecu.answer(obd::kModeCurrentData, 0x00, d));
+  CHECK((d.bytes == std::array<uint8_t, 4>{0x00, 0x20, 0x00, 0x01}));
+  REQUIRE(ecu.answer(obd::kModeCurrentData, 0x20, d));
+  CHECK((d.bytes == std::array<uint8_t, 4>{0x00, 0x00, 0x20, 0x00}));
+  CHECK_FALSE(ecu.answer(obd::kModeCurrentData, 0x40, d));  // no PIDs there: no such support PID
+
+  ecu.setSupported(obd::kPidBaroKpa, false);
+  CHECK_FALSE(ecu.supported(obd::kPidBaroKpa));
+  REQUIRE(ecu.answer(obd::kModeCurrentData, 0x00, d));
+  CHECK(d.bytes[3] == 0x00);  // nothing beyond the first range any more
+  CHECK_FALSE(ecu.answer(obd::kModeCurrentData, 0x20, d));
+  CHECK_FALSE(
+      ecu.answer(obd::kModeCurrentData, obd::kPidBaroKpa, d));  // and it no longer answers 33
+
+  ecu.setSupported(0x05, true);  // a PID this fake has no data for
+  CHECK(ecu.supported(0x05));
+  REQUIRE(ecu.answer(obd::kModeCurrentData, 0x00, d));
+  CHECK((d.bytes[0] & 0x08) != 0);
+  CHECK_FALSE(ecu.answer(obd::kModeCurrentData, 0x05, d));  // listed, but no answer to give
+}

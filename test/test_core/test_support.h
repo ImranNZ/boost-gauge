@@ -36,6 +36,7 @@
 #include "obd/CanObdClient.h"
 #include "obd/Elm327Client.h"
 #include "obd/Elm327Parse.h"
+#include "obd/PidSupport.h"
 #include "obd/Units.h"
 #include "render/ArcCoverage.h"
 #include "render/Font.h"

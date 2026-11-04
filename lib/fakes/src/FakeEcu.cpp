@@ -52,11 +52,30 @@ bool FakeEcu::answer(uint8_t mode, uint8_t pid, ObdData& out) const {
     return static_cast<uint8_t>(std::clamp(std::lround(v), 0L, 255L));
   };
 
+  const auto anyIn = [this](int first, int last) {
+    for (int p = first; p <= last && p <= 255; ++p) {
+      if (supported(static_cast<uint8_t>(p))) return true;
+    }
+    return false;
+  };
+
+  // A support PID (00, 20, 40, ...): a 32-bit big-endian bitmap of the 32 PIDs after it, whose
+  // last bit says a later range has anything. 00 always answers; the others only if they exist.
+  if (pid % 32 == 0 && pid <= 0xC0) {
+    if (pid != 0 && !anyIn(pid + 1, pid + 32)) return false;
+    uint32_t word = 0;
+    for (int k = 0; k < 31; ++k) {
+      if (supported(static_cast<uint8_t>(pid + 1 + k))) word |= 1u << (31 - k);
+    }
+    if (anyIn(pid + 33, pid + 64)) word |= 1u;
+    out.bytes = {static_cast<uint8_t>(word >> 24), static_cast<uint8_t>(word >> 16),
+                 static_cast<uint8_t>(word >> 8), static_cast<uint8_t>(word)};
+    out.count = 4;
+    return true;
+  }
+
+  if (!supported(pid)) return false;
   switch (pid) {
-    case obd::kPidSupported01To20:
-      out.bytes = {0x00, 0x20, 0x00, 0x01};  // advertises 0x0B (and 0x20)
-      out.count = 4;
-      return true;
     case obd::kPidMapKpa:
       out.bytes[0] = asByte(mapKpa());
       out.count = 1;
@@ -66,7 +85,7 @@ bool FakeEcu::answer(uint8_t mode, uint8_t pid, ObdData& out) const {
       out.count = 1;
       return true;
     default:
-      return false;
+      return false;  // listed as supported but this fake has no data for it
   }
 }
 

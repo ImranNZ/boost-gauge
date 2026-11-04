@@ -8,7 +8,17 @@ AmbientPressure::AmbientPressure(IObdClient& client, IClock& clock)
 AmbientPressure::AmbientPressure(IObdClient& client, IClock& clock, Options options)
     : client_(client), clock_(clock), options_(options) {}
 
+void AmbientPressure::setAvailable(bool available) {
+  available_ = available;
+  if (!available) {
+    kpa_ = kStdAtmosphereKpa;
+    known_ = false;
+  }
+}
+
 float AmbientPressure::kpa() {
+  if (!available_) return kpa_;
+
   const uint32_t now = clock_.nowMs();
   const uint32_t interval = known_ ? options_.refreshMs : options_.retryMs;
   if (tried_ && now - triedAtMs_ < interval) return kpa_;

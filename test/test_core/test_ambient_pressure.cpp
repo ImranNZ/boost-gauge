@@ -97,3 +97,29 @@ TEST_CASE("ambient pressure: invalidate forces a fresh read at the next call") {
   ambient.invalidate();
   CHECK(ambient.kpa() == doctest::Approx(80.0f));
 }
+
+TEST_CASE("ambient pressure: a car known to lack the PID is never asked") {
+  ManualClock clock;
+  StubObdClient client;
+  client.baro = {true, 1, 90};
+  AmbientPressure ambient(client, clock);
+
+  ambient.setAvailable(false);
+  CHECK(ambient.kpa() == doctest::Approx(kStdAtmosphereKpa));
+  clock.advance(120000);
+  CHECK(ambient.kpa() == doctest::Approx(kStdAtmosphereKpa));  // not read even though a read is due
+
+  ambient.setAvailable(true);
+  CHECK(ambient.kpa() == doctest::Approx(90.0f));  // available again: it reads
+}
+
+TEST_CASE("ambient pressure: becoming unavailable forgets what was read") {
+  ManualClock clock;
+  StubObdClient client;
+  client.baro = {true, 1, 90};
+  AmbientPressure ambient(client, clock);
+  REQUIRE(ambient.kpa() == doctest::Approx(90.0f));
+
+  ambient.setAvailable(false);
+  CHECK(ambient.kpa() == doctest::Approx(kStdAtmosphereKpa));
+}
