@@ -134,7 +134,11 @@ something cheap has failed:
 
 A pull request runs stages 1 and 2 and publishes nothing. A **merge to `main`** also keeps the
 bundle as a build artifact for 30 days (a flashable "latest main"). A **version tag** publishes a
-GitHub Release with the images attached:
+GitHub Release with the images attached. The release is created as a draft, each file is
+uploaded with retries, and it is published only once every file has arrived (so a flaky API call
+cannot leave a half-built release; re-running the failed job finishes it). A `v0.*` tag is marked a
+pre-release automatically. The release notes come from `.github/release-notes.md`; the logic is in
+`tools/publish_release.sh`, which you can run with `--dry-run` to see it work without publishing:
 
 ```bash
 git tag v0.1.0 && git push origin v0.1.0

@@ -181,6 +181,7 @@ jobs:
     permissions:
       contents: write   # to create the GitHub Release on a tag
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: firmware-*
@@ -207,14 +208,12 @@ jobs:
           path: out/*
           retention-days: 30
 
-      # A version tag: a real GitHub Release with the images attached.
+      # A version tag: a GitHub Release with the images attached. The script creates it as a
+      # draft, uploads each file with retries, checks they all arrived, then publishes, so a
+      # flaky API call cannot leave a half-built public release. A v0.* tag is a pre-release.
       - name: Create the GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" out/* \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes \
-            --notes "Firmware images for each connection type: \`device-can\`, \`device-ble\`, \`device-wifi\` and \`device-demo\`. Flash with \`esptool\` at 0x0 (bootloader), 0x8000 (partitions), 0xe000 (boot_app0) and 0x10000 (firmware), or build from source with PlatformIO. Verify with SHA256SUMS."
+          GH_REPO: ${{ github.repository }}
+        run: tools/publish_release.sh "$GITHUB_REF_NAME" out
