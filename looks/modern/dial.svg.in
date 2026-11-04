@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Modern Mini dial artwork TEMPLATE: the STATIC layer only (chrome ring, black face,
+  coloured bands, graduations, numerals, BOOST / PSI, the readout window, glass glint).
+  The needle, peak flag, hub, the number in the window, "NO LINK" and the optional badge
+  are drawn live by ModernLook.
+
+  The graduations, bands and numerals are generated from spec.json, the single source of
+  truth for the scale geometry (the C++ reads the same numbers), so edit those values
+  there, not here.
+
+  Build:  python tools/make_look.py modern
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <defs>
+    <linearGradient id="chromeA" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#fbfcfd"/>
+      <stop offset="0.22" stop-color="#aab1ba"/>
+      <stop offset="0.48" stop-color="#5a6068"/>
+      <stop offset="0.72" stop-color="#cfd4da"/>
+      <stop offset="1" stop-color="#7d838b"/>
+    </linearGradient>
+    <linearGradient id="chromeB" x1="0.9" y1="1" x2="0.1" y2="0">
+      <stop offset="0" stop-color="#e9ecef"/>
+      <stop offset="0.5" stop-color="#4b5058"/>
+      <stop offset="1" stop-color="#bfc5cb"/>
+    </linearGradient>
+    <radialGradient id="dialA" cx="0.4" cy="0.32" r="0.85">
+      <stop offset="0" stop-color="#262a30"/>
+      <stop offset="0.6" stop-color="#121418"/>
+      <stop offset="1" stop-color="#08090b"/>
+    </radialGradient>
+    <radialGradient id="vignetteA" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.78" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.6"/>
+    </radialGradient>
+    <linearGradient id="glassA" x1="0.2" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="120" cy="120" r="119.5" fill="#050506"/>
+  <circle cx="120" cy="120" r="113.5" fill="none" stroke="url(#chromeA)" stroke-width="12"/>
+  <circle cx="120" cy="120" r="107.5" fill="none" stroke="url(#chromeB)" stroke-width="1.6"/>
+  <circle cx="120" cy="120" r="106.5" fill="url(#dialA)"/>
+  <circle cx="120" cy="120" r="106.5" fill="url(#vignetteA)"/>
+
+  <!-- amber band (amberFromPsi to redFromPsi) and red band (redFromPsi to maxPsi) -->
+  <path d="@AMBER_BAND@" fill="none" stroke="#ffb000" stroke-width="3.6"/>
+  <path d="@RED_BAND@" fill="none" stroke="#ff3b30" stroke-width="3.6"/>
+
+  <!-- graduations: major every majorStepPsi, minor in between -->
+  <path d="@MAJOR_TICKS@" fill="none" stroke="#f4f1ea" stroke-width="2.2"/>
+  <path d="@MINOR_TICKS@" fill="none" stroke="#9aa0a7" stroke-width="1"/>
+
+  <g font-family="Barlow" font-size="15" font-weight="500" text-anchor="middle" dominant-baseline="central">
+    @NUMERALS@
+  </g>
+
+  <text x="120" y="111" font-family="Barlow Condensed" font-size="11" font-weight="600" letter-spacing="3.2" text-anchor="middle" fill="#9aa0a7">BOOST</text>
+
+  <!-- the readout window: the number is drawn live inside it -->
+  <rect x="88" y="148" width="64" height="30" rx="7" fill="#07080a" stroke="#2c3138" stroke-width="1"/>
+  <text x="120" y="190" font-family="Barlow Condensed" font-size="9.5" font-weight="600" letter-spacing="2.4" text-anchor="middle" fill="#9aa0a7">PSI</text>
+
+  <!-- glass glint (baked in: the needle is drawn over it) -->
+  <path d="M28 84A98 98 0 0 1 130 21A132 132 0 0 0 28 84Z" fill="url(#glassA)"/>
+</svg>

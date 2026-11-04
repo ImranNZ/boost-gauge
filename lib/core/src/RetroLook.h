@@ -6,6 +6,7 @@
 #include "IDrawSurface.h"
 #include "ILook.h"
 #include "ImageView.h"
+#include "PointerSpec.h"
 
 namespace gauge {
 
@@ -14,18 +15,8 @@ namespace gauge {
 /// drawn on top. Purely analog.
 class RetroLook : public ILook {
  public:
-  /// The geometry the dial artwork was drawn with. It is generated from
-  /// looks/retro/spec.json, the single source for both the picture and this
-  /// code, so the needle always lines up with the printed scale.
-  struct Spec {
-    float minPsi;            // scale the dial is graduated for
-    float maxPsi;
-    float needleLength;      // pixels from the pivot to the tip
-    float tailLength;        // pixels from the pivot to the counterweight
-    float flagInnerRadius;   // the peak flag sits between these two radii
-    float flagOuterRadius;
-    int hubRadius;
-  };
+  /// The geometry the dial artwork was drawn with (generated from looks/retro/spec.json).
+  using Spec = PointerSpec;
 
   static constexpr Color kNeedleRed{200, 40, 30};
   static constexpr Color kInk{28, 26, 22};

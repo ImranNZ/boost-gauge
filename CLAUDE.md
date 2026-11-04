@@ -57,16 +57,17 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Gotchas
 
-* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`, `MinimalLook`, `MotorsportLook`) with two methods,
+* Looks: the app draws through an `ILook` (`ClassicLook`, `RetroLook`, `ModernLook`, `MinimalLook`, `MotorsportLook`) with two methods,
   `drawDial` (static, cached by `FrameRenderer`) and `drawDynamic` (every frame). `GaugeApp`
   keeps a reference to the look, so it must outlive the app; passing a temporary is a
   compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
 * Generated files: `src/looks/fonts/*.h` come from `tools/fonts.json` via `python tools/make_font.py`
-  (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/RetroDial.h` and `RetroSpec.h` come from
-  `looks/retro/spec.json` + `dial.svg.in` via `python tools/make_look.py retro`; never
+  (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
+  `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
   hand-edit them, regenerate. `RetroDial.h` is big (~470 KB): avoid reading it.
 * **Brand artwork is never committed.** The Cooper S badge lives in `assets/` and
-  `src/looks/local/` (both in `.gitignore`) and is included via `__has_include`. Do not
+  `src/looks/local/` (both in `.gitignore`) and is included via `__has_include`: `Badge.h` (dark
+  lettering, for the cream Retro dial) and `BadgeLight.h` (namespace `badge_light`, for the dark looks). Do not
   `git add -f` those, do not copy brand images into tracked folders, and do not upload them
   anywhere public. The GitHub repo is public.
 * `ICanvas::drawImage` takes an `ImageView` (RGB565 plus optional 8-bit alpha). Opaque images are a

@@ -2,7 +2,9 @@
 """Turn look artwork into C++ headers the firmware and the PC sim both compile in.
 
   python tools/make_look.py retro
+  python tools/make_look.py modern
   python tools/make_look.py badge assets/brand/cooper-s.png src/looks/local/Badge.h --width 70
+  python tools/make_look.py badge assets/brand/cooper-s-light.png src/looks/local/BadgeLight.h --namespace badge_light
 
 retro  Builds the Retro 60s dial from looks/retro/spec.json + dial.svg.in: fills the
        graduations, numerals and red band from the spec, renders the SVG at 240x240
@@ -10,6 +12,8 @@ retro  Builds the Retro 60s dial from looks/retro/spec.json + dial.svg.in: fills
          src/looks/RetroDial.h   the picture
          src/looks/RetroSpec.h   the geometry the C++ draws with (needle length, scale...)
        The spec is the single source of truth: the picture and the code cannot drift.
+modern The same pipeline for the Modern Mini dial (looks/modern/): chrome ring, black
+       face, coloured bands. Writes src/looks/ModernDial.h and src/looks/ModernSpec.h.
 badge  Scales a PNG with transparency to its on-screen size and writes RGB565 colour
        + 8-bit alpha. For brand artwork: write it under src/looks/local/, which is
        git-ignored, and never commit it.
@@ -26,6 +30,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 RETRO = ROOT / "looks" / "retro"
+MODERN = ROOT / "looks" / "modern"
 OUT = ROOT / "out"
 
 # 4x4 Bayer matrix: ordered dithering hides banding in the smooth gradients when
@@ -135,9 +140,40 @@ def build_retro_svg(spec: dict) -> str:
     )
 
 
+def numeral_color(spec: dict, psi: float) -> str:
+    """The colour of the last numeralColors entry that starts at or below `psi`."""
+    chosen = spec["numeralColors"][0]["color"]
+    for entry in spec["numeralColors"]:
+        if psi >= entry["fromPsi"]:
+            chosen = entry["color"]
+    return chosen
+
+
+def build_modern_svg(spec: dict) -> str:
+    s, d = spec["scale"], spec["dial"]
+    scale = Scale(spec)
+    majors = steps(s["minPsi"], s["maxPsi"], s["majorStepPsi"])
+    major_set = set(majors)
+    minors = [p for p in steps(s["minPsi"], s["maxPsi"], s["minorStepPsi"]) if p not in major_set]
+
+    numerals = []
+    for p in majors:
+        x, y = scale.point(d["numeralRadius"], p)
+        numerals.append(f'<text x="{fmt(x)}" y="{fmt(y)}" fill="{numeral_color(spec, p)}">{int(p)}</text>')
+
+    svg = (MODERN / "dial.svg.in").read_text(encoding="utf-8")
+    return (
+        svg.replace("@MAJOR_TICKS@", tick_path(scale, majors, d["tickOuterRadius"], d["majorTickInnerRadius"]))
+        .replace("@MINOR_TICKS@", tick_path(scale, minors, d["tickOuterRadius"], d["minorTickInnerRadius"]))
+        .replace("@AMBER_BAND@", arc_path(scale, d["bandRadius"], s["amberFromPsi"], s["redFromPsi"]))
+        .replace("@RED_BAND@", arc_path(scale, d["bandRadius"], s["redFromPsi"], s["maxPsi"]))
+        .replace("@NUMERALS@", "\n    ".join(numerals))
+    )
+
+
 # ------------------------------------------------------------------- commands --
 
-def render_svg(svg_text: str) -> Image.Image:
+def render_svg(svg_text: str, look_dir: Path) -> Image.Image:
     import resvg_py
 
     OUT.mkdir(exist_ok=True)
@@ -145,7 +181,7 @@ def render_svg(svg_text: str) -> Image.Image:
     svg_path.write_text(svg_text, encoding="utf-8")
     png = resvg_py.svg_to_bytes(
         svg_path=str(svg_path), width=240, height=240,
-        skip_system_fonts=True, font_dirs=[str(RETRO / "fonts")],
+        skip_system_fonts=True, font_dirs=[str(look_dir / "fonts")],
     )
     (OUT / "dial_render.png").write_bytes(bytes(png))
     im = Image.open(OUT / "dial_render.png").convert("RGB")
@@ -153,9 +189,17 @@ def render_svg(svg_text: str) -> Image.Image:
     return im
 
 
-def cmd_retro(_args):
-    spec = json.loads((RETRO / "spec.json").read_text(encoding="utf-8"))
-    im = render_svg(build_retro_svg(spec))
+# name -> (folder, class-name prefix for the headers, SVG builder)
+DIAL_LOOKS = {
+    "retro": (RETRO, "Retro", build_retro_svg),
+    "modern": (MODERN, "Modern", build_modern_svg),
+}
+
+
+def cmd_dial(name: str):
+    look_dir, prefix, build_svg = DIAL_LOOKS[name]
+    spec = json.loads((look_dir / "spec.json").read_text(encoding="utf-8"))
+    im = render_svg(build_svg(spec), look_dir)
 
     dial_body = (
         "inline constexpr int kDialWidth = 240;\n"
@@ -163,9 +207,9 @@ def cmd_retro(_args):
         "// RGB565, row-major, opaque.\n"
         + c_array("kDialRgb565", to_rgb565(im, dither=True), "uint16_t", 16, 4)
     )
-    dial_h = ROOT / "src" / "looks" / "RetroDial.h"
+    dial_h = ROOT / "src" / "looks" / f"{prefix}Dial.h"
     dial_h.parent.mkdir(parents=True, exist_ok=True)
-    dial_h.write_text(header("from looks/retro/dial.svg.in + spec.json", "looks::retro", dial_body))
+    dial_h.write_text(header(f"from looks/{name}/dial.svg.in + spec.json", f"looks::{name}", dial_body))
 
     s, p = spec["scale"], spec["pointer"]
     spec_body = (
@@ -179,8 +223,8 @@ def cmd_retro(_args):
         f"inline constexpr float kFlagOuterRadius = {cfloat(p['flagOuterRadius'])};\n"
         f"inline constexpr int kHubRadius = {int(p['hubRadius'])};\n"
     )
-    spec_h = ROOT / "src" / "looks" / "RetroSpec.h"
-    spec_h.write_text(header("from looks/retro/spec.json", "looks::retro", spec_body))
+    spec_h = ROOT / "src" / "looks" / f"{prefix}Spec.h"
+    spec_h.write_text(header(f"from looks/{name}/spec.json", f"looks::{name}", spec_body))
     print(f"wrote {dial_h.name} ({dial_h.stat().st_size // 1024} KB) and {spec_h.name}; "
           f"preview: out/dial_render.png")
 
@@ -215,18 +259,21 @@ def cmd_badge(args):
         + c_array("kAlpha", alpha, "uint8_t", 24, 2)
     )
     args.dst.parent.mkdir(parents=True, exist_ok=True)
-    args.dst.write_text(header(f"from {args.src.name} (brand artwork: keep local)", "looks::badge", body))
+    args.dst.write_text(header(f"from {args.src.name} (brand artwork: keep local)", f"looks::{args.namespace}", body))
     print(f"wrote {args.dst} ({args.width}x{height})")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("retro").set_defaults(fn=cmd_retro)
+    for look in DIAL_LOOKS:
+        sub.add_parser(look).set_defaults(fn=lambda _args, look=look: cmd_dial(look))
     badge = sub.add_parser("badge")
     badge.add_argument("src", type=Path)
     badge.add_argument("dst", type=Path)
     badge.add_argument("--width", type=int, default=70, help="on-screen width in pixels")
+    badge.add_argument("--namespace", default="badge",
+                       help="C++ namespace under looks:: (the light variant uses badge_light so both can be included)")
     badge.set_defaults(fn=cmd_badge)
     args = parser.parse_args()
     args.fn(args)

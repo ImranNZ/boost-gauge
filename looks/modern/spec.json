@@ -1,0 +1,32 @@
+{
+  "scale": {
+    "minPsi": -15,
+    "maxPsi": 25,
+    "startDeg": 135,
+    "sweepDeg": 270,
+    "majorStepPsi": 5,
+    "minorStepPsi": 2.5,
+    "amberFromPsi": 15,
+    "redFromPsi": 20
+  },
+  "dial": {
+    "tickOuterRadius": 97,
+    "majorTickInnerRadius": 83,
+    "minorTickInnerRadius": 91,
+    "numeralRadius": 69,
+    "bandRadius": 100.5
+  },
+  "numeralColors": [
+    {"fromPsi": -15, "color": "#9ec3ff"},
+    {"fromPsi": 0, "color": "#f4f1ea"},
+    {"fromPsi": 20, "color": "#ffb000"},
+    {"fromPsi": 25, "color": "#ff5a4d"}
+  ],
+  "pointer": {
+    "needleLength": 86,
+    "tailLength": 18,
+    "flagInnerRadius": 100,
+    "flagOuterRadius": 108,
+    "hubRadius": 9
+  }
+}

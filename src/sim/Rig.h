@@ -10,12 +10,14 @@
 #include "ClassicLook.h"
 #include "ManualClock.h"
 #include "MinimalLook.h"
+#include "ModernLook.h"
 #include "MotorsportLook.h"
 #include "ReadingSource.h"
 #include "RetroLook.h"
 #include "SoftCanvas.h"
 #include "ThrottledSource.h"
 #include "looks/MinimalLookFactory.h"
+#include "looks/ModernLookFactory.h"
 #include "looks/MotorsportLookFactory.h"
 #include "looks/RetroLookFactory.h"
 
@@ -42,6 +44,7 @@ struct Rig {
   gauge::RetroLook retro{looks::makeRetro()};
   gauge::MinimalLook minimal{looks::makeMinimal()};
   gauge::MotorsportLook motorsport{looks::makeMotorsport()};
+  gauge::ModernLook modern{looks::makeModern()};
   gauge::GaugeApp app{link, canvas, clock, retro, gauge::GaugeApp::Options{}};
 
   /// Switch the look by name. False if there is no such look.
@@ -54,6 +57,8 @@ struct Rig {
       app.setLook(minimal);
     } else if (name == "motorsport") {
       app.setLook(motorsport);
+    } else if (name == "modern") {
+      app.setLook(modern);
     } else {
       return false;
     }

@@ -32,6 +32,7 @@
 #include "LinkSupervisor.h"
 #include "ManualClock.h"
 #include "MinimalLook.h"
+#include "ModernLook.h"
 #include "MotorsportLook.h"
 #include "ReadingMailbox.h"
 #include "ReadingSource.h"

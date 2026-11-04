@@ -22,7 +22,8 @@ constexpr int kLcdSpiHz = 80000000;
 // Retro: cream 60s dial with a red needle. Classic: dark dial with zones, drawn in code.
 // Minimal: no needle, a thin glowing arc around a big number.
 // Motorsport: segmented bar that lights up, with a shift-light rim past 20 psi.
-enum class Look { Retro, Classic, Minimal, Motorsport };
+// Modern: black dial in a chrome ring with an orange needle (the F56 interior).
+enum class Look { Retro, Classic, Minimal, Motorsport, Modern };
 constexpr Look kLook = Look::Retro;
 
 // --- Diagnostics -------------------------------------------------------------

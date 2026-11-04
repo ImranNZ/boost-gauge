@@ -5,6 +5,8 @@
     {"name": "OutfitMedium12", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 500, "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
     {"name": "SairaBold70", "file": "looks/motorsport/fonts/SairaCondensed-Bold.ttf", "size": 70, "skew": 8, "chars": "0123456789-+."},
     {"name": "SairaSemiBold12", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
-    {"name": "SairaSemiBold14", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 14, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
+    {"name": "SairaSemiBold14", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 14, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "BarlowSemiBold21", "file": "looks/modern/fonts/Barlow-SemiBold.ttf", "size": 21, "chars": "0123456789-+."},
+    {"name": "BarlowCondensed11", "file": "looks/modern/fonts/BarlowCondensed-SemiBold.ttf", "size": 11, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
   ]
 }
