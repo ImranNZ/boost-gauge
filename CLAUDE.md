@@ -65,6 +65,9 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
   `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
   hand-edit them, regenerate. `src/looks/retro/RetroDial.h` is big (~470 KB): avoid reading it.
+* `GaugeState::value` is a reading in its channel's canonical unit (psi for pressure, degrees Celsius
+  for a temperature, volts); a look converts it with `GaugeProfile::toDisplay()`. Never compare it
+  against a profile's range without converting.
 * **Format before you commit.** `python tools/format.py` (clang-format, `.clang-format`); CI fails on
   an unformatted file. `tools/static_analysis.sh` (cppcheck) must be clean: fix a finding, or suppress it
   with `// cppcheck-suppress <id>` and a reason. Generated files are not formatted.

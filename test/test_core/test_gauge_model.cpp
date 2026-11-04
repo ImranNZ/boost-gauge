@@ -19,8 +19,8 @@ GaugeModel::Options snapping() {
 TEST_CASE("gauge model: starts unlinked with nothing to show") {
   GaugeModel model;
   CHECK_FALSE(model.state().linked);
-  CHECK(model.state().psi == doctest::Approx(0.0f));
-  CHECK(model.state().peakPsi == doctest::Approx(0.0f));
+  CHECK(model.state().value == doctest::Approx(0.0f));
+  CHECK(model.state().peakValue == doctest::Approx(0.0f));
   CHECK(model.state().fps == 0);
 }
 
@@ -34,7 +34,7 @@ TEST_CASE("gauge model: a valid reading links it and sets the value") {
   GaugeModel model(snapping());
   model.update(sample(8.0f, 1), 0);
   CHECK(model.state().linked);
-  CHECK(model.state().psi == doctest::Approx(8.0f));
+  CHECK(model.state().value == doctest::Approx(8.0f));
 }
 
 TEST_CASE("gauge model: an invalid reading never links") {
@@ -47,14 +47,14 @@ TEST_CASE("gauge model: a repeated sample (same seq) is not news") {
   GaugeModel model(snapping());
   model.update(sample(8.0f, 1), 0);
   model.update(sample(99.0f, 1), 100);  // same seq: ignored even though the value differs
-  CHECK(model.state().psi == doctest::Approx(8.0f));
+  CHECK(model.state().value == doctest::Approx(8.0f));
 }
 
 TEST_CASE("gauge model: an invalid sample keeps the last good target") {
   GaugeModel model(snapping());
   model.update(sample(8.0f, 1), 0);
   model.update(sample(0.0f, 2, false), 100);
-  CHECK(model.state().psi == doctest::Approx(8.0f));
+  CHECK(model.state().value == doctest::Approx(8.0f));
 }
 
 TEST_CASE("gauge model: goes stale after staleAfterMs without a valid reading") {
@@ -79,13 +79,13 @@ TEST_CASE("gauge model: eases toward the target between readings") {
 
   model.update(sample(0.0f, 1), 0);
   model.update(sample(10.0f, 2), 10);
-  const float first = model.state().psi;
+  const float first = model.state().value;
   CHECK(first > 0.0f);
   CHECK(first < 10.0f);
 
   model.update(sample(10.0f, 2), 110);  // no new reading: it keeps closing in
-  CHECK(model.state().psi > first);
-  CHECK(model.state().psi < 10.0f);
+  CHECK(model.state().value > first);
+  CHECK(model.state().value < 10.0f);
 }
 
 TEST_CASE("gauge model: holds the peak, then lets it go") {
@@ -95,9 +95,9 @@ TEST_CASE("gauge model: holds the peak, then lets it go") {
 
   model.update(sample(12.0f, 1), 0);
   model.update(sample(4.0f, 2), 500);
-  CHECK(model.state().peakPsi == doctest::Approx(12.0f));  // held
+  CHECK(model.state().peakValue == doctest::Approx(12.0f));  // held
   model.update(sample(4.0f, 2), 1500);
-  CHECK(model.state().peakPsi == doctest::Approx(4.0f));  // released
+  CHECK(model.state().peakValue == doctest::Approx(4.0f));  // released
 }
 
 TEST_CASE("gauge model: reports fps only when asked to") {

@@ -16,8 +16,8 @@ SoftCanvas draw(const MinimalLook& look, float psi, float peak = 0.0f, bool link
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = linked;
-  state.psi = psi;
-  state.peakPsi = peak;
+  state.value = psi;
+  state.peakValue = peak;
   state.fps = fps;
   drawFrame(look, canvas, state);
   return canvas;
@@ -155,7 +155,7 @@ TEST_CASE("minimal look: a bar profile lays the scale out in bar") {
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = 10.0f;  // 0.69 bar
+  state.value = 10.0f;  // 0.69 bar
   drawFrame(look, canvas, state);
 
   // Labels at the ends, zero and 1.0 bar: "0" and "1.0" are drawn through their centres.
@@ -208,4 +208,15 @@ TEST_CASE("minimal look: a very wide range stops at a sensible number of labels"
   state.linked = true;
   drawFrame(look, canvas, state);
   CHECK(same(pointOnNeedle(canvas, 0.0f, 82.0f, wide.scale()), Color{138, 147, 157}));
+}
+
+TEST_CASE("minimal look: a channel with no vacuum label keeps its own label below zero") {
+  const MinimalLook look(minimalFonts(), GaugeProfile::intakeAir());
+  SoftCanvas canvas(240, 240);
+  GaugeState state;
+  state.linked = true;
+  state.value = -5.0f;  // a cold day
+  drawFrame(look, canvas, state);
+  // The label is drawn in the colour for the value: blue below zero.
+  CHECK(countColor(canvas, Color{74, 163, 255}, 80, 66, 160, 84) > 20);
 }

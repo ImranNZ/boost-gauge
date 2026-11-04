@@ -43,7 +43,7 @@ class MinimalLook : public ILook {
 
  private:
   void drawArc(IDrawSurface& c, float psi) const;
-  void drawPeak(IDrawSurface& c, float peakPsi) const;
+  void drawPeak(IDrawSurface& c, float peakValue) const;
   void drawReadout(IDrawSurface& c, const GaugeState& state) const;
 
   Fonts fonts_;

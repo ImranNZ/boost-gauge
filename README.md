@@ -215,7 +215,8 @@ All pins, the BLE dongle name hint, WiFi SSID and the dongle address live in
 * **`kProfile`** (a `GaugeProfile`): the unit (psi, bar or kPa), the scale's range, and where the
   amber and red zones start. The default is the original psi gauge, -15 to +25, red from 20, which
   suits a stock turbo. `GaugeProfile::bar()` and `::kpa()` are metric equivalents, and every field
-  can be set for a car with more or less boost. Classic, Minimal and Motorsport follow it; Retro and
+  can be set for a car with more or less boost. There are also presets for other readings
+  (`coolant()`, `coolantF()`, `intakeAir()`, `voltage()`): the groundwork for showing more than boost. Classic, Minimal and Motorsport follow it; Retro and
   Modern are pictures of a psi dial (see `looks/<name>/spec.json`).
 * **`kElmProtocol`**: the dongle's bus protocol (`"6"` is CAN 11-bit 500 kbit/s; `"0"` searches).
 * **`kCanBitrateKbps`**: the bus speed for direct CAN (125, 250, 500 or 1000).

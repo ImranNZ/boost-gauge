@@ -10,7 +10,7 @@ TEST_CASE("retro look: draws the dial picture once, then restores it") {
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = 5.0f;
+  state.value = 5.0f;
 
   drawFrame(look, canvas, state);
   CHECK(same(canvas.image().get(5, 5), rgb565ToColor(kCream)));
@@ -28,7 +28,7 @@ TEST_CASE("retro look: needle follows the pressure, with a tail and a hub") {
     SoftCanvas canvas(240, 240);
     GaugeState state;
     state.linked = true;
-    state.psi = psi;
+    state.value = psi;
     drawFrame(look, canvas, state);
     CAPTURE(psi);
     CHECK(same(pointOnNeedle(canvas, psi, 60.0f), RetroLook::kNeedleRed));
@@ -49,13 +49,13 @@ TEST_CASE("retro look: peak flag only above zero and only while linked") {
   SoftCanvas withPeak(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = 2.0f;
-  state.peakPsi = 18.0f;
+  state.value = 2.0f;
+  state.peakValue = 18.0f;
   drawFrame(look, withPeak, state);
   CHECK(same(pointOnNeedle(withPeak, 18.0f, 103.0f), RetroLook::kInk));
 
   SoftCanvas noPeak(240, 240);
-  state.peakPsi = 0.0f;
+  state.peakValue = 0.0f;
   drawFrame(look, noPeak, state);
   CHECK_FALSE(same(pointOnNeedle(noPeak, 18.0f, 103.0f), RetroLook::kInk));
 }
@@ -66,8 +66,8 @@ TEST_CASE("retro look: unlinked hides the needle and says NO LINK") {
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = false;
-  state.psi = 10.0f;
-  state.peakPsi = 12.0f;
+  state.value = 10.0f;
+  state.peakValue = 12.0f;
   drawFrame(look, canvas, state);
 
   CHECK_FALSE(same(pointOnNeedle(canvas, 10.0f, 60.0f), RetroLook::kNeedleRed));
