@@ -1,12 +1,20 @@
 name: CI
 
-# Pull requests prove the change (tests, coverage gate, all four firmware builds).
-# A merge to main builds the firmware again and keeps the images as downloadable
-# artifacts, so there is always a flashable build of what is on main.
+# One pipeline, three stages, each gated on the one before:
+#
+#   1. test      unit tests + coverage gate + layering (Linux), unit tests (macOS), sim build
+#   2. build     the four ESP32 firmware environments
+#   3. publish   (push only) bundle the firmware images
+#                  - merge to main:  kept as a build artifact for 30 days
+#                  - tag v*:         attached to a GitHub Release
+#
+# Pull requests run stages 1 and 2 to prove the change; nothing is published.
+# To cut a release:  git tag v0.1.0 && git push origin v0.1.0
 on:
   pull_request:
   push:
     branches: [main]
+    tags: ["v*"]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -16,6 +24,7 @@ permissions:
   contents: read
 
 jobs:
+  # ------------------------------------------------------------------ 1. test --
   test:
     name: Tests, coverage gate, layering (Linux)
     runs-on: ubuntu-latest
@@ -66,8 +75,10 @@ jobs:
       - run: pip install platformio
       - run: pio run -e sim
 
+  # ----------------------------------------------------------------- 2. build --
   firmware:
     name: Firmware (${{ matrix.env }})
+    needs: [test, test-macos, sim]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -84,14 +95,64 @@ jobs:
           key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
       - run: pip install platformio
       - run: pio run -e ${{ matrix.env }}
-      # Only what is on main is worth keeping; pull requests just prove it builds.
-      - name: Keep the firmware images
-        if: github.event_name == 'push'
-        uses: actions/upload-artifact@v4
+      # boot_app0.bin ships with the Arduino framework; flashing needs it next to the others.
+      - name: Collect the images
+        run: |
+          out=.pio/build/${{ matrix.env }}
+          cp "$(find ~/.platformio -name boot_app0.bin | head -n 1)" "$out/boot_app0.bin"
+      - uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.env }}-${{ github.sha }}
+          name: firmware-${{ matrix.env }}
           path: |
             .pio/build/${{ matrix.env }}/firmware.bin
             .pio/build/${{ matrix.env }}/bootloader.bin
             .pio/build/${{ matrix.env }}/partitions.bin
+            .pio/build/${{ matrix.env }}/boot_app0.bin
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
+
+  # --------------------------------------------------------------- 3. publish --
+  publish:
+    name: Publish firmware
+    needs: firmware
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # to create the GitHub Release on a tag
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: firmware-*
+          path: dist
+
+      - name: Bundle the images
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then label="$GITHUB_REF_NAME"; else label="main-${GITHUB_SHA::7}"; fi
+          echo "LABEL=$label" >> "$GITHUB_ENV"
+          mkdir out
+          for dir in dist/firmware-*; do
+            env_name="${dir#dist/firmware-}"
+            for f in firmware bootloader partitions boot_app0; do
+              cp "$dir/$f.bin" "out/${env_name}-${f}.bin"
+            done
+          done
+          (cd out && sha256sum *.bin > SHA256SUMS)
+          ls -l out
+
+      # Every merge to main: a downloadable "latest main" build.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: images-${{ env.LABEL }}
+          path: out/*
           retention-days: 30
+
+      # A version tag: a real GitHub Release with the images attached.
+      - name: Create the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --notes "Firmware images for each connection type: \`device-can\`, \`device-ble\`, \`device-wifi\` and \`device-demo\`. Flash with \`esptool\` at 0x0 (bootloader), 0x8000 (partitions), 0xe000 (boot_app0) and 0x10000 (firmware), or build from source with PlatformIO. Verify with SHA256SUMS."

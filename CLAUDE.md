@@ -116,9 +116,10 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 ## Pull requests and CI
 
-Change `main` through a pull request. CI (`.github/workflows/ci.yml`) must pass: the coverage gate,
-the macOS unit tests, the sim build and all four firmware builds. Run the `check` skill locally first;
-the firmware envs you did not touch are the slowest thing CI checks, so build the ones you did.
+Change `main` through a pull request. CI (`.github/workflows/ci.yml`) runs gated stages: test (coverage
+gate, macOS unit tests, sim build), then the four firmware builds, then, on a push only, publish
+(an artifact for `main`, a GitHub Release for a `v*` tag). Run the `check` skill locally first; the
+firmware envs you did not touch are the slowest thing CI checks, so build the ones you did.
 
 ## Layout of lib/core/src
 

@@ -123,18 +123,24 @@ frames of the drive) and `out/no_link.png`.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on every pull request and on every merge to `main`:
+`.github/workflows/ci.yml` is one pipeline in three gated stages, so nothing expensive runs once
+something cheap has failed:
 
-| Job | What it proves |
-| --- | -------------- |
-| Tests, coverage gate, layering (Linux) | `tools/coverage.sh`: the `lib/core` layering, all unit tests, 100% line and branch coverage |
-| Unit tests (macOS) | The same tests under Apple clang, which counts coverage differently from GCC |
-| Simulator build | `pio run -e sim` |
-| Firmware (demo, can, ble, wifi) | All four ESP32 environments compile |
+| Stage | Jobs | Runs on |
+| ----- | ---- | ------- |
+| **1. Test** | `tools/coverage.sh` on Linux (the `lib/core` layering, all unit tests, 100% line and branch coverage); the same tests on macOS under Apple clang, which counts coverage differently from GCC; the simulator build | every pull request and push |
+| **2. Build** | All four ESP32 environments (`device-demo`, `-can`, `-ble`, `-wifi`) compile | after stage 1 passes |
+| **3. Publish** | Bundle the firmware images (`firmware`, `bootloader`, `partitions`, `boot_app0`) with `SHA256SUMS` | after stage 2, on pushes only |
 
-A merge to `main` also keeps each firmware image (`firmware.bin`, `bootloader.bin`,
-`partitions.bin`) as a build artifact on the run for 30 days, so there is always a flashable
-build of what is on `main`. Run `tools/coverage.sh` locally before pushing to catch failures early.
+A pull request runs stages 1 and 2 and publishes nothing. A **merge to `main`** also keeps the
+bundle as a build artifact for 30 days (a flashable "latest main"). A **version tag** publishes a
+GitHub Release with the images attached:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Run `tools/coverage.sh` locally before pushing to catch failures early.
 
 ## Put it on the board
 
