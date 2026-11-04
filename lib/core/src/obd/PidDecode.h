@@ -5,8 +5,8 @@
 namespace gauge {
 namespace obd {
 
-constexpr uint8_t kPidCoolantTemp = 0x05;      // engine coolant temperature, A - 40 degrees C
-constexpr uint8_t kPidIntakeAirTemp = 0x0F;    // intake air temperature, A - 40 degrees C
+constexpr uint8_t kPidCoolantTemp = 0x05;         // engine coolant temperature, A - 40 degrees C
+constexpr uint8_t kPidIntakeAirTemp = 0x0F;       // intake air temperature, A - 40 degrees C
 constexpr uint8_t kPidControlModuleVolts = 0x42;  // control module voltage, (256 A + B) / 1000 V
 
 /// Engine coolant temperature in degrees Celsius (-40 to 215).

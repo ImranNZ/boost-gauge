@@ -124,7 +124,7 @@ TEST_CASE("channel sampler: a channel the car lacks reads as nothing and is left
   }
   CHECK(sawCoolant);
   CHECK(rig.client.asked[obd::kPidCoolantTemp] == 0);  // never asked
-  CHECK(rig.client.begins == 1);                        // and it did not look like a dead link
+  CHECK(rig.client.begins == 1);                       // and it did not look like a dead link
 }
 
 TEST_CASE("channel sampler: failed reads count against the link and trigger a reconnect") {
@@ -213,7 +213,8 @@ TEST_CASE("sampler loop: reports whether the car was asked anything") {
   CHECK(mailboxes.source(0).latest().seq == 0);
 }
 
-TEST_CASE("channel sampler: channels that are always due take turns, even if the clock stands still") {
+TEST_CASE(
+    "channel sampler: channels that are always due take turns, even if the clock stands still") {
   ManualClock clock;
   FakeEcu ecu(clock);
   ecu.setSupported(obd::kPidCoolantTemp, true);
