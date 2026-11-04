@@ -1,0 +1,4 @@
+# Python tools for building and testing (CI installs exactly this; so should you).
+# Dependabot proposes updates. The look/font/media generators need more: see tools/*.py.
+platformio==6.2.0
+gcovr==8.8

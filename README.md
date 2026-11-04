@@ -29,7 +29,7 @@ Markdown has no tabs, so pick your system below.
 
 ```bash
 winget install BrechtSanders.WinLibs.POSIX.UCRT
-pip install platformio gcovr
+pip install -r requirements.txt   # platformio + gcovr, the versions CI uses
 ```
 
 Run the `tools/*.sh` scripts from Git Bash.
@@ -45,7 +45,7 @@ environment inside the repo:
 xcode-select --install          # Apple clang (g++) and git
 python3 -m venv .venv
 source .venv/bin/activate       # repeat in every new terminal
-pip install platformio gcovr
+pip install -r requirements.txt   # platformio + gcovr, the versions CI uses
 ```
 
 Inside the venv, `python` and `python3` both work. `tools/coverage.sh` picks the right
@@ -64,7 +64,7 @@ then `pipx install platformio` and `pipx install gcovr`; `tools/coverage.sh` fin
 sudo apt install build-essential python3-venv   # or your distro's equivalent
 python3 -m venv .venv
 source .venv/bin/activate       # repeat in every new terminal
-pip install platformio gcovr
+pip install -r requirements.txt   # platformio + gcovr, the versions CI uses
 ```
 
 Newer distros also block system-wide pip (PEP 668), hence the venv.
