@@ -102,7 +102,8 @@ void MotorsportLook::drawDial(IDrawSurface& c) const {
                       polarY(deg, kLabelRadius) + fonts_.scale.ascent() / 2, label,
                       TextAlign::Center, kLabel);
   }
-  fonts_.caption.draw(c, kCx, kBoostBaseline, "BOOST", TextAlign::Center, kLabel, kBoostTracking);
+  fonts_.caption.draw(c, kCx, kBoostBaseline, profile_.label, TextAlign::Center, kLabel,
+                      kBoostTracking);
   fonts_.caption.draw(c, kCx, kUnitBaseline, profile_.unitLabel(), TextAlign::Center, kLabel,
                       kUnitTracking);
 
@@ -111,9 +112,9 @@ void MotorsportLook::drawDial(IDrawSurface& c) const {
 
 void MotorsportLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   if (state.linked) {
-    const float value = profile_.toDisplay(state.psi);
+    const float value = profile_.toDisplay(state.value);
     drawBar(c, value);
-    if (state.peakPsi > kMinDrawnPsi) drawPeak(c, profile_.toDisplay(state.peakPsi), value);
+    if (state.peakValue > kMinDrawnPsi) drawPeak(c, profile_.toDisplay(state.peakValue), value);
     drawRim(c, state);
   }
   drawReadout(c, state);
@@ -143,7 +144,7 @@ void MotorsportLook::drawPeak(IDrawSurface& c, float peakValue, float value) con
 // The rim: dim normally, pulsing red once past the shift point.
 void MotorsportLook::drawRim(IDrawSurface& c, const GaugeState& state) const {
   Color color = kRimOff;
-  if (state.linked && profile_.toDisplay(state.psi) > profile_.redFrom) {
+  if (state.linked && profile_.toDisplay(state.value) > profile_.redFrom) {
     const float t = static_cast<float>(state.timeMs) / kPulseMsPerRadian;
     const float pulse = 0.55f + 0.45f * std::sin(t);
     color = blend(kRimOff, kRed, static_cast<int>(std::lround(pulse * 255.0f)));
@@ -157,7 +158,7 @@ void MotorsportLook::drawReadout(IDrawSurface& c, const GaugeState& state) const
   char text[16];
   const int numberBaseline = kReadoutCentreY + fonts_.number.ascent() / 2;
   if (state.linked) {
-    const float value = profile_.toDisplay(state.psi);
+    const float value = profile_.toDisplay(state.value);
     std::snprintf(text, sizeof(text), "%.*f", profile_.decimals(), static_cast<double>(value));
     fonts_.number.draw(c, kCx, numberBaseline, text, TextAlign::Center,
                        value > profile_.redFrom ? kHotText : kWhite);
@@ -166,9 +167,9 @@ void MotorsportLook::drawReadout(IDrawSurface& c, const GaugeState& state) const
     fonts_.caption.draw(c, kCx, kBoostBaseline, "NO LINK", TextAlign::Center, kRed, kBoostTracking);
   }
 
-  if (state.linked && state.peakPsi > kMinDrawnPsi) {
+  if (state.linked && state.peakValue > kMinDrawnPsi) {
     std::snprintf(text, sizeof(text), "PEAK %.*f", profile_.decimals(),
-                  static_cast<double>(profile_.toDisplay(state.peakPsi)));
+                  static_cast<double>(profile_.toDisplay(state.peakValue)));
     fonts_.caption.draw(c, kCx, kPeakBaseline, text, TextAlign::Center, kAmber, kPeakTracking);
   }
 

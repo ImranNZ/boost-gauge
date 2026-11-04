@@ -127,8 +127,8 @@ void MinimalLook::drawDial(IDrawSurface& c) const {
 
 void MinimalLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   if (state.linked) {
-    drawArc(c, state.psi);
-    if (state.peakPsi > kMinDrawnPsi) drawPeak(c, state.peakPsi);
+    drawArc(c, state.value);
+    if (state.peakValue > kMinDrawnPsi) drawPeak(c, state.peakValue);
   }
   drawReadout(c, state);
 }
@@ -151,8 +151,8 @@ void MinimalLook::drawArc(IDrawSurface& c, float psi) const {
   c.fillCircle(polarX(tip, kArcRadius), polarY(tip, kArcRadius), kCapRadius, color);
 }
 
-void MinimalLook::drawPeak(IDrawSurface& c, float peakPsi) const {
-  const float deg = scale_.angleFor(profile_.toDisplay(peakPsi));
+void MinimalLook::drawPeak(IDrawSurface& c, float peakValue) const {
+  const float deg = scale_.angleFor(profile_.toDisplay(peakValue));
   const int x = polarX(deg, kArcRadius);
   const int y = polarY(deg, kArcRadius);
   c.fillCircle(x, y, 5, kBackground);
@@ -163,8 +163,9 @@ void MinimalLook::drawReadout(IDrawSurface& c, const GaugeState& state) const {
   char text[16];
   const int numberBaseline = kReadoutCentreY + fonts_.number.ascent() / 2;
   if (state.linked) {
-    const float value = profile_.toDisplay(state.psi);
-    fonts_.label.draw(c, kCx, kModeBaseline, state.psi >= 0.0f ? "BOOST" : "VACUUM",
+    const float value = profile_.toDisplay(state.value);
+    const bool below = state.value < 0.0f && profile_.negativeLabel != nullptr;
+    fonts_.label.draw(c, kCx, kModeBaseline, below ? profile_.negativeLabel : profile_.label,
                       TextAlign::Center, colorFor(value), kModeTracking);
     std::snprintf(text, sizeof(text), "%.*f", profile_.decimals(), static_cast<double>(value));
     fonts_.number.draw(c, kCx, numberBaseline, text, TextAlign::Center, kText);
@@ -175,9 +176,9 @@ void MinimalLook::drawReadout(IDrawSurface& c, const GaugeState& state) const {
   fonts_.label.draw(c, kCx, kUnitBaseline, profile_.unitLabel(), TextAlign::Center, kLabel,
                     kUnitTracking);
 
-  if (state.linked && state.peakPsi > kMinDrawnPsi) {
+  if (state.linked && state.peakValue > kMinDrawnPsi) {
     std::snprintf(text, sizeof(text), "PEAK %.*f", profile_.decimals(),
-                  static_cast<double>(profile_.toDisplay(state.peakPsi)));
+                  static_cast<double>(profile_.toDisplay(state.peakValue)));
     fonts_.label.draw(c, kCx, kPeakBaseline, text, TextAlign::Center, kSubtle, kPeakTracking);
   }
 

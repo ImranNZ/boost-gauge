@@ -21,8 +21,8 @@ SoftCanvas draw(const MotorsportLook& look, float psi, float peak = 0.0f, bool l
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = linked;
-  state.psi = psi;
-  state.peakPsi = peak;
+  state.value = psi;
+  state.peakValue = peak;
   state.fps = fps;
   state.timeMs = timeMs;
   drawFrame(look, canvas, state);
@@ -69,7 +69,7 @@ TEST_CASE("motorsport look: draws the dim bar, rim and labels once, then restore
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = -20.0f;  // nothing lit
+  state.value = -20.0f;  // nothing lit
   drawFrame(look, canvas, state);
 
   CHECK(same(canvas.image().get(5, 5), MotorsportLook::kBackground));
@@ -208,7 +208,7 @@ TEST_CASE("motorsport look: a bar profile sizes the bar, zones and shift light i
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = 10.0f;
+  state.value = 10.0f;
   drawFrame(look, canvas, state);
   CHECK(same(onSegment(canvas, 0), look.segmentColor(0)));
   CHECK(same(onSegment(canvas, 16), look.segmentColor(16)));
@@ -219,7 +219,7 @@ TEST_CASE("motorsport look: a bar profile sizes the bar, zones and shift light i
     SoftCanvas c(240, 240);
     GaugeState s;
     s.linked = true;
-    s.psi = psi;
+    s.value = psi;
     s.timeMs = 141;  // the pulse at its brightest
     drawFrame(look, c, s);
     return c.image().get(120, 3);

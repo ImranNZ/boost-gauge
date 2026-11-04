@@ -72,3 +72,41 @@ TEST_CASE("units: bar and psi convert both ways") {
   CHECK(barToPsi(1.0f) == doctest::Approx(kPsiPerBar));
   CHECK(barToPsi(psiToBar(18.0f)) == doctest::Approx(18.0f));
 }
+
+TEST_CASE("profile: temperature and voltage units convert from the canonical unit") {
+  CHECK(GaugeProfile::coolant().toDisplay(90.0f) ==
+        doctest::Approx(90.0f));  // Celsius is canonical
+  CHECK(GaugeProfile::coolantF().toDisplay(100.0f) == doctest::Approx(212.0f));
+  CHECK(GaugeProfile::coolantF().toDisplay(-40.0f) == doctest::Approx(-40.0f));
+  CHECK(GaugeProfile::voltage().toDisplay(12.6f) == doctest::Approx(12.6f));
+}
+
+TEST_CASE("profile: labels, decimals and unit text for the other channels") {
+  CHECK(std::string(GaugeProfile::coolant().unitLabel()) == "C");
+  CHECK(std::string(GaugeProfile::coolantF().unitLabel()) == "F");
+  CHECK(std::string(GaugeProfile::voltage().unitLabel()) == "V");
+  CHECK(GaugeProfile::coolant().decimals() == 0);
+  CHECK(GaugeProfile::coolantF().decimals() == 0);
+  CHECK(GaugeProfile::voltage().decimals() == 1);
+  CHECK(GaugeProfile::coolant().labelDecimals() == 0);
+
+  CHECK(std::string(GaugeProfile::psi().label) == "BOOST");
+  CHECK(std::string(GaugeProfile::psi().negativeLabel) == "VACUUM");
+  CHECK(std::string(GaugeProfile::coolant().label) == "COOLANT");
+  CHECK(GaugeProfile::coolant().negativeLabel == nullptr);
+  CHECK(std::string(GaugeProfile::intakeAir().label) == "INTAKE");
+  CHECK(std::string(GaugeProfile::voltage().label) == "BATTERY");
+}
+
+TEST_CASE("profile: the presets are sensible scales") {
+  for (const GaugeProfile& p : {GaugeProfile::coolant(), GaugeProfile::coolantF(),
+                                GaugeProfile::intakeAir(), GaugeProfile::voltage()}) {
+    CAPTURE(p.label);
+    CHECK(p.min < p.max);
+    CHECK(p.amberFrom <= p.redFrom);
+    CHECK(p.redFrom <= p.max);
+    // The bar-graph look gets a whole number of segments.
+    const float segments = (p.max - p.min) / p.segmentStep();
+    CHECK(segments == doctest::Approx(std::round(segments)));
+  }
+}

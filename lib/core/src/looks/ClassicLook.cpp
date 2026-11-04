@@ -53,8 +53,8 @@ void ClassicLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   const int cy = c.height() / 2;
 
   if (state.linked) {
-    if (state.peakPsi > 0.05f) drawPeakMarker(c, cx, cy, profile_.toDisplay(state.peakPsi));
-    drawNeedle(c, cx, cy, profile_.toDisplay(state.psi));
+    if (state.peakValue > 0.05f) drawPeakMarker(c, cx, cy, profile_.toDisplay(state.peakValue));
+    drawNeedle(c, cx, cy, profile_.toDisplay(state.value));
   }
   c.fillCircle(cx, cy, 10, kHub);
   c.fillCircle(cx, cy, 4, kBackground);
@@ -120,7 +120,7 @@ void ClassicLook::drawReadout(IDrawSurface& c, int cx, const GaugeState& state) 
   char text[16];
   if (state.linked) {
     std::snprintf(text, sizeof(text), "%.*f", profile_.decimals(),
-                  static_cast<double>(profile_.toDisplay(state.psi)));
+                  static_cast<double>(profile_.toDisplay(state.value)));
   } else {
     std::snprintf(text, sizeof(text), "--.-");
   }
@@ -130,9 +130,9 @@ void ClassicLook::drawReadout(IDrawSurface& c, int cx, const GaugeState& state) 
 
   if (!state.linked) {
     c.drawText(cx, 74, "NO LINK", 2, TextAlign::Center, kRed);
-  } else if (state.peakPsi > 0.05f) {
+  } else if (state.peakValue > 0.05f) {
     std::snprintf(text, sizeof(text), "PK %.*f", profile_.decimals(),
-                  static_cast<double>(profile_.toDisplay(state.peakPsi)));
+                  static_cast<double>(profile_.toDisplay(state.peakValue)));
     c.drawText(cx, 204, text, 2, TextAlign::Center, kDim);
   }
 

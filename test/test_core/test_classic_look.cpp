@@ -52,7 +52,7 @@ TEST_CASE("classic look: a bar profile moves the needle and the zones with it") 
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = 10.0f;  // 0.69 bar
+  state.value = 10.0f;  // 0.69 bar
   drawFrame(look, canvas, state);
 
   CHECK(same(pixelOnNeedle(canvas, look, profile.toDisplay(10.0f), 60), ClassicLook::kNeedle));
@@ -68,8 +68,8 @@ TEST_CASE("classic look: the unit label follows the profile") {
     SoftCanvas canvas(240, 240);
     GaugeState state;
     state.linked = true;
-    state.psi = 10.0f;
-    state.peakPsi = 12.0f;
+    state.value = 10.0f;
+    state.peakValue = 12.0f;
     drawFrame(look, canvas, state);
     return canvas;
   };
@@ -85,4 +85,15 @@ TEST_CASE("classic look: the unit label follows the profile") {
   const SoftCanvas kpa = draw(GaugeProfile::kpa());
   CHECK(differing(psi, bar) > 0);  // "PSI" vs "BAR" in the unit row
   CHECK(differing(bar, kpa) > 0);  // "BAR" vs "KPA"
+}
+
+TEST_CASE("classic look: a Fahrenheit profile converts the reading before drawing it") {
+  const GaugeProfile profile = GaugeProfile::coolantF();
+  ClassicLook look(profile);
+  SoftCanvas canvas(240, 240);
+  GaugeState state;
+  state.linked = true;
+  state.value = 100.0f;  // degrees Celsius, the canonical unit: 212 F
+  drawFrame(look, canvas, state);
+  CHECK(same(pixelOnNeedle(canvas, look, 212.0f, 60), ClassicLook::kNeedle));
 }

@@ -48,10 +48,10 @@ TEST_CASE("frame renderer: passes the state to the look and presents every frame
   RecordingLook look;
 
   GaugeState state;
-  state.psi = 7.5f;
+  state.value = 7.5f;
   state.linked = true;
   renderer.render(look, state);
-  CHECK(look.lastState.psi == doctest::Approx(7.5f));
+  CHECK(look.lastState.value == doctest::Approx(7.5f));
   CHECK(look.lastState.linked);
 
   renderer.render(look, state);

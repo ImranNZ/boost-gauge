@@ -45,11 +45,11 @@ void ModernLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   const int cy = c.height() / 2;
 
   if (state.linked) {
-    if (state.peakPsi > 0.05f) {
+    if (state.peakValue > 0.05f) {
       drawPeakFlag(c, static_cast<float>(cx), static_cast<float>(cy),
-                   scale_.angleFor(state.peakPsi));
+                   scale_.angleFor(state.peakValue));
     }
-    drawNeedle(c, static_cast<float>(cx), static_cast<float>(cy), scale_.angleFor(state.psi));
+    drawNeedle(c, static_cast<float>(cx), static_cast<float>(cy), scale_.angleFor(state.value));
   }
   drawHub(c, cx, cy);
   drawReadout(c, state);
@@ -89,7 +89,7 @@ void ModernLook::drawReadout(IDrawSurface& c, const GaugeState& state) const {
   const int baseline = kReadoutCentreY + fonts_.readout.ascent() / 2;
   if (state.linked) {
     char text[16];
-    std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.psi));
+    std::snprintf(text, sizeof(text), "%.1f", static_cast<double>(state.value));
     fonts_.readout.draw(c, kCx, baseline, text, TextAlign::Center, kReadout);
   } else {
     fonts_.readout.draw(c, kCx, baseline, "--.-", TextAlign::Center, kDim);

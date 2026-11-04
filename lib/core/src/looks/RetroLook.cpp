@@ -48,11 +48,11 @@ void RetroLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   const int cy = c.height() / 2;
 
   if (state.linked) {
-    if (state.peakPsi > 0.05f) {
+    if (state.peakValue > 0.05f) {
       drawPeakFlag(c, static_cast<float>(cx), static_cast<float>(cy),
-                   scale_.angleFor(state.peakPsi));
+                   scale_.angleFor(state.peakValue));
     }
-    drawNeedle(c, static_cast<float>(cx), static_cast<float>(cy), scale_.angleFor(state.psi));
+    drawNeedle(c, static_cast<float>(cx), static_cast<float>(cy), scale_.angleFor(state.value));
   }
   drawHub(c, cx, cy);
 

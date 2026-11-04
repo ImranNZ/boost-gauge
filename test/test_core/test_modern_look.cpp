@@ -19,8 +19,8 @@ SoftCanvas draw(const ModernLook& look, float psi, float peak = 0.0f, bool linke
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = linked;
-  state.psi = psi;
-  state.peakPsi = peak;
+  state.value = psi;
+  state.peakValue = peak;
   state.fps = fps;
   drawFrame(look, canvas, state);
   return canvas;
@@ -34,7 +34,7 @@ TEST_CASE("modern look: draws the dial picture once, then restores it") {
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
-  state.psi = 5.0f;
+  state.value = 5.0f;
 
   drawFrame(look, canvas, state);
   CHECK(same(canvas.image().get(5, 5), rgb565ToColor(kCream)));
