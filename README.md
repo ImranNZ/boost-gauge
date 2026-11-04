@@ -1,5 +1,7 @@
 # Boost Gauge
 
+[![CI](https://github.com/ImranNZ/boost-gauge/actions/workflows/ci.yml/badge.svg)](https://github.com/ImranNZ/boost-gauge/actions/workflows/ci.yml)
+
 A digital boost gauge for an F56 Mini Cooper S (B48), running on a Waveshare
 [ESP32-S3-LCD-1.28-B](https://www.waveshare.com/product/esp32-s3-lcd-1.28-b.htm)
 (240x240 round GC9A01 display). It reads manifold absolute pressure (OBD-II
@@ -118,6 +120,21 @@ Stop the preview before rebuilding the sim (Windows locks `program.exe` while it
 
 For still images instead, `pio run -e sim -t exec` writes `out/sheet.png` (8
 frames of the drive) and `out/no_link.png`.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every pull request and on every merge to `main`:
+
+| Job | What it proves |
+| --- | -------------- |
+| Tests, coverage gate, layering (Linux) | `tools/coverage.sh`: the `lib/core` layering, all unit tests, 100% line and branch coverage |
+| Unit tests (macOS) | The same tests under Apple clang, which counts coverage differently from GCC |
+| Simulator build | `pio run -e sim` |
+| Firmware (demo, can, ble, wifi) | All four ESP32 environments compile |
+
+A merge to `main` also keeps each firmware image (`firmware.bin`, `bootloader.bin`,
+`partitions.bin`) as a build artifact on the run for 30 days, so there is always a flashable
+build of what is on `main`. Run `tools/coverage.sh` locally before pushing to catch failures early.
 
 ## Put it on the board
 
