@@ -12,7 +12,7 @@ void GaugeModel::update(const Sample& sample, uint32_t nowMs) {
   if (sample.seq != lastSeq_) {
     lastSeq_ = sample.seq;
     if (sample.reading.valid) {
-      target_ = sample.reading.psi;
+      target_ = sample.reading.value;
       lastValidMs_ = nowMs;
       everValid_ = true;
     }

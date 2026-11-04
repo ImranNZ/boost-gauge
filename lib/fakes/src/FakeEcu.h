@@ -24,8 +24,12 @@ class FakeEcu {
   }
   void followDriveProfile() { held_ = false; }
   void setBaroKpa(float kpa) { baroKpa_ = kpa; }
+  void setCoolantC(float celsius) { coolantC_ = celsius; }
+  void setIntakeAirC(float celsius) { intakeAirC_ = celsius; }
+  void setVoltage(float volts) { volts_ = volts; }
   float baroKpa() const { return baroKpa_; }
-  /// Which mode 01 PIDs this ECU implements (default: manifold and barometric pressure). The
+  /// Which mode 01 PIDs this ECU implements (default: manifold and barometric pressure; add 05, 0F
+  /// and 42 for coolant, intake air and voltage). The
   /// support bitmaps (PID 00, 20, ...) are generated from this, so tests can model a car that
   /// lacks one.
   void setSupported(uint8_t pid, bool supported) {
@@ -49,6 +53,9 @@ class FakeEcu {
   bool held_ = false;
   float heldMapKpa_ = 0.0f;
   float baroKpa_ = 101.0f;
+  float coolantC_ = 90.0f;
+  float intakeAirC_ = 35.0f;
+  float volts_ = 14.1f;
   bool online_ = true;
   // Bit n set: PID n answers. Starts with 0B and 33.
   std::array<uint8_t, 32> supported_ = {0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x08};

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sampling/BoostSampler.h"
+#include "sampling/ChannelSampler.h"
 #include "sampling/ReadingMailbox.h"
 
 namespace gauge {
@@ -10,14 +10,20 @@ namespace gauge {
 /// link only slows this loop, never the screen.
 class SamplerLoop {
  public:
-  SamplerLoop(BoostSampler& sampler, ReadingMailbox& mailbox)
-      : sampler_(sampler), mailbox_(mailbox) {}
+  SamplerLoop(ChannelSampler& sampler, ChannelMailboxes& mailboxes)
+      : sampler_(sampler), mailboxes_(mailboxes) {}
 
-  void step() { mailbox_.publish(sampler_.sample()); }
+  /// True if the car was asked something (and the answer published).
+  bool step() {
+    ChannelSampler::Step step;
+    if (!sampler_.step(step)) return false;
+    mailboxes_.publish(step.channel, step.reading);
+    return true;
+  }
 
  private:
-  BoostSampler& sampler_;
-  ReadingMailbox& mailbox_;
+  ChannelSampler& sampler_;
+  ChannelMailboxes& mailboxes_;
 };
 
 }  // namespace gauge

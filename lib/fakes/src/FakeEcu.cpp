@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "obd/PidDecode.h"
 #include "obd/Units.h"
 
 namespace gauge {
@@ -84,6 +85,21 @@ bool FakeEcu::answer(uint8_t mode, uint8_t pid, ObdData& out) const {
       out.bytes[0] = asByte(baroKpa_);
       out.count = 1;
       return true;
+    case obd::kPidCoolantTemp:
+      out.bytes[0] = asByte(coolantC_ + 40.0f);
+      out.count = 1;
+      return true;
+    case obd::kPidIntakeAirTemp:
+      out.bytes[0] = asByte(intakeAirC_ + 40.0f);
+      out.count = 1;
+      return true;
+    case obd::kPidControlModuleVolts: {
+      const long millivolts = std::clamp(std::lround(volts_ * 1000.0f), 0L, 65535L);
+      out.bytes[0] = static_cast<uint8_t>(millivolts >> 8);
+      out.bytes[1] = static_cast<uint8_t>(millivolts & 0xFF);
+      out.count = 2;
+      return true;
+    }
     default:
       return false;  // listed as supported but this fake has no data for it
   }

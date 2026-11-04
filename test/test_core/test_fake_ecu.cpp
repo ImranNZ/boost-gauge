@@ -65,9 +65,39 @@ TEST_CASE("fake ecu: the support bitmaps follow the PIDs it implements") {
   CHECK_FALSE(
       ecu.answer(obd::kModeCurrentData, obd::kPidBaroKpa, d));  // and it no longer answers 33
 
-  ecu.setSupported(0x05, true);  // a PID this fake has no data for
-  CHECK(ecu.supported(0x05));
+  ecu.setSupported(0x0C, true);  // engine speed: a PID this fake has no data for
+  CHECK(ecu.supported(0x0C));
   REQUIRE(ecu.answer(obd::kModeCurrentData, 0x00, d));
-  CHECK((d.bytes[0] & 0x08) != 0);
-  CHECK_FALSE(ecu.answer(obd::kModeCurrentData, 0x05, d));  // listed, but no answer to give
+  CHECK((d.bytes[1] & 0x10) != 0);  // bit for PID 0C: byte 1 (PIDs 09-10), fourth from the top
+  CHECK_FALSE(ecu.answer(obd::kModeCurrentData, 0x0C, d));  // listed, but no answer to give
+}
+
+TEST_CASE("fake ecu: coolant, intake air and voltage, once they are listed") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+  ObdData d;
+
+  // Not implemented until a test says so.
+  CHECK_FALSE(ecu.answer(obd::kModeCurrentData, obd::kPidCoolantTemp, d));
+  ecu.setSupported(obd::kPidCoolantTemp, true);
+  ecu.setSupported(obd::kPidIntakeAirTemp, true);
+  ecu.setSupported(obd::kPidControlModuleVolts, true);
+
+  ecu.setCoolantC(88.0f);
+  REQUIRE(ecu.answer(obd::kModeCurrentData, obd::kPidCoolantTemp, d));
+  CHECK(d.count == 1);
+  CHECK(obd::coolantTempC(d) == doctest::Approx(88.0f));
+
+  ecu.setIntakeAirC(-5.0f);
+  REQUIRE(ecu.answer(obd::kModeCurrentData, obd::kPidIntakeAirTemp, d));
+  CHECK(obd::intakeAirTempC(d) == doctest::Approx(-5.0f));
+
+  ecu.setVoltage(12.634f);
+  REQUIRE(ecu.answer(obd::kModeCurrentData, obd::kPidControlModuleVolts, d));
+  CHECK(d.count == 2);
+  CHECK(obd::controlModuleVolts(d) == doctest::Approx(12.634f).epsilon(0.0001));
+
+  ecu.setCoolantC(500.0f);  // clamps to a byte
+  REQUIRE(ecu.answer(obd::kModeCurrentData, obd::kPidCoolantTemp, d));
+  CHECK(d.bytes[0] == 255);
 }

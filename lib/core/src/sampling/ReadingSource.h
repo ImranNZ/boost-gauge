@@ -1,15 +1,17 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
-#include "sampling/BoostSampler.h"
+#include "sampling/ChannelSampler.h"
+#include "sampling/Reading.h"
 
 namespace gauge {
 
 /// A reading plus a counter that changes whenever a new one arrives, so a
 /// consumer polling faster than the producer can tell fresh from repeated.
 struct Sample {
-  BoostReading reading;
+  Reading reading;
   uint16_t seq = 0;  // wraps; 0 before the first reading
 };
 
@@ -21,19 +23,26 @@ class IReadingSource {
   virtual Sample latest() = 0;
 };
 
-/// Synchronous source: every call samples the car and blocks until it answers.
-/// Simple and deterministic (tests, the PC sim); the firmware uses the mailbox.
+/// Synchronous source: every call lets the sampler do one read and blocks until the car answers.
+/// Simple and deterministic (tests, the PC sim); the firmware uses the mailboxes. It reports one
+/// channel; a call that read something else (or nothing) repeats the last reading, unchanged.
 class PollingSource : public IReadingSource {
  public:
-  explicit PollingSource(BoostSampler& sampler) : sampler_(sampler) {}
+  PollingSource(ChannelSampler& sampler, size_t channel) : sampler_(sampler), channel_(channel) {}
 
   Sample latest() override {
-    const BoostReading reading = sampler_.sample();
-    return {reading, ++seq_};
+    ChannelSampler::Step step;
+    if (sampler_.step(step) && step.channel == channel_) {
+      last_ = step.reading;
+      ++seq_;
+    }
+    return {last_, seq_};
   }
 
  private:
-  BoostSampler& sampler_;
+  ChannelSampler& sampler_;
+  size_t channel_;
+  Reading last_;
   uint16_t seq_ = 0;
 };
 

@@ -36,14 +36,18 @@
 #include "obd/CanObdClient.h"
 #include "obd/Elm327Client.h"
 #include "obd/Elm327Parse.h"
+#include "obd/PidDecode.h"
 #include "obd/PidSupport.h"
 #include "obd/Units.h"
 #include "render/ArcCoverage.h"
 #include "render/Font.h"
 #include "render/ImageView.h"
 #include "sampling/AmbientPressure.h"
-#include "sampling/BoostSampler.h"
+#include "sampling/BoostChannel.h"
+#include "sampling/Channel.h"
+#include "sampling/ChannelSampler.h"
 #include "sampling/LinkSupervisor.h"
+#include "sampling/PidChannel.h"
 #include "sampling/ReadingMailbox.h"
 #include "sampling/ReadingSource.h"
 #include "sampling/SamplerLoop.h"
@@ -167,6 +171,64 @@ constexpr uint16_t kCream = (30 << 11) | (57 << 5) | 25;  // ~ (247, 229, 205)
 
 /// The geometry the real Retro artwork is generated with (looks/retro/spec.json).
 constexpr RetroLook::Spec kRetroSpec{-15.0f, 25.0f, 91.0f, 27.0f, 99.0f, 107.0f, 8};
+
+/// Wraps a client and counts how often each PID was asked for, and how often it was started.
+class CountingObdClient : public IObdClient {
+ public:
+  explicit CountingObdClient(IObdClient& inner) : inner_(inner) {}
+  bool begin() override {
+    ++begins;
+    return inner_.begin();
+  }
+  bool readPid(uint8_t mode, uint8_t pid, ObdData& out) override {
+    ++asked[pid];
+    return inner_.readPid(mode, pid, out);
+  }
+
+  int begins = 0;
+  std::array<int, 256> asked{};
+
+ private:
+  IObdClient& inner_;
+};
+
+// ---------------------------------------------------- a boost-only sampler --
+
+/// The boost channel on its own sampler: the shape the gauge had before it could show other
+/// channels, so a test about boost, discovery or link recovery needs no more setup than that.
+class BoostRig {
+ public:
+  struct Options {
+    LinkSupervisor::Options link;
+    AmbientPressure::Options ambient;
+    void (*onDiscovered)(const PidSupport&) = nullptr;
+  };
+
+  BoostRig(IObdClient& client, IClock& clock) : BoostRig(client, clock, Options{}) {}
+  BoostRig(IObdClient& client, IClock& clock, const Options& options)
+      : boost_(client, clock, options.ambient), sampler_(client, clock, samplerOptions(options)) {
+    sampler_.add(boost_);
+  }
+
+  /// One read of boost: what came back, or an invalid reading if nothing was attempted.
+  Reading sample() {
+    ChannelSampler::Step step;
+    return sampler_.step(step) ? step.reading : Reading{};
+  }
+  const PidSupport& support() const { return sampler_.support(); }
+  ChannelSampler& channels() { return sampler_; }
+
+ private:
+  static ChannelSampler::Options samplerOptions(const Options& options) {
+    ChannelSampler::Options out;
+    out.link = options.link;
+    out.onDiscovered = options.onDiscovered;
+    return out;
+  }
+
+  BoostChannel boost_;
+  ChannelSampler sampler_;
+};
 
 // ----------------------------------------------------------- reading sources --
 

@@ -22,7 +22,8 @@
 #include "looks/modern/ModernLookFactory.h"
 #include "looks/motorsport/MotorsportLookFactory.h"
 #include "looks/retro/RetroLookFactory.h"
-#include "sampling/BoostSampler.h"
+#include "sampling/BoostChannel.h"
+#include "sampling/ChannelSampler.h"
 #include "sampling/ReadingMailbox.h"
 #include "sampling/SamplerLoop.h"
 
@@ -33,13 +34,14 @@ device::LgfxCanvas canvas;
 
 // Producer side (sampler task).
 device::Transport transport(clock);
-gauge::BoostSampler sampler(transport.client(), clock, [] {
-  gauge::BoostSampler::Options options;
+gauge::BoostChannel boostChannel(transport.client(), clock);
+gauge::ChannelSampler sampler(transport.client(), clock, [] {
+  gauge::ChannelSampler::Options options;
   if (config::kLogPidSupport) options.onDiscovered = device::logPidSupport;
   return options;
 }());
-gauge::ReadingMailbox mailbox;
-gauge::SamplerLoop samplerLoop(sampler, mailbox);
+gauge::ChannelMailboxes mailboxes;
+gauge::SamplerLoop samplerLoop(sampler, mailboxes);
 device::SamplerTask samplerTask(samplerLoop);
 
 // Looks (the app keeps a reference, so they live for the whole run).
@@ -66,7 +68,7 @@ const gauge::ILook& chosenLook() {
 }
 
 // Consumer side (loop()).
-gauge::GaugeApp app(mailbox, canvas, clock, chosenLook(), [] {
+gauge::GaugeApp app(mailboxes.source(0), canvas, clock, chosenLook(), [] {
   gauge::GaugeApp::Options options;
   options.showFps = config::kShowFps;
   return options;
@@ -80,6 +82,7 @@ void setup() {
     Serial.println("display: frame buffer allocation failed");
     for (;;) delay(1000);
   }
+  sampler.add(boostChannel);  // before the sampler task starts
   samplerTask.start();
 }
 

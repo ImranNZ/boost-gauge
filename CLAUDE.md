@@ -37,7 +37,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   `IDrawSurface` (never the cache or `present`); caching and presenting belong to
   `FrameRenderer`. Link health is `LinkSupervisor`, ambient pressure is `AmbientPressure`,
   the value shown is `GaugeModel`. If a class grows a second reason to change, split it.
-  Before adding to `GaugeApp` or `BoostSampler`, ask whether it is a new collaborator instead.
+  Before adding to `GaugeApp` or `ChannelSampler`, ask whether it is a new collaborator instead.
 * **No duplicated logic across backends.** Shared maths lives in `lib/core` (e.g.
   `blend`, `arcCoverage`); the PC canvas and the LCD canvas both call it.
 * **Geometry that the artwork and the code share has one source** (`looks/*/spec.json`),
@@ -88,7 +88,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 * Threading model: the sampler (`SamplerLoop`, in `SamplerTask` on core 0) is the only
   thing that touches the OBD client/bus/stream. The render loop (`GaugeApp`, core 1)
-  only reads the `ReadingMailbox`. Never call the sampler or a transport from the render
+  only reads a `ChannelMailboxes` slot. Never call the sampler or a transport from the render
   path, and never block in `GaugeApp::tick`. The mailbox is a single lock-free
   32-bit word (15-bit seq, valid bit, psi in hundredths); keep it that way.
 * `GaugeApp` takes an `IReadingSource`. Tests and the sim use `PollingSource` (a
@@ -154,7 +154,7 @@ upward includes (e.g. `gauge/` must not include `looks/`), and do not put files 
 | Change | Edit |
 | ------ | ---- |
 | New data source / link | new class in `src/device/` + a branch in `src/device/Transport.h` + env in `platformio.ini` |
-| New PID | constant in `obd/IObdClient.h`, `FakeEcu::answer`, a collaborator beside `AmbientPressure` / `BoostSampler`, tests |
+| New PID / channel | constant and decoder in `obd/PidDecode.h`, a `PidChannel` factory (or an `IChannel` if it needs more than one PID), a `GaugeProfile` preset, `FakeEcu::answer`, tests |
 | Tune the Classic look | `lib/core/src/looks/ClassicLook.cpp`, then run the sim |
 | Tune the Retro look | `looks/retro/spec.json` or `dial.svg.in`, then `python tools/make_look.py retro` |
 | Pins / SSID / BLE name | `src/config.h` |
