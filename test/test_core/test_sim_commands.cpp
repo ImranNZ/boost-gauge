@@ -101,3 +101,17 @@ TEST_CASE("parseLookCommand recognises 'look <name>'") {
   CHECK_FALSE(parseLookCommand("boost 5", name));
   CHECK_FALSE(parseLookCommand("", name));
 }
+
+TEST_CASE("parseUnitCommand recognises 'unit <name>'") {
+  std::string name;
+  CHECK(parseUnitCommand("unit bar", name));
+  CHECK(name == "bar");
+  CHECK(parseUnitCommand("  unit   kpa \r\n", name));
+  CHECK(name == "kpa");
+
+  CHECK_FALSE(parseUnitCommand("unit", name));
+  CHECK_FALSE(parseUnitCommand("unit   ", name));
+  CHECK_FALSE(parseUnitCommand("units bar", name));
+  CHECK_FALSE(parseUnitCommand("unit bar psi", name));
+  CHECK_FALSE(parseUnitCommand("look bar", name));
+}

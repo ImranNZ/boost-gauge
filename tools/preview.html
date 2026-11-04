@@ -81,6 +81,15 @@
       </select>
     </div>
     <div class="row">
+      <label for="unit">Units</label>
+      <select id="unit">
+        <option value="psi" selected>psi</option>
+        <option value="bar">bar</option>
+        <option value="kpa">kPa</option>
+      </select>
+      <span class="hint" id="unitHint">Retro and Modern are pictures of a psi dial, so they stay psi.</span>
+    </div>
+    <div class="row">
       <label for="rate">Data rate</label>
       <select id="rate">
         <option value="30">30 Hz (every frame)</option>
@@ -114,8 +123,29 @@
   document.getElementById('online').onclick = () => send('online');
   document.getElementById('rate').onchange = (event) => send('rate ' + event.target.value);
   document.getElementById('look').onchange = (event) => send('look ' + event.target.value);
+  // Units apply to the code-drawn looks only; Retro and Modern are psi pictures.
+  const unitSelect = document.getElementById('unit');
+  const lookSelect = document.getElementById('look');
+  const unitHint = document.getElementById('unitHint');
+  const PSI_PER = { psi: 1, bar: 1 / 14.503774, kpa: 6.894757 };
+  const DECIMALS = { psi: 1, bar: 2, kpa: 0 };
+  const NAMES = { psi: 'psi', bar: 'bar', kpa: 'kPa' };
+  const unitInUse = () => (['retro', 'modern'].includes(lookSelect.value) ? 'psi' : unitSelect.value);
+  const showBoost = () => {
+    const unit = unitInUse();
+    sliderOut.textContent = (Number(slider.value) * PSI_PER[unit]).toFixed(DECIMALS[unit]) + ' ' + NAMES[unit];
+  };
+  const updateUnits = () => {
+    const picture = ['retro', 'modern'].includes(lookSelect.value);
+    unitSelect.disabled = picture;
+    unitHint.style.visibility = picture ? 'visible' : 'hidden';
+    showBoost();
+  };
+  unitSelect.onchange = () => { send('unit ' + unitSelect.value); showBoost(); };
+  lookSelect.addEventListener('change', updateUnits);
+  updateUnits();
   slider.oninput = () => {
-    sliderOut.textContent = Number(slider.value).toFixed(1) + ' psi';
+    showBoost();
     send('boost ' + slider.value);
   };
 

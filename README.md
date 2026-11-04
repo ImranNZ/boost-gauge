@@ -107,6 +107,8 @@ page has controls to drive the mock:
 
 * **Drive cycle**: the scripted 20 s loop (idle vacuum, full-boost pull, lift-off, cruise)
 * **Hold boost** slider: pin the ECU at any pressure from -15 to +25 psi
+* **Units**: psi, bar or kPa, for the code-drawn looks (Classic, Minimal, Motorsport); Retro and Modern
+  are pictures of a psi dial, so the selector is disabled for them
 * **Drop link / Restore link**: see the NO LINK state and the sampler reconnecting
 * **Data rate**: how often fresh readings arrive (30 / 25 / 10 / 5 / 2 Hz), to see how
   the needle behaves with a fast CAN link versus a slow dongle

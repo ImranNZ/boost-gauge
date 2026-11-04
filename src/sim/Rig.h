@@ -47,21 +47,44 @@ struct Rig {
   gauge::ModernLook modern{looks::makeModern()};
   gauge::GaugeApp app{link, canvas, clock, retro, gauge::GaugeApp::Options{}};
 
+  // What the code-drawn looks are drawn with; Retro and Modern are psi pictures.
+  gauge::GaugeProfile profile;
+  const gauge::ILook* current = &retro;
+
   /// Switch the look by name. False if there is no such look.
   bool selectLook(std::string_view name) {
     if (name == "retro") {
-      app.setLook(retro);
+      current = &retro;
     } else if (name == "classic") {
-      app.setLook(classic);
+      current = &classic;
     } else if (name == "minimal") {
-      app.setLook(minimal);
+      current = &minimal;
     } else if (name == "motorsport") {
-      app.setLook(motorsport);
+      current = &motorsport;
     } else if (name == "modern") {
-      app.setLook(modern);
+      current = &modern;
     } else {
       return false;
     }
+    app.setLook(*current);
+    return true;
+  }
+
+  /// Switch the unit (psi, bar or kpa) the code-drawn looks show. False if there is no such unit.
+  bool selectUnit(std::string_view name) {
+    if (name == "psi") {
+      profile = gauge::GaugeProfile::psi();
+    } else if (name == "bar") {
+      profile = gauge::GaugeProfile::bar();
+    } else if (name == "kpa") {
+      profile = gauge::GaugeProfile::kpa();
+    } else {
+      return false;
+    }
+    classic = gauge::ClassicLook(profile);
+    minimal = looks::makeMinimal(profile);
+    motorsport = looks::makeMotorsport(profile);
+    app.setLook(*current);  // the looks changed in place: make the app redraw the cached dial
     return true;
   }
 

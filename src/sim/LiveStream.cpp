@@ -48,12 +48,14 @@ void useBinaryStdout() {
 
 namespace {
 
-/// One line from the viewer: an ECU command, a data-rate command or a look switch.
+/// One line from the viewer: an ECU command, a data-rate command, or a look or unit switch.
 bool handleCommand(Rig& rig, const std::string& line) {
-  std::string look;
+  std::string word;
   if (gauge::applyEcuCommand(rig.ecu, line)) return true;
   if (gauge::applyRateCommand(rig.link, line)) return true;
-  return gauge::parseLookCommand(line, look) && rig.selectLook(look);
+  if (gauge::parseLookCommand(line, word)) return rig.selectLook(word);
+  if (gauge::parseUnitCommand(line, word)) return rig.selectUnit(word);
+  return false;
 }
 
 }  // namespace

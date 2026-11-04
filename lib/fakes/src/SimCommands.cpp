@@ -67,17 +67,29 @@ bool applyEcuCommand(FakeEcu& ecu, std::string_view line) {
   return false;
 }
 
-bool parseLookCommand(std::string_view line, std::string& name) {
+namespace {
+
+/// "<verb> <word>" with exactly one word after the verb.
+bool parseVerbWord(std::string_view line, std::string_view verb, std::string& word) {
   line = trim(line);
-  constexpr std::string_view kVerb = "look";
-  if (line.substr(0, kVerb.size()) != kVerb) return false;
-  line.remove_prefix(kVerb.size());
+  if (line.substr(0, verb.size()) != verb) return false;
+  line.remove_prefix(verb.size());
   if (line.empty() || line.front() != ' ') return false;
 
   const std::string_view argument = trim(line);
   if (argument.empty() || argument.find(' ') != std::string_view::npos) return false;
-  name.assign(argument);
+  word.assign(argument);
   return true;
+}
+
+}  // namespace
+
+bool parseLookCommand(std::string_view line, std::string& name) {
+  return parseVerbWord(line, "look", name);
+}
+
+bool parseUnitCommand(std::string_view line, std::string& name) {
+  return parseVerbWord(line, "unit", name);
 }
 
 bool applyRateCommand(ThrottledSource& source, std::string_view line) {
