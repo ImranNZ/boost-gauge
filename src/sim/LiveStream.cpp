@@ -63,7 +63,7 @@ bool handleCommand(Rig& rig, const std::string& line) {
 }  // namespace
 
 int runLive(std::string_view initialLook, bool paced, std::string_view channel,
-            std::string_view unit) {
+            std::string_view unit, int width, int height) {
   useBinaryStdout();
 
   static CommandQueue commands;  // outlives the detached reader thread
@@ -72,7 +72,7 @@ int runLive(std::string_view initialLook, bool paced, std::string_view channel,
     while (std::getline(std::cin, line)) commands.push(line);
   }).detach();
 
-  Rig rig;
+  Rig rig(width, height);
   if (!rig.selectChannel(channel)) {
     std::fprintf(stderr, "unknown channel '%.*s' (use boost, coolant, intake or voltage)\n",
                  static_cast<int>(channel.size()), channel.data());

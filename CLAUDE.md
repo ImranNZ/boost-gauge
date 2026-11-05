@@ -120,6 +120,10 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * `fillArc` wraps its sweep at 360, so a full circle (end - start = 360) draws nothing: draw two
   half arcs, as the Motorsport rim does.
 * Looks that animate (the Motorsport shift light) read `GaugeState::timeMs`; a look has no clock.
+* Looks draw in a fixed 240x240 design space whatever the screen is: `FrameRenderer` wraps the canvas
+  in a `ScaledSurface` (render/), so `surface.width()` is always 240 inside a look. Never read the
+  real canvas size in a look or hard-code a larger screen; use design-space numbers. At 240x240 it is
+  a pass-through, so the 240 goldens do not move. Real screen size lives in `config::kLcdSize`.
 * Angles: 0 = 3 o'clock, clockwise (screen space), everywhere.
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
