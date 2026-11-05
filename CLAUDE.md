@@ -105,7 +105,8 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   Run `pio run -e device-demo` after touching it.
 
 * Live preview: use `127.0.0.1`, not `localhost` (Windows tries IPv6 first and
-  stalls). The sim's stdout is binary frame data, so log to stderr only. Stop
+  stalls). Its Screen menu restarts the sim (`Sim.restart` in `tools/preview.py`) and the page
+  re-sends its settings; a stopped old sim must be marked retired or its reader shuts the server. The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
 * Looks that need nice type take a `Font` (`lib/core/src/render/Font.h`) and draw with `Font::draw`; only
