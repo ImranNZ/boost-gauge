@@ -110,7 +110,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 
 * Looks that need nice type take a `Font` (`lib/core/src/render/Font.h`) and draw with `Font::draw`; only
   the built-in bitmap font below is limited to its glyph list.
-* The built-in `SoftCanvas` font only covers `0-9 - + . space A B C E F I K L M N O P S T U V`. Using
+* The built-in `SoftCanvas` font only covers `0-9 - + . space A B C D E F G H I K L M N O P R S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the
   glyph to `kGlyphs` in `SoftCanvas.cpp` first.
 * The device font (`fonts::Font0`) and `SoftCanvas` share the 6x8 cell, so sim
@@ -124,6 +124,12 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   in a `ScaledSurface` (render/), so `surface.width()` is always 240 inside a look. Never read the
   real canvas size in a look or hard-code a larger screen; use design-space numbers. At 240x240 it is
   a pass-through, so the 240 goldens do not move. Real screen size lives in `board::kWidth`/`kHeight` (`src/boards/<name>/Board.h`).
+* Settings menu (`app/SettingsMenu`, `SettingsController`): the choice is a `Setup` (look, channel, unit),
+  always repaired by `normalised()` (a boost-dial look cannot show another channel). The menu is an
+  `IOverlay` drawn by `FrameRenderer` over the look in design space; it uses only the built-in font.
+  What applies a new `Setup` is an `ISetupTarget` per composition root (`sim::Rig` does). **On the
+  device, a new channel means the sampler must switch, and the sampler only runs on core 0**: do not
+  call `ChannelSampler::clear/add` from the render path; hand the sampler task the request.
 * Angles: 0 = 3 o'clock, clockwise (screen space), everywhere.
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
@@ -163,5 +169,7 @@ upward includes (e.g. `gauge/` must not include `looks/`), and do not put files 
 | Tune the Retro look | `looks/retro/spec.json` or `dial.svg.in`, then `python tools/make_look.py retro` |
 | Pins, screen size, panel driver | `src/boards/<name>/` (`Board.h`, `Panel.h`), chosen by `-DBOARD_<NAME>` in `platformio.ini` |
 | SSID / BLE name / protocol / what is shown | `src/config.h` |
+| A button, touch or tilt to drive the settings menu | an `IInput` adapter in `src/device/` (turns the hardware into `Next` / `Select`), wired in `src/main.cpp` |
+| Where the chosen setup is kept across power cycles | an `ISettingsStore` adapter in `src/device/` (`encodeSetup` / `decodeSetup` give it one word) |
 
 Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`).

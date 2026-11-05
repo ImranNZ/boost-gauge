@@ -33,9 +33,10 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
    `ImageView`s and fills the look's `Spec`, shared by `src/main.cpp` and the sim. Add
    `static_assert`s for anything the C++ also hard-codes (see `src/looks/retro/RetroLookFactory.h`).
 5. **Register it:**
-   - sim: add the name to `Rig::selectLook` (`src/sim/Rig.h`) and an `<option>` in
-     `tools/preview.html`;
-   - firmware: add it to `config::Look` in `src/config.h` and to `chosenLook()` in `src/main.cpp`.
+   - the look's name: add it to `LookId` and `parseLookId` (`looks/LookId.h`, `.cpp`), say whether it
+     `lookNeedsBoost`, and give it a label in `SettingsMenu.cpp` (the menu offers every look);
+   - sim: add it to `Rig::currentLook` (`src/sim/Rig.h`) and an `<option>` in `tools/preview.html`;
+   - firmware: add it to `chosenLook()` in `src/main.cpp` (`config::Look` is `LookId`).
 6. **Tests** (`test/test_core/test_retro_look.cpp` has the pattern, helpers in
    `test_support.h`): the needle lands at the right angle for several pressures, NO LINK,
    the peak marker, the fps label, every optional part. Dial caching is `FrameRenderer`'s

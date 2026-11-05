@@ -202,3 +202,31 @@ TEST_CASE("app: reset starts the displayed value over, forgetting the peak") {
   app.tick();
   CHECK_FALSE(same(pointOnNeedle(canvas, 18.0f, 100.0f), white));
 }
+
+namespace {
+
+class DotOverlay : public IOverlay {
+ public:
+  bool active() const override { return true; }
+  void draw(IDrawSurface& surface) const override { surface.fillCircle(120, 120, 5, kWhite); }
+};
+
+}  // namespace
+
+TEST_CASE("app: draws its overlay over the gauge until it is removed") {
+  ManualClock clock;
+  FixedSource source;
+  SoftCanvas canvas(240, 240);
+  ClassicLook look;
+  DotOverlay overlay;
+  GaugeApp app(source, canvas, clock, look, GaugeApp::Options{});
+
+  app.setOverlay(&overlay);
+  app.tick();
+  CHECK(same(canvas.image().get(120, 120), kWhite));
+
+  app.setOverlay(nullptr);
+  clock.advance(33);
+  app.tick();
+  CHECK_FALSE(same(canvas.image().get(120, 120), kWhite));
+}

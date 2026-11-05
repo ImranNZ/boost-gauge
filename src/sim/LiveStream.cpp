@@ -49,7 +49,7 @@ void useBinaryStdout() {
 namespace {
 
 /// One line from the viewer: an ECU command, a data-rate command, or a look, unit or channel
-/// switch.
+/// switch, or a press of the gauge's button.
 bool handleCommand(Rig& rig, const std::string& line) {
   std::string word;
   if (gauge::applyEcuCommand(rig.ecu, line)) return true;
@@ -57,13 +57,18 @@ bool handleCommand(Rig& rig, const std::string& line) {
   if (gauge::parseLookCommand(line, word)) return rig.selectLook(word);
   if (gauge::parseUnitCommand(line, word)) return rig.selectUnit(word);
   if (gauge::parseChannelCommand(line, word)) return rig.selectChannel(word);
+  gauge::InputEvent press = gauge::InputEvent::None;
+  if (gauge::parseButtonCommand(line, press)) {
+    rig.press(press);
+    return true;
+  }
   return false;
 }
 
 }  // namespace
 
 int runLive(std::string_view initialLook, bool paced, std::string_view channel,
-            std::string_view unit, int width, int height) {
+            std::string_view unit, int width, int height, std::string_view menu) {
   useBinaryStdout();
 
   static CommandQueue commands;  // outlives the detached reader thread
@@ -86,6 +91,10 @@ int runLive(std::string_view initialLook, bool paced, std::string_view channel,
                  "cannot use look '%.*s' (use retro, classic, minimal, motorsport or modern; "
                  "retro and modern need the boost channel)\n",
                  static_cast<int>(initialLook.size()), initialLook.data());
+  }
+  if (!menu.empty() && !rig.openMenu(menu)) {
+    std::fprintf(stderr, "unknown menu '%.*s' (use look, gauge or unit)\n",
+                 static_cast<int>(menu.size()), menu.data());
   }
   using Clock = std::chrono::steady_clock;
   auto nextFrame = Clock::now();
