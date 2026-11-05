@@ -13,8 +13,8 @@ int runSnapshots();
 /// same either way: simulated time does not depend on the wall clock).
 ///
 /// `channel` and `unit` choose what is shown at the start (empty `unit` keeps the channel's
-/// default).
+/// default). The frames are `width` x `height` pixels, 3 bytes each.
 int runLive(std::string_view initialLook, bool paced = true, std::string_view channel = "boost",
-            std::string_view unit = {});
+            std::string_view unit = {}, int width = 240, int height = 240);
 
 }  // namespace sim

@@ -41,7 +41,7 @@ struct Rig {
   gauge::PollingSource polling{sampler, 0};
   // Readings arrive at the link's rate, not the display's: ~CAN speed by default.
   gauge::ThrottledSource link{polling, clock, 40};
-  gauge::SoftCanvas canvas{kScreen, kScreen, kSupersample};
+  gauge::SoftCanvas canvas;
 
   gauge::ClassicLook classic;
   gauge::RetroLook retro{looks::makeRetro()};
@@ -56,7 +56,8 @@ struct Rig {
   gauge::GaugeProfile profile = gauge::defaultProfile(gauge::ChannelKind::Boost);
   const gauge::ILook* current = &retro;
 
-  Rig() {
+  /// A screen of any size: the looks are drawn for 240x240 and scaled to it (see ScaledSurface).
+  explicit Rig(int width = kScreen, int height = kScreen) : canvas(width, height, kSupersample) {
     // Every channel is on offer, so the car lists them all (the default ECU lists only boost's
     // PIDs).
     ecu.setSupported(gauge::obd::kPidCoolantTemp, true);

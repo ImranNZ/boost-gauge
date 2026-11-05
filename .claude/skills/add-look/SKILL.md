@@ -12,7 +12,8 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
 
 1. **Artwork + spec.** Static layer only: no needle, readout or live text. Put the scale and
    pointer geometry (range, tick radii, needle length, hub size) in `looks/<name>/spec.json`
-   and author `looks/<name>/dial.svg.in`, 240x240, with placeholders for anything computed
+   and author `looks/<name>/dial.svg.in`, 240x240 (the design space: the renderer scales a look to
+   the real screen, see `ScaledSurface`), with placeholders for anything computed
    from the spec (see `looks/retro/`). Fonts are static TTFs under `looks/<name>/fonts/`
    (SIL OFL only; ship the licence). Keep it free of trademarked artwork. For code-drawn text in a real typeface, add the TTF
    (SIL OFL) under `looks/<name>/fonts/`, list it in `tools/fonts.json`, run

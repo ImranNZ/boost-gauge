@@ -297,7 +297,14 @@ constructor injection, and doctest is your xUnit/Jest.
 
 ## Rendering and frame rate
 
-* The panel is a fixed 240x240. Shapes are anti-aliased: the PC sim draws at 4x
+* **Screen size.** Looks are drawn for a 240x240 screen (a circle of radius 120 about (120, 120)).
+  `FrameRenderer` puts a `ScaledSurface` between a look and the canvas, which scales that design
+  space to the real screen (fitted to the shorter side, centred on the longer one). Shapes stay
+  sharp at any size; text and the Retro/Modern pictures are resampled, so a little soft above 1x.
+  At 240x240 nothing changes. Try it: `program --live --size 466x466` (the stored renders in
+  `test/golden/` include 466x466, 412x412 and 320x480). Changing `kLcdSize` in `src/config.h` is the
+  only code change a new square panel needs, plus its driver (see `LgfxCanvas`).
+* Shapes are anti-aliased: the PC sim draws at 4x
   and averages down; on the device LovyanGFX does smooth lines/circles and
   `ArcCoverage` blends the dial arcs.
 * The **dial** (zones, ticks, labels) never changes, so `FrameRenderer` has the look

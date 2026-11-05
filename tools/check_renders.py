@@ -25,17 +25,23 @@ from pathlib import Path
 from PIL import Image, ImageChops
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_media import FRAME_MS, SIZE, build, sim_exe  # noqa: E402
+from make_media import FRAME_MS, build, sim_exe  # noqa: E402
 from preview import ROOT, env_with_compiler  # noqa: E402
 
-# (look, channel, unit): every look on boost in psi, then the code-drawn looks on the other
-# channels and units. Retro and Modern are pictures of a psi boost dial, so only boost.
-CASES = [(look, "boost", "") for look in ("modern", "retro", "minimal", "motorsport", "classic")] + [
-    ("classic", "boost", "bar"),
-    ("minimal", "coolant", ""),
-    ("motorsport", "coolant", "f"),
-    ("motorsport", "intake", ""),
-    ("classic", "voltage", ""),
+# (look, channel, unit, screen): every look on boost in psi, then the code-drawn looks on the other
+# channels and units, then a few on the other screen sizes (466x466 and 412x412 are round AMOLED/LCD
+# boards, 320x480 a portrait one). Retro and Modern are pictures of a psi boost dial, so only boost.
+CASES = [(look, "boost", "", (240, 240)) for look in ("modern", "retro", "minimal", "motorsport", "classic")] + [
+    ("classic", "boost", "bar", (240, 240)),
+    ("minimal", "coolant", "", (240, 240)),
+    ("motorsport", "coolant", "f", (240, 240)),
+    ("motorsport", "intake", "", (240, 240)),
+    ("classic", "voltage", "", (240, 240)),
+    ("classic", "boost", "", (466, 466)),
+    ("minimal", "boost", "", (466, 466)),
+    ("retro", "boost", "", (466, 466)),
+    ("motorsport", "coolant", "", (412, 412)),
+    ("minimal", "boost", "", (320, 480)),
 ]
 # Seconds into the drive cycle: idle in vacuum, near full boost, just after lifting off.
 MOMENTS_S = [1.0, 6.0, 10.5]
@@ -45,19 +51,21 @@ MAX_BAD_PIXELS = 40   # ... and at most this many pixels may differ by more (of 
 
 GOLDEN = ROOT / "test" / "golden"
 DIFF_DIR = ROOT / "out" / "render-diff"
-FRAME_BYTES = SIZE * SIZE * 3
 
 
-def case_name(look: str, channel: str, unit: str) -> str:
-    """The stored images' stem; boost in psi keeps the plain look name."""
-    return "_".join(part for part in (look, "" if channel == "boost" else channel, unit) if part)
+def case_name(look: str, channel: str, unit: str, screen: tuple[int, int]) -> str:
+    """The stored images' stem; boost in psi on 240x240 keeps the plain look name."""
+    size = "" if screen == (240, 240) else f"{screen[0]}x{screen[1]}"
+    return "_".join(part for part in (look, "" if channel == "boost" else channel, unit, size) if part)
 
 
-def frames_at(look: str, channel: str, unit: str) -> dict[float, Image.Image]:
+def frames_at(look: str, channel: str, unit: str, screen: tuple[int, int]) -> dict[float, Image.Image]:
     """The frames of one look at each moment, rendered flat out (no real-time pacing)."""
     wanted = {round(t * 1000 / FRAME_MS): t for t in MOMENTS_S}
     last = max(wanted)
-    args = ["--live", "--no-pace", "--channel", channel, "--look", look]
+    width, height = screen
+    frame_bytes = width * height * 3
+    args = ["--live", "--no-pace", "--channel", channel, "--look", look, "--size", f"{width}x{height}"]
     if unit:
         args += ["--unit", unit]
     proc = subprocess.Popen([str(sim_exe())] + args,
@@ -65,11 +73,11 @@ def frames_at(look: str, channel: str, unit: str) -> dict[float, Image.Image]:
     found = {}
     try:
         for index in range(last + 1):
-            data = proc.stdout.read(FRAME_BYTES)
-            if len(data) < FRAME_BYTES:
-                sys.exit(f"{case_name(look, channel, unit)}: the sim ended early")
+            data = proc.stdout.read(frame_bytes)
+            if len(data) < frame_bytes:
+                sys.exit(f"{case_name(look, channel, unit, screen)}: the sim ended early")
             if index in wanted:
-                found[wanted[index]] = Image.frombytes("RGB", (SIZE, SIZE), data)
+                found[wanted[index]] = Image.frombytes("RGB", (width, height), data)
     finally:
         proc.kill()
         proc.wait()
@@ -100,9 +108,9 @@ def main():
     GOLDEN.mkdir(parents=True, exist_ok=True)
 
     failures = []
-    for look, channel, unit in CASES:
-        case = case_name(look, channel, unit)
-        for moment, got in frames_at(look, channel, unit).items():
+    for look, channel, unit, screen in CASES:
+        case = case_name(look, channel, unit, screen)
+        for moment, got in frames_at(look, channel, unit, screen).items():
             path = GOLDEN / name_of(case, moment)
             if args.update:
                 got.save(path, optimize=True)
