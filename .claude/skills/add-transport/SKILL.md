@@ -14,7 +14,7 @@ A transport is an adapter behind an existing interface. `lib/core` should not ch
    - Raw CAN controller: implement `gauge::ICanBus`. `CanObdClient` does the rest.
 2. **Write the adapter** in `src/device/<Name>.h/.cpp`, `namespace device`.
    Radio callbacks run on another task: hand bytes over with
-   `gauge::SpscRing` (see `BleElmStream`). Put any pins/SSIDs in `src/config.h`.
+   `gauge::SpscRing` (see `BleElmStream`). Put SSIDs and addresses in `src/config.h`, and board pins in `src/boards/<name>/Board.h`.
 3. **Register the build** in `platformio.ini`: copy `[env:device-wifi]`, new
    `-DTRANSPORT_<NAME>` flag, and `build_src_filter = ${device.build_src_filter} +<device/<Name>.cpp>`
    so other environments don't compile it. Add extra `lib_deps` only in that env.

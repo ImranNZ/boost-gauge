@@ -3,23 +3,11 @@
 #include "gauge/ChannelProfile.h"
 #include "sampling/ChannelKind.h"
 
-// Board and deployment settings. Everything environment-specific lives here so
-// the rest of the firmware never hard-codes a pin, SSID or address.
+// Deployment settings: what the gauge shows, and how it reaches the car (protocol, SSID, address).
+// Anything tied to the board (screen size, display and CAN pins) lives in src/boards/<name>/ and is
+// picked by the -DBOARD_<NAME> flag in platformio.ini, so nothing else hard-codes a pin.
 
 namespace config {
-
-// --- Display: Waveshare ESP32-S3-LCD-1.28-B (GC9A01, 240x240, SPI) ---------
-constexpr int kLcdSclk = 10;
-constexpr int kLcdMosi = 11;
-constexpr int kLcdDc = 8;
-constexpr int kLcdCs = 9;
-constexpr int kLcdRst = 12;
-constexpr int kLcdBacklight = 40;
-constexpr int kLcdSize = 240;
-// SPI write clock. Waveshare quotes up to 80 MHz, which roughly doubles the
-// frame-rate ceiling (a full frame is ~11 ms at 80 MHz, ~23 ms at 40 MHz). If the
-// screen shows noise or tearing, drop this to 40000000.
-constexpr int kLcdSpiHz = 80000000;
 
 // --- Look ---------------------------------------------------------------------
 // Retro: cream 60s dial with a red needle. Classic: dark dial with zones, drawn in code.
@@ -65,12 +53,6 @@ constexpr const char* kElmProtocol = "6";
 // Direct CAN (TRANSPORT_CAN): the bus speed in kbit/s: 125, 250, 500 or 1000. The direct client
 // speaks 11-bit OBD-II only; for a 29-bit car use an ELM327 dongle with protocol "7" or "9".
 constexpr int kCanBitrateKbps = 500;
-
-// --- CAN (TRANSPORT_CAN): SN65HVD230 transceiver on two spare header pins --
-// VERIFY against the header silkscreen of your board before wiring; these two
-// are not used by the LCD, IMU or USB.
-constexpr int kCanTx = 15;
-constexpr int kCanRx = 16;
 
 // --- BLE ELM327 (TRANSPORT_BLE) ---------------------------------------------
 // Case-sensitive substring of the dongle's advertised name.

@@ -90,37 +90,53 @@ void ScaledSurface::drawText(int x, int y, const char* text, int scale, TextAlig
   target_.drawText(mapX(x), mapY(y), text, mapSize(scale), align, color);
 }
 
+bool ScaledSurface::place(int x, int y, int width, int height, Placement& out) const {
+  // Size from the mapped edges, not the mapped size, so a glyph's bottom lands on the same
+  // row as its neighbours' (the baseline) whatever the rounding.
+  out.left = mapX(x);
+  out.top = mapY(y);
+  out.width = std::max(1, mapX(x + width) - out.left);
+  out.height = std::max(1, mapY(y + height) - out.top);
+  return out.width <= kBandPixels;
+}
+
+template <typename Fill, typename Emit>
+void ScaledSurface::resample(const Placement& at, int srcWidth, int srcHeight, Fill fill,
+                             Emit emit) {
+  const int rowsPerBand = kBandPixels / at.width;
+  for (int row0 = 0; row0 < at.height; row0 += rowsPerBand) {
+    const int rows = std::min(rowsPerBand, at.height - row0);
+    for (int dy = 0; dy < rows; ++dy) {
+      const Tap v = tapFor(row0 + dy, at.height, srcHeight);
+      for (int dx = 0; dx < at.width; ++dx) {
+        fill(static_cast<size_t>(dy) * at.width + dx, tapFor(dx, at.width, srcWidth), v);
+      }
+    }
+    emit(at.width, rows, at.left, at.top + row0);
+  }
+}
+
 void ScaledSurface::drawImage(const ImageView& image, int x, int y) {
   if (image.rgb565 == nullptr) return;
   if (scale_ == 1.0f) {
     target_.drawImage(image, mapX(x), mapY(y));
     return;
   }
+  Placement at;
+  if (!place(x, y, image.width, image.height, at)) return;
 
-  // Size from the mapped edges, not the mapped size, so a glyph's bottom lands on the same
-  // row as its neighbours' (the baseline) whatever the rounding.
-  const int left = mapX(x);
-  const int top = mapY(y);
-  const int dw = std::max(1, mapX(x + image.width) - left);
-  const int dh = std::max(1, mapY(y + image.height) - top);
-  if (dw > kBandPixels) return;
-  const int rowsPerBand = kBandPixels / dw;
-
-  for (int row0 = 0; row0 < dh; row0 += rowsPerBand) {
-    const int rows = std::min(rowsPerBand, dh - row0);
-    for (int dy = 0; dy < rows; ++dy) {
-      const Tap v = tapFor(row0 + dy, dh, image.height);
-      for (int dx = 0; dx < dw; ++dx) {
-        const Tap u = tapFor(dx, dw, image.width);
-        const size_t i00 = static_cast<size_t>(v.first) * image.width + u.first;
-        const size_t i10 = static_cast<size_t>(v.first) * image.width + u.second;
-        const size_t i01 = static_cast<size_t>(v.second) * image.width + u.first;
-        const size_t i11 = static_cast<size_t>(v.second) * image.width + u.second;
+  const size_t w = static_cast<size_t>(image.width);
+  resample(
+      at, image.width, image.height,
+      [&](size_t out, const Tap& u, const Tap& v) {
+        const size_t i00 = static_cast<size_t>(v.first) * w + u.first;
+        const size_t i10 = static_cast<size_t>(v.first) * w + u.second;
+        const size_t i01 = static_cast<size_t>(v.second) * w + u.first;
+        const size_t i11 = static_cast<size_t>(v.second) * w + u.second;
         const Color c00 = rgb565ToColor(image.rgb565[i00]);
         const Color c10 = rgb565ToColor(image.rgb565[i10]);
         const Color c01 = rgb565ToColor(image.rgb565[i01]);
         const Color c11 = rgb565ToColor(image.rgb565[i11]);
-        const size_t out = static_cast<size_t>(dy) * dw + dx;
         rgbBand_[out] = packRgb565(bilinear(c00.r, c10.r, c01.r, c11.r, u.weight, v.weight),
                                    bilinear(c00.g, c10.g, c01.g, c11.g, u.weight, v.weight),
                                    bilinear(c00.b, c10.b, c01.b, c11.b, u.weight, v.weight));
@@ -129,15 +145,15 @@ void ScaledSurface::drawImage(const ImageView& image, int x, int y) {
                               : static_cast<uint8_t>(bilinear(image.alpha[i00], image.alpha[i10],
                                                               image.alpha[i01], image.alpha[i11],
                                                               u.weight, v.weight));
-      }
-    }
-    ImageView band;
-    band.width = dw;
-    band.height = rows;
-    band.rgb565 = rgbBand_.data();
-    band.alpha = image.alpha == nullptr ? nullptr : alphaBand_.data();
-    target_.drawImage(band, left, top + row0);
-  }
+      },
+      [&](int width, int rows, int left, int top) {
+        ImageView band;
+        band.width = width;
+        band.height = rows;
+        band.rgb565 = rgbBand_.data();
+        band.alpha = image.alpha == nullptr ? nullptr : alphaBand_.data();
+        target_.drawImage(band, left, top);
+      });
 }
 
 void ScaledSurface::drawMask(const MaskView& mask, int x, int y, Color color) {
@@ -146,37 +162,26 @@ void ScaledSurface::drawMask(const MaskView& mask, int x, int y, Color color) {
     target_.drawMask(mask, mapX(x), mapY(y), color);
     return;
   }
+  Placement at;
+  if (!place(x, y, mask.width, mask.height, at)) return;
 
-  // Size from the mapped edges, not the mapped size, so a glyph's bottom lands on the same
-  // row as its neighbours' (the baseline) whatever the rounding.
-  const int left = mapX(x);
-  const int top = mapY(y);
-  const int dw = std::max(1, mapX(x + mask.width) - left);
-  const int dh = std::max(1, mapY(y + mask.height) - top);
-  if (dw > kBandPixels) return;
-  const int rowsPerBand = kBandPixels / dw;
-
-  for (int row0 = 0; row0 < dh; row0 += rowsPerBand) {
-    const int rows = std::min(rowsPerBand, dh - row0);
-    for (int dy = 0; dy < rows; ++dy) {
-      const Tap v = tapFor(row0 + dy, dh, mask.height);
-      for (int dx = 0; dx < dw; ++dx) {
-        const Tap u = tapFor(dx, dw, mask.width);
-        const size_t i00 = static_cast<size_t>(v.first) * mask.width + u.first;
-        const size_t i10 = static_cast<size_t>(v.first) * mask.width + u.second;
-        const size_t i01 = static_cast<size_t>(v.second) * mask.width + u.first;
-        const size_t i11 = static_cast<size_t>(v.second) * mask.width + u.second;
-        alphaBand_[static_cast<size_t>(dy) * dw + dx] =
-            static_cast<uint8_t>(bilinear(mask.alpha[i00], mask.alpha[i10], mask.alpha[i01],
-                                          mask.alpha[i11], u.weight, v.weight));
-      }
-    }
-    MaskView band;
-    band.width = dw;
-    band.height = rows;
-    band.alpha = alphaBand_.data();
-    target_.drawMask(band, left, top + row0, color);
-  }
+  const size_t w = static_cast<size_t>(mask.width);
+  resample(
+      at, mask.width, mask.height,
+      [&](size_t out, const Tap& u, const Tap& v) {
+        alphaBand_[out] = static_cast<uint8_t>(
+            bilinear(mask.alpha[static_cast<size_t>(v.first) * w + u.first],
+                     mask.alpha[static_cast<size_t>(v.first) * w + u.second],
+                     mask.alpha[static_cast<size_t>(v.second) * w + u.first],
+                     mask.alpha[static_cast<size_t>(v.second) * w + u.second], u.weight, v.weight));
+      },
+      [&](int width, int rows, int left, int top) {
+        MaskView band;
+        band.width = width;
+        band.height = rows;
+        band.alpha = alphaBand_.data();
+        target_.drawMask(band, left, top, color);
+      });
 }
 
 }  // namespace gauge
