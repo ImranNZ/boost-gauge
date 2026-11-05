@@ -5,6 +5,7 @@
 #include "gauge/GaugeState.h"
 #include "looks/ILook.h"
 #include "render/Color.h"
+#include "render/Font.h"
 #include "render/IDrawSurface.h"
 
 namespace gauge {
@@ -22,7 +23,16 @@ class ClassicLook : public ILook {
   /// A minor graduation between each pair of labelled ones.
   static constexpr int kMinorPerMajor = 2;
 
-  explicit ClassicLook(const GaugeProfile& profile = {}) : profile_(profile) {}
+  /// The typefaces it needs: digits for the big readout; capitals, digits, "-", "+" and "." for the
+  /// scale numbers, labels and the small frame-rate text.
+  struct Fonts {
+    Font number;
+    Font label;
+    Font small;
+  };
+
+  explicit ClassicLook(const Fonts& fonts, const GaugeProfile& profile = {})
+      : fonts_(fonts), profile_(profile) {}
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
@@ -37,6 +47,7 @@ class ClassicLook : public ILook {
   void drawNeedle(IDrawSurface& c, int cx, int cy, float value) const;
   void drawReadout(IDrawSurface& c, int cx, const GaugeState& state) const;
 
+  Fonts fonts_;
   GaugeProfile profile_;
 };
 

@@ -82,7 +82,7 @@ TEST_CASE("frame renderer: a look is only ever given a drawing surface, not the 
     void drawLine(int, int, int, int, int, Color) override {}
     void drawText(int, int, const char*, int, TextAlign, Color) override {}
     void drawImage(const ImageView&, int, int) override {}
-    void drawMask(const MaskView&, int, int, Color) override {}
+    void drawMask(const MaskView&, float, float, Color) override {}
   } surface;
 
   RecordingLook look;

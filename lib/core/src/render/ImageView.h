@@ -18,10 +18,14 @@ struct ImageView {
 
 /// A read-only 8-bit coverage bitmap (255 = fully covered), one byte per pixel,
 /// row-major. Drawn tinted with a colour: this is how anti-aliased text is drawn.
+///
+/// `resolution` is how many of its pixels make one design-space pixel (see ScaledSurface): 1 for a
+/// bitmap made for a 240x240 screen, 2 for one rendered at twice that size for a bigger screen.
 struct MaskView {
   int width = 0;
   int height = 0;
   const uint8_t* alpha = nullptr;
+  float resolution = 1.0f;
 };
 
 /// Expand RGB565 to 8 bits per channel, replicating high bits so white stays white.

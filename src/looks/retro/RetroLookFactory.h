@@ -9,6 +9,8 @@
 
 #include "gauge/GaugeScale.h"
 #include "looks/RetroLook.h"
+#include "looks/fonts/JostMedium10.h"
+#include "looks/fonts/JostMedium20.h"
 #include "looks/retro/RetroDial.h"
 #include "looks/retro/RetroSpec.h"
 
@@ -36,15 +38,19 @@ inline gauge::RetroLook::Spec retroSpec() {
           retro::kHubRadius};
 }
 
+inline gauge::RetroLook::Fonts retroFonts() {
+  return {fonts::jostMedium20(), fonts::jostMedium10()};
+}
+
 inline gauge::RetroLook makeRetro() {
 #ifdef BOOST_GAUGE_HAS_BADGE
   gauge::Badge overlay;
   overlay.image = {badge::kWidth, badge::kHeight, badge::kRgb565, badge::kAlpha};
   overlay.x = 120 - badge::kWidth / 2;  // centred under the 5 psi numeral
   overlay.y = 80 - badge::kHeight / 2;
-  return gauge::RetroLook(retroDial(), retroSpec(), overlay);
+  return gauge::RetroLook(retroDial(), retroSpec(), retroFonts(), overlay);
 #else
-  return gauge::RetroLook(retroDial(), retroSpec());
+  return gauge::RetroLook(retroDial(), retroSpec(), retroFonts());
 #endif
 }
 

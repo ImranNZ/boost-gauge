@@ -31,7 +31,7 @@ class SoftCanvas : public ICanvas {
   void drawLine(int x0, int y0, int x1, int y1, int thickness, Color color) override;
   void drawText(int x, int y, const char* text, int scale, TextAlign align, Color color) override;
   void drawImage(const ImageView& image, int x, int y) override;
-  void drawMask(const MaskView& mask, int x, int y, Color color) override;
+  void drawMask(const MaskView& mask, float x, float y, Color color) override;
   void saveBackground() override { background_ = hi_; }
   bool restoreBackground() override;
   void discardBackground() override { background_.reset(); }

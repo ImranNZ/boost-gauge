@@ -202,7 +202,9 @@ void SoftCanvas::drawImage(const ImageView& image, int x, int y) {
   }
 }
 
-void SoftCanvas::drawMask(const MaskView& mask, int x, int y, Color color) {
+void SoftCanvas::drawMask(const MaskView& mask, float xPos, float yPos, Color color) {
+  const int x = static_cast<int>(std::lround(xPos));
+  const int y = static_cast<int>(std::lround(yPos));
   if (mask.alpha == nullptr) return;
 
   for (int iy = 0; iy < mask.height; ++iy) {

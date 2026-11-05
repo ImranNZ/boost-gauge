@@ -19,6 +19,10 @@ class IDrawSurface {
   virtual int width() const = 0;
   virtual int height() const = 0;
 
+  /// Real pixels per design pixel: 1 unless the surface scales what is drawn on it (see
+  /// ScaledSurface). Text and pictures use it to choose artwork rendered for about that size.
+  virtual float scale() const { return 1.0f; }
+
   virtual void clear(Color color) = 0;
   virtual void fillCircle(int cx, int cy, int radius, Color color) = 0;
   /// Ring sector from startDeg clockwise to endDeg.
@@ -37,8 +41,10 @@ class IDrawSurface {
   /// with partial alpha blend over what is already there.
   virtual void drawImage(const ImageView& image, int x, int y) = 0;
   /// Lay `color` over the surface with the mask's coverage as its alpha, top-left at
-  /// (x, y), clipped. Anti-aliased text (see Font) is drawn this way.
-  virtual void drawMask(const MaskView& mask, int x, int y, Color color) = 0;
+  /// (x, y), clipped. Anti-aliased text (see Font) is drawn this way. The position may be
+  /// fractional, so text laid out in the mask's own pixels lands where it should on a surface
+  /// that scales; a plain canvas rounds it.
+  virtual void drawMask(const MaskView& mask, float x, float y, Color color) = 0;
 };
 
 }  // namespace gauge

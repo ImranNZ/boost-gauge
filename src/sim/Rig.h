@@ -19,6 +19,8 @@
 #include "looks/ModernLook.h"
 #include "looks/MotorsportLook.h"
 #include "looks/RetroLook.h"
+#include "looks/classic/ClassicLookFactory.h"
+#include "looks/menu/SettingsMenuFactory.h"
 #include "looks/minimal/MinimalLookFactory.h"
 #include "looks/modern/ModernLookFactory.h"
 #include "looks/motorsport/MotorsportLookFactory.h"
@@ -48,7 +50,7 @@ struct Rig : gauge::ISetupTarget {
   gauge::ThrottledSource link{polling, clock, 40};
   gauge::SoftCanvas canvas;
 
-  gauge::ClassicLook classic;
+  gauge::ClassicLook classic{looks::makeClassic()};
   gauge::RetroLook retro{looks::makeRetro()};
   gauge::MinimalLook minimal{looks::makeMinimal()};
   gauge::MotorsportLook motorsport{looks::makeMotorsport()};
@@ -64,7 +66,7 @@ struct Rig : gauge::ISetupTarget {
   // The settings menu: buttons -> menu -> store and this rig, which shows the choice.
   gauge::ScriptedInput buttons;
   gauge::MemorySettingsStore store;
-  gauge::SettingsMenu menu{gauge::Setup{}};
+  gauge::SettingsMenu menu{looks::makeSettingsMenu(gauge::Setup{})};
   gauge::SettingsController settings{buttons, menu, store, *this};
 
   /// A screen of any size: the looks are drawn for 240x240 and scaled to it (see ScaledSurface).
@@ -171,7 +173,7 @@ struct Rig : gauge::ISetupTarget {
 
   /// Rebuild the code-drawn looks from the profile, and have the app redraw the cached dial.
   void rebuildLooks() {
-    classic = gauge::ClassicLook(profile);
+    classic = looks::makeClassic(profile);
     minimal = looks::makeMinimal(profile);
     motorsport = looks::makeMotorsport(profile);
     app.setLook(currentLook());

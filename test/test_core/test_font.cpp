@@ -77,3 +77,66 @@ TEST_CASE("font: a space moves the pen but draws nothing") {
   CHECK(countNonBlack(canvas.image()) == 2 * 6 * 10);
   CHECK(same(canvas.image().get(17, 15), kWhite));  // 'B' after two advances (16) + 1
 }
+
+namespace {
+
+// Two sizes of the same boxes: 6x10 for the design size, and 12x20 for a screen twice as big.
+const SolidFont kSmallFace(6, 10, 8);
+const SolidFont kBigFace(12, 20, 16);
+
+Font twoFaces() {
+  const FontFace faces[] = {kSmallFace.face(1.0f), kBigFace.face(2.0f)};
+  return Font(faces, 2);
+}
+
+/// Draw "A" through a ScaledSurface on a square canvas `side` pixels across: the surface's scale
+/// is side / 240.
+int inkedPixels(const Font& font, int side) {
+  SoftCanvas canvas(side, side);
+  ScaledSurface surface(canvas);
+  font.draw(surface, 120, 120, "A", TextAlign::Left, kWhite);
+  return countNonBlack(canvas.image());
+}
+
+}  // namespace
+
+TEST_CASE("font: with several faces, the first sets the design size") {
+  const Font font = twoFaces();
+  CHECK(font.ascent() == 10);
+  CHECK(font.width("AB") == 16);
+}
+
+TEST_CASE("font: draws with the smallest face that is at least as big as the screen needs") {
+  const Font font = twoFaces();
+  CHECK(inkedPixels(font, 240) == 6 * 10);   // 1x: the small face, as it is
+  CHECK(inkedPixels(font, 480) == 12 * 20);  // 2x: the big face, as it is (not stretched)
+  CHECK(inkedPixels(font, 360) == 9 * 15);   // 1.5x: the big face, shrunk to size
+}
+
+TEST_CASE("font: on a screen bigger than any face, the biggest is stretched") {
+  CHECK(inkedPixels(twoFaces(), 720) == 18 * 30);  // 3x from the 2x face
+}
+
+TEST_CASE("font: a face of the exact size is used unstretched, spacing included") {
+  const Font font = twoFaces();
+  SoftCanvas canvas(480, 480);
+  ScaledSurface surface(canvas);
+  font.draw(surface, 100, 100, "AB", TextAlign::Left, kWhite);
+  // Anchored at real pixel (200, 200). The 12x20 glyphs sit 1 px in from the pen and rise 20 px
+  // above the baseline; 'B' starts one 16 px advance after 'A'.
+  CHECK(same(canvas.image().get(201, 190), kWhite));
+  CHECK(same(canvas.image().get(212, 190), kWhite));
+  CHECK(same(canvas.image().get(213, 190), kBlack));  // the gap between them
+  CHECK(same(canvas.image().get(216, 190), kBlack));
+  CHECK(same(canvas.image().get(217, 190), kWhite));  // 'B'
+  CHECK(countNonBlack(canvas.image()) == 2 * 12 * 20);
+}
+
+TEST_CASE("font: faces beyond the limit are ignored") {
+  FontFace faces[Font::kMaxFaces + 2];
+  for (FontFace& face : faces) face = kSmallFace.face(1.0f);
+  const Font font(faces, Font::kMaxFaces + 2);
+  SoftCanvas canvas(60, 30);
+  font.draw(canvas, 10, 20, "A", TextAlign::Left, kWhite);
+  CHECK(countNonBlack(canvas.image()) == 6 * 10);
+}
