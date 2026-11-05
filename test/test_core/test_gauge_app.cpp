@@ -179,3 +179,26 @@ TEST_CASE("app can be constructed with an explicit look") {
   app.tick();
   CHECK(same(canvas.image().get(2, 2), rgb565ToColor(kCream)));
 }
+
+TEST_CASE("app: reset starts the displayed value over, forgetting the peak") {
+  ManualClock clock;
+  FixedSource source;
+  SoftCanvas canvas(240, 240);
+  GaugeApp::Options options;
+  options.smoothingMs = 0.0f;
+  ClassicLook look;
+  GaugeApp app(source, canvas, clock, look, options);
+  const Color white{255, 255, 255};  // the peak marker
+
+  source.publish(18.0f);
+  app.tick();
+  clock.advance(33);
+  source.publish(5.0f);
+  app.tick();
+  CHECK(same(pointOnNeedle(canvas, 18.0f, 100.0f), white));  // the peak from a moment ago
+
+  app.reset();  // another channel is now shown
+  source.publish(5.0f);
+  app.tick();
+  CHECK_FALSE(same(pointOnNeedle(canvas, 18.0f, 100.0f), white));
+}

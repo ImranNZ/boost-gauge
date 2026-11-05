@@ -41,6 +41,30 @@ float driveProfileBoostPsi(uint32_t timeMs) {
   return kProfile[kCount - 1].psi;
 }
 
+namespace {
+
+constexpr float kTwoPi = 6.28318531f;
+
+/// A smooth swing around `middle` of +-`amplitude`, one cycle per 20 s loop.
+float swing(uint32_t timeMs, float middle, float amplitude) {
+  const float phase = static_cast<float>(timeMs % 20000u) / 20000.0f;
+  return middle + amplitude * std::sin(phase * kTwoPi);
+}
+
+}  // namespace
+
+float driveProfileCoolantC(uint32_t timeMs) { return swing(timeMs, 88.0f, 12.0f); }
+float driveProfileIntakeAirC(uint32_t timeMs) { return swing(timeMs, 40.0f, 18.0f); }
+float driveProfileVolts(uint32_t timeMs) { return swing(timeMs, 13.9f, 0.5f); }
+
+float FakeEcu::coolantC() const {
+  return heldCoolant_ ? coolantC_ : driveProfileCoolantC(clock_.nowMs());
+}
+float FakeEcu::intakeAirC() const {
+  return heldIntakeAir_ ? intakeAirC_ : driveProfileIntakeAirC(clock_.nowMs());
+}
+float FakeEcu::voltage() const { return heldVolts_ ? volts_ : driveProfileVolts(clock_.nowMs()); }
+
 float FakeEcu::mapKpa() const {
   if (held_) return heldMapKpa_;
   return baroKpa_ + psiToKpa(driveProfileBoostPsi(clock_.nowMs()));
@@ -86,15 +110,15 @@ bool FakeEcu::answer(uint8_t mode, uint8_t pid, ObdData& out) const {
       out.count = 1;
       return true;
     case obd::kPidCoolantTemp:
-      out.bytes[0] = asByte(coolantC_ + 40.0f);
+      out.bytes[0] = asByte(coolantC() + 40.0f);
       out.count = 1;
       return true;
     case obd::kPidIntakeAirTemp:
-      out.bytes[0] = asByte(intakeAirC_ + 40.0f);
+      out.bytes[0] = asByte(intakeAirC() + 40.0f);
       out.count = 1;
       return true;
     case obd::kPidControlModuleVolts: {
-      const long millivolts = std::clamp(std::lround(volts_ * 1000.0f), 0L, 65535L);
+      const long millivolts = std::clamp(std::lround(voltage() * 1000.0f), 0L, 65535L);
       out.bytes[0] = static_cast<uint8_t>(millivolts >> 8);
       out.bytes[1] = static_cast<uint8_t>(millivolts & 0xFF);
       out.count = 2;

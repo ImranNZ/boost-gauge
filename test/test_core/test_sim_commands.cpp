@@ -115,3 +115,58 @@ TEST_CASE("parseUnitCommand recognises 'unit <name>'") {
   CHECK_FALSE(parseUnitCommand("unit bar psi", name));
   CHECK_FALSE(parseUnitCommand("look bar", name));
 }
+
+TEST_CASE("throttled source: reset makes the next call fetch afresh") {
+  ManualClock clock;
+  FixedSource inner;
+  ThrottledSource source(inner, clock, 100);
+
+  inner.sample = {{1.0f, true}, 1};
+  CHECK(source.latest().seq == 1);
+  inner.sample = {{2.0f, true}, 2};
+  CHECK(source.latest().seq == 1);  // not due: the cached one
+
+  source.reset();
+  CHECK(source.latest().seq == 2);  // fetched straight away
+}
+
+TEST_CASE("ecu commands pin coolant, intake air and voltage, and drive releases them") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+
+  CHECK(applyEcuCommand(ecu, "coolant 95.5"));
+  CHECK(ecu.coolantC() == doctest::Approx(95.5f));
+  CHECK(applyEcuCommand(ecu, "intake 12"));
+  CHECK(ecu.intakeAirC() == doctest::Approx(12.0f));
+  CHECK(applyEcuCommand(ecu, "volts 12.6"));
+  CHECK(ecu.voltage() == doctest::Approx(12.6f));
+
+  // Clamped to what the PID can report.
+  CHECK(applyEcuCommand(ecu, "coolant 999"));
+  CHECK(ecu.coolantC() == doctest::Approx(215.0f));
+  CHECK(applyEcuCommand(ecu, "intake -99"));
+  CHECK(ecu.intakeAirC() == doctest::Approx(-40.0f));
+  CHECK(applyEcuCommand(ecu, "volts 999"));
+  CHECK(ecu.voltage() == doctest::Approx(65.0f));
+
+  CHECK_FALSE(applyEcuCommand(ecu, "coolant"));
+  CHECK_FALSE(applyEcuCommand(ecu, "coolant hot"));
+  CHECK_FALSE(applyEcuCommand(ecu, "volts"));
+
+  CHECK(applyEcuCommand(ecu, "drive"));
+  clock.advance(5000);
+  CHECK(ecu.coolantC() == doctest::Approx(100.0f).epsilon(0.01));  // following the cycle again
+}
+
+TEST_CASE("parseChannelCommand recognises 'channel <name>'") {
+  std::string name;
+  CHECK(parseChannelCommand("channel coolant", name));
+  CHECK(name == "coolant");
+  CHECK(parseChannelCommand("  channel   voltage \r\n", name));
+  CHECK(name == "voltage");
+
+  CHECK_FALSE(parseChannelCommand("channel", name));
+  CHECK_FALSE(parseChannelCommand("channels coolant", name));
+  CHECK_FALSE(parseChannelCommand("channel two words", name));
+  CHECK_FALSE(parseChannelCommand("look coolant", name));
+}

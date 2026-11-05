@@ -12,6 +12,13 @@ namespace gauge {
 /// then light cruise. Returns gauge psi for a time since start.
 float driveProfileBoostPsi(uint32_t timeMs);
 
+/// The other readings follow the same 20 s loop, slowly swinging so each is visible on a gauge:
+/// coolant between 76 and 100 degrees C, intake air between 22 and 58, battery voltage between
+/// 13.4 and 14.4 V.
+float driveProfileCoolantC(uint32_t timeMs);
+float driveProfileIntakeAirC(uint32_t timeMs);
+float driveProfileVolts(uint32_t timeMs);
+
 /// Pretend engine control unit: answers mode 01 PIDs from a drive profile or a
 /// pinned value. Shared by every fake transport so they all "drive" alike.
 class FakeEcu {
@@ -22,11 +29,25 @@ class FakeEcu {
     held_ = true;
     heldMapKpa_ = kpa;
   }
-  void followDriveProfile() { held_ = false; }
+  /// Let every reading follow its scripted drive cycle again (releasing anything pinned).
+  void followDriveProfile() { held_ = heldCoolant_ = heldIntakeAir_ = heldVolts_ = false; }
   void setBaroKpa(float kpa) { baroKpa_ = kpa; }
-  void setCoolantC(float celsius) { coolantC_ = celsius; }
-  void setIntakeAirC(float celsius) { intakeAirC_ = celsius; }
-  void setVoltage(float volts) { volts_ = volts; }
+  /// Pin a reading to a fixed value (until followDriveProfile()).
+  void setCoolantC(float celsius) {
+    coolantC_ = celsius;
+    heldCoolant_ = true;
+  }
+  void setIntakeAirC(float celsius) {
+    intakeAirC_ = celsius;
+    heldIntakeAir_ = true;
+  }
+  void setVoltage(float volts) {
+    volts_ = volts;
+    heldVolts_ = true;
+  }
+  float coolantC() const;
+  float intakeAirC() const;
+  float voltage() const;
   float baroKpa() const { return baroKpa_; }
   /// Which mode 01 PIDs this ECU implements (default: manifold and barometric pressure; add 05, 0F
   /// and 42 for coolant, intake air and voltage). The
@@ -56,6 +77,9 @@ class FakeEcu {
   float coolantC_ = 90.0f;
   float intakeAirC_ = 35.0f;
   float volts_ = 14.1f;
+  bool heldCoolant_ = false;
+  bool heldIntakeAir_ = false;
+  bool heldVolts_ = false;
   bool online_ = true;
   // Bit n set: PID n answers. Starts with 0B and 33.
   std::array<uint8_t, 32> supported_ = {0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x08};

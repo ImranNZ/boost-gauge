@@ -101,3 +101,49 @@ TEST_CASE("fake ecu: coolant, intake air and voltage, once they are listed") {
   REQUIRE(ecu.answer(obd::kModeCurrentData, obd::kPidCoolantTemp, d));
   CHECK(d.bytes[0] == 255);
 }
+
+TEST_CASE(
+    "drive profiles: coolant, intake air and voltage swing within their ranges, once a loop") {
+  float coolantLow = 1000.0f, coolantHigh = -1000.0f;
+  float intakeLow = 1000.0f, intakeHigh = -1000.0f;
+  float voltsLow = 1000.0f, voltsHigh = -1000.0f;
+  for (uint32_t t = 0; t < 20000; t += 100) {
+    coolantLow = std::min(coolantLow, driveProfileCoolantC(t));
+    coolantHigh = std::max(coolantHigh, driveProfileCoolantC(t));
+    intakeLow = std::min(intakeLow, driveProfileIntakeAirC(t));
+    intakeHigh = std::max(intakeHigh, driveProfileIntakeAirC(t));
+    voltsLow = std::min(voltsLow, driveProfileVolts(t));
+    voltsHigh = std::max(voltsHigh, driveProfileVolts(t));
+    CHECK(driveProfileCoolantC(t) == doctest::Approx(driveProfileCoolantC(t + 20000)));  // periodic
+  }
+  CHECK(coolantLow == doctest::Approx(76.0f).epsilon(0.01));
+  CHECK(coolantHigh == doctest::Approx(100.0f).epsilon(0.01));
+  CHECK(intakeLow == doctest::Approx(22.0f).epsilon(0.01));
+  CHECK(intakeHigh == doctest::Approx(58.0f).epsilon(0.01));
+  CHECK(voltsLow == doctest::Approx(13.4f).epsilon(0.01));
+  CHECK(voltsHigh == doctest::Approx(14.4f).epsilon(0.01));
+}
+
+TEST_CASE(
+    "fake ecu: the other readings follow the drive cycle until pinned, and again after drive") {
+  ManualClock clock;
+  FakeEcu ecu(clock);
+
+  clock.advance(5000);  // the top of the swing
+  CHECK(ecu.coolantC() == doctest::Approx(100.0f).epsilon(0.01));
+  CHECK(ecu.intakeAirC() == doctest::Approx(58.0f).epsilon(0.01));
+  CHECK(ecu.voltage() == doctest::Approx(14.4f).epsilon(0.01));
+
+  ecu.setCoolantC(50.0f);
+  ecu.setIntakeAirC(10.0f);
+  ecu.setVoltage(12.0f);
+  clock.advance(5000);  // time moves on; pinned readings do not
+  CHECK(ecu.coolantC() == doctest::Approx(50.0f));
+  CHECK(ecu.intakeAirC() == doctest::Approx(10.0f));
+  CHECK(ecu.voltage() == doctest::Approx(12.0f));
+
+  ecu.followDriveProfile();
+  CHECK(ecu.coolantC() == doctest::Approx(driveProfileCoolantC(10000)));
+  CHECK(ecu.intakeAirC() == doctest::Approx(driveProfileIntakeAirC(10000)));
+  CHECK(ecu.voltage() == doctest::Approx(driveProfileVolts(10000)));
+}
