@@ -50,7 +50,7 @@ TEST_CASE("app ignores repeated samples and invalid readings") {
   CHECK(same(needlePixel(canvas, view, 10.0f), ClassicLook::kNeedle));
 
   // Same seq again, even if the value somehow differed, is not news.
-  source.sample.reading.psi = 0.0f;
+  source.sample.reading.value = 0.0f;
   clock.advance(33);
   app.tick();
   CHECK(same(needlePixel(canvas, view, 10.0f), ClassicLook::kNeedle));
@@ -90,8 +90,8 @@ TEST_CASE("app: never-connected shows NO LINK and still presents frames") {
   ManualClock clock;
   StubObdClient client;
   client.beginResult = false;
-  BoostSampler sampler(client, clock);
-  PollingSource source(sampler);
+  BoostRig rig(client, clock);
+  PollingSource source(rig.channels(), 0);
   SoftCanvas canvas(240, 240);
   ClassicLook look;
   GaugeApp app(source, canvas, clock, look, GaugeApp::Options{});
@@ -108,8 +108,8 @@ TEST_CASE("app: custom look and options are honoured") {
   StubObdClient client;
   client.map = {true, 1, 160};
   client.baro = {true, 1, 100};
-  BoostSampler sampler(client, clock);
-  PollingSource source(sampler);
+  BoostRig rig(client, clock);
+  PollingSource source(rig.channels(), 0);
   SoftCanvas canvas(240, 240);
   GaugeProfile profile;
   profile.max = 30.0f;
@@ -132,8 +132,8 @@ TEST_CASE("app goes NO LINK when the ECU disappears") {
   ecu.holdMapKpa(150.0f);
   FakeCanBus bus(ecu);
   CanObdClient client(bus, clock);
-  BoostSampler sampler(client, clock);
-  PollingSource source(sampler);
+  BoostRig rig(client, clock);
+  PollingSource source(rig.channels(), 0);
   SoftCanvas canvas(240, 240);
   ClassicLook view;
   GaugeApp app(source, canvas, clock, view, GaugeApp::Options{});

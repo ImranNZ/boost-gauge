@@ -229,8 +229,9 @@ lib/core/src/   Hardware-free logic, fully unit tested. Grouped by domain; each 
   base/           IClock                                    (the lowest layer)
   obd/            what we say to the car: IObdClient, ICanBus, IByteStream,
                   Elm327Client / Parse, CanObdClient, Units
-  sampling/       readings off the link: BoostSampler, LinkSupervisor, AmbientPressure,
-                  SamplerLoop, ReadingMailbox, ReadingSource
+  sampling/       readings off the link: ChannelSampler (the scheduler), the channels
+                  (BoostChannel, PidChannel), LinkSupervisor, AmbientPressure, SamplerLoop,
+                  the mailboxes, ReadingSource
   gauge/          the value shown: GaugeModel, GaugeState, GaugeScale, Smoothing, FpsCounter
   render/         the drawing toolkit: IDrawSurface, IFrameCache, ICanvas, Font,
                   ImageView, Color, Badge, ArcCoverage
@@ -275,8 +276,9 @@ Each class has one job:
 | `Elm327Client` / `CanObdClient` | Speak ELM327 or CAN OBD over any `IByteStream` / `ICanBus` |
 | `LinkSupervisor` | Connect, retry and notice a dead link |
 | `AmbientPressure` | Barometric pressure, cached, with throttled retries |
-| `BoostSampler` | Coordinate the above: MAP minus ambient = boost |
-| `SamplerLoop` + `ReadingMailbox` | Publish readings from the sampler task to the screen (lock-free) |
+| `IChannel` (`BoostChannel`, `PidChannel`) | One thing the car can show: how to read it and decode it (boost = MAP minus ambient; coolant, intake air and voltage are one PID each) |
+| `ChannelSampler` | Reads several channels over one link: discovery, link recovery, and which channel is read when (boost flat out, slow ones about once a second) |
+| `SamplerLoop` + `ChannelMailboxes` | Publish each channel's readings from the sampler task to the screen (one lock-free slot per channel) |
 | `GaugeModel` | Readings -> what to show: eased value, peak, link state, fps (pure logic) |
 | `FrameRenderer` | Draw a frame: restore or cache the dial, draw the moving parts, present |
 | `ILook` (`ClassicLook`, `RetroLook`) | Describe the drawing only: the dial and the moving parts |
@@ -377,9 +379,9 @@ text) or `ICanBus` (raw CAN) in `src/device/`, add a `-DTRANSPORT_X` env in
 `platformio.ini` with a matching `build_src_filter`, and add a branch in
 `src/main.cpp`. Nothing in `lib/core` changes.
 
-**Show another PID**: see the pattern in `BoostSampler` (read via
-`IObdClient::readPid`, add the PID constant in `obd/IObdClient.h`, teach `FakeEcu`
-to answer it, test it).
+**Show another PID**: add a `PidChannel` (see `PidChannel::coolant()`): the PID constant and a
+pure decoder in `obd/PidDecode.h`, a factory, a `GaugeProfile` preset for its scale, teach
+`FakeEcu` to answer it, test it.
 
 **Change the look**: edit `lib/core/src/looks/ClassicLook.cpp`, run `python tools/preview.py`, and
 watch it update (stop and re-run after each edit; it rebuilds the sim).

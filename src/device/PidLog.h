@@ -8,7 +8,7 @@
 namespace device {
 
 /// Print which mode 01 PIDs the car reported to the serial console, once per connection. Pass it
-/// as BoostSampler::Options::onDiscovered (see config::kLogPidSupport). This is the "PID
+/// as ChannelSampler::Options::onDiscovered (see config::kLogPidSupport). This is the "PID
 /// scanner": the quick way to see what another car offers before trusting the gauge on it.
 inline void logPidSupport(const gauge::PidSupport& support) {
   if (!support.knows(0x00)) {

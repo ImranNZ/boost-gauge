@@ -12,9 +12,11 @@ Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 2. **Decode**: put the formula (e.g. `A - 40` for coolant °C, `(256A+B)/4` for
    RPM) in a small pure function in `lib/core/src` (a header like `obd/Units.h`, or a
    new one). `ObdData` holds up to 4 data bytes (`bytes[0]` = A).
-3. **Sampling**: extend `BoostSampler` only if it is part of boost; otherwise add a collaborator beside
-   `AmbientPressure` / `LinkSupervisor` and a coordinator (single responsibility). Throttle slow-changing values like baro does
-   (`AmbientPressure::Options::refreshMs` / `retryMs`) so unsupported PIDs don't stall every frame.
+3. **Channel**: a value to show is an `IChannel` (`sampling/Channel.h`). One PID decoded by a pure
+   function is a `PidChannel` (add a factory next to `coolant()`; the decoder goes in
+   `obd/PidDecode.h`); a value built from several PIDs gets its own `IChannel` like `BoostChannel`.
+   Slow-changing values use a period of about a second so they do not slow the fast channel; the
+   `ChannelSampler` schedules them. Add a `GaugeProfile` preset for its scale and zones.
    The car's PID discovery (`obd/PidSupport.h`) says whether it implements the PID: use
    `support.knows(pid) && !support.supports(pid)` to skip a PID the car does not report, and treat
    an unknown one as possibly supported.

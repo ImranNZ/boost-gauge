@@ -22,9 +22,11 @@ GENERATED_SUFFIXES = ("Dial.h", "Spec.h")
 
 
 def sources() -> list[str]:
-    """Tracked C++ files we write by hand."""
-    listed = subprocess.run(["git", "ls-files", "lib", "src", "test"], cwd=ROOT, capture_output=True,
-                            text=True, check=True).stdout.split()
+    """C++ files we write by hand: tracked ones and new ones not yet added to git (but never ignored
+    ones, such as the local brand artwork), so a brand-new file is formatted before its first commit."""
+    listed = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "lib",
+                             "src", "test"], cwd=ROOT, capture_output=True, text=True,
+                            check=True).stdout.split()
     return [f for f in listed
             if f.endswith((".h", ".cpp"))
             and not f.startswith(GENERATED_DIRS)

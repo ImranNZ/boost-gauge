@@ -18,7 +18,8 @@
 #include "looks/motorsport/MotorsportLookFactory.h"
 #include "looks/retro/RetroLookFactory.h"
 #include "obd/CanObdClient.h"
-#include "sampling/BoostSampler.h"
+#include "sampling/BoostChannel.h"
+#include "sampling/ChannelSampler.h"
 #include "sampling/ReadingSource.h"
 
 namespace sim {
@@ -34,8 +35,9 @@ struct Rig {
   gauge::FakeEcu ecu{clock};
   gauge::FakeCanBus bus{ecu};
   gauge::CanObdClient obdClient{bus, clock};
-  gauge::BoostSampler sampler{obdClient, clock};
-  gauge::PollingSource polling{sampler};
+  gauge::BoostChannel boost{obdClient, clock};
+  gauge::ChannelSampler sampler{obdClient, clock};
+  gauge::PollingSource polling{sampler, 0};
   // Readings arrive at the link's rate, not the display's: ~CAN speed by default.
   gauge::ThrottledSource link{polling, clock, 40};
   gauge::SoftCanvas canvas{kScreen, kScreen, kSupersample};
@@ -50,6 +52,8 @@ struct Rig {
   // What the code-drawn looks are drawn with; Retro and Modern are psi pictures.
   gauge::GaugeProfile profile;
   const gauge::ILook* current = &retro;
+
+  Rig() { sampler.add(boost); }
 
   /// Switch the look by name. False if there is no such look.
   bool selectLook(std::string_view name) {

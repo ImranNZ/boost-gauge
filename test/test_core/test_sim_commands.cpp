@@ -60,11 +60,11 @@ TEST_CASE("throttled source: fresh readings at most once per interval") {
   inner.sample = {{2.0f, true}, 2};
   clock.advance(99);
   CHECK(source.latest().seq == 1);  // not due yet: same sample, same seq
-  CHECK(source.latest().reading.psi == doctest::Approx(1.0f));
+  CHECK(source.latest().reading.value == doctest::Approx(1.0f));
 
   clock.advance(1);
   CHECK(source.latest().seq == 2);  // due
-  CHECK(source.latest().reading.psi == doctest::Approx(2.0f));
+  CHECK(source.latest().reading.value == doctest::Approx(2.0f));
 }
 
 TEST_CASE("rate command sets the interval and validates input") {
