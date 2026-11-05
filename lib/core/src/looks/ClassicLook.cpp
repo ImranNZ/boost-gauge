@@ -25,6 +25,13 @@ constexpr int kTickOuter = 108;
 constexpr int kMajorInner = 96;
 constexpr int kMinorInner = 101;
 constexpr int kLabelRadius = 82;
+// Text baselines (pixels from the top). The readout sits in the gap under the hub, clear of the
+// bottom-corner scale labels.
+constexpr int kNumberBaseline = 162;
+constexpr int kUnitBaseline = 184;
+constexpr int kNoLinkBaseline = 88;
+constexpr int kPeakBaseline = 218;
+constexpr int kFpsBaseline = 231;
 constexpr float kNeedleLength = 94.0f;
 constexpr float kNeedleBaseRadius = 5.0f;
 constexpr float kNeedleTipRadius = 0.6f;
@@ -94,9 +101,10 @@ void ClassicLook::drawScale(IDrawSurface& c, int cx, int cy) const {
       char label[8];
       std::snprintf(label, sizeof(label), "%.*f", profile_.labelDecimals(),
                     static_cast<double>(value));
-      // Scale-2 glyphs are 16 px tall; centre vertically on the radius.
-      c.drawText(polarX(cx, deg, kLabelRadius), polarY(cy, deg, kLabelRadius) - 8, label, 2,
-                 TextAlign::Center, kLabel);
+      // Centre the digits vertically on the radius.
+      fonts_.label.draw(c, polarX(cx, deg, kLabelRadius),
+                        polarY(cy, deg, kLabelRadius) + fonts_.label.ascent() / 2, label,
+                        TextAlign::Center, kLabel);
     }
   }
 }
@@ -124,21 +132,20 @@ void ClassicLook::drawReadout(IDrawSurface& c, int cx, const GaugeState& state) 
   } else {
     std::snprintf(text, sizeof(text), "--.-");
   }
-  // Sits in the gap under the hub, clear of the bottom-corner scale labels.
-  c.drawText(cx, 134, text, 4, TextAlign::Center, state.linked ? kText : kDim);
-  c.drawText(cx, 170, profile_.unitLabel(), 2, TextAlign::Center, kDim);
+  fonts_.number.draw(c, cx, kNumberBaseline, text, TextAlign::Center, state.linked ? kText : kDim);
+  fonts_.label.draw(c, cx, kUnitBaseline, profile_.unitLabel(), TextAlign::Center, kDim);
 
   if (!state.linked) {
-    c.drawText(cx, 74, "NO LINK", 2, TextAlign::Center, kRed);
+    fonts_.label.draw(c, cx, kNoLinkBaseline, "NO LINK", TextAlign::Center, kRed);
   } else if (state.peakValue > 0.05f) {
     std::snprintf(text, sizeof(text), "PK %.*f", profile_.decimals(),
                   static_cast<double>(profile_.toDisplay(state.peakValue)));
-    c.drawText(cx, 204, text, 2, TextAlign::Center, kDim);
+    fonts_.label.draw(c, cx, kPeakBaseline, text, TextAlign::Center, kDim);
   }
 
   if (state.fps > 0) {
     std::snprintf(text, sizeof(text), "%d FPS", state.fps);
-    c.drawText(cx, 224, text, 1, TextAlign::Center, kDim);
+    fonts_.small.draw(c, cx, kFpsBaseline, text, TextAlign::Center, kDim);
   }
 }
 

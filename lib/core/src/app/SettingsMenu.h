@@ -2,6 +2,7 @@
 
 #include "app/IInput.h"
 #include "app/Setup.h"
+#include "render/Font.h"
 #include "render/IOverlay.h"
 
 namespace gauge {
@@ -14,7 +15,15 @@ namespace gauge {
 /// of buttons, flash or the sampler.
 class SettingsMenu : public IOverlay {
  public:
-  explicit SettingsMenu(const Setup& current) : committed_(normalised(current)) {}
+  /// The typefaces it draws with: a small one for the title, a larger one for the value (capitals,
+  /// digits and spaces).
+  struct Fonts {
+    Font title;
+    Font value;
+  };
+
+  SettingsMenu(const Setup& current, const Fonts& fonts)
+      : fonts_(fonts), committed_(normalised(current)) {}
 
   /// Feed one event. True when the menu has just closed on a different setup than it opened
   /// with, which is now setup().
@@ -34,6 +43,7 @@ class SettingsMenu : public IOverlay {
 
   void changeValue();
 
+  Fonts fonts_;
   bool open_ = false;
   Field field_ = Field::Look;
   Setup committed_;

@@ -159,6 +159,13 @@ class SolidFont {
     return Font(glyphs_.data(), static_cast<int>(glyphs_.size()), alpha_.data(), height_);
   }
 
+  /// These glyphs as a face rendered at `resolution` (so a font of several sizes can be built
+  /// from several SolidFonts, each twice the size of the last).
+  FontFace face(float resolution) const {
+    return FontFace{glyphs_.data(), static_cast<int>(glyphs_.size()), alpha_.data(), height_,
+                    resolution};
+  }
+
  private:
   int height_;
   std::vector<Glyph> glyphs_;
@@ -168,6 +175,22 @@ class SolidFont {
 inline const SolidFont kNumberFont(20, 30, 24);
 inline const SolidFont kCaptionFont(7, 11, 9);
 inline const SolidFont kLabelFont(6, 10, 8);
+
+inline const SolidFont kMenuTitleFont(8, 14, 10);
+inline const SolidFont kMenuValueFont(14, 21, 16);
+
+// Narrow enough that the readout stays clear of the needle at the sample points the tests use.
+inline const SolidFont kClassicNumberFont(12, 28, 14);
+
+inline ClassicLook::Fonts classicFonts() {
+  return {kClassicNumberFont.font(), kLabelFont.font(), kCaptionFont.font()};
+}
+/// A Classic look with the test fonts, in the given profile.
+inline ClassicLook testClassic(const GaugeProfile& profile = {}) {
+  return ClassicLook(classicFonts(), profile);
+}
+inline RetroLook::Fonts retroFonts() { return {kLabelFont.font(), kCaptionFont.font()}; }
+inline SettingsMenu::Fonts menuFonts() { return {kMenuTitleFont.font(), kMenuValueFont.font()}; }
 
 inline MinimalLook::Fonts minimalFonts() { return {kNumberFont.font(), kLabelFont.font()}; }
 inline MotorsportLook::Fonts motorsportFonts() {
