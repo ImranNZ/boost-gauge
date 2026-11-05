@@ -10,7 +10,11 @@ ChannelSampler::ChannelSampler(IObdClient& client, IClock& clock, const Options&
 
 bool ChannelSampler::add(IChannel& channel) {
   if (count_ == kMaxChannels) return false;
-  channels_[count_++] = &channel;
+  channels_[count_] = &channel;
+  dueAtMs_[count_] = 0;  // read it as soon as possible
+  lastReadOrder_[count_] = 0;
+  if (seenConnections_ != 0) channel.onLinked(support_);  // the link is already up
+  ++count_;
   return true;
 }
 

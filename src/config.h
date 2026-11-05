@@ -1,6 +1,7 @@
 #pragma once
 
-#include "gauge/GaugeProfile.h"
+#include "gauge/ChannelProfile.h"
+#include "sampling/ChannelKind.h"
 
 // Board and deployment settings. Everything environment-specific lives here so
 // the rest of the firmware never hard-codes a pin, SSID or address.
@@ -28,15 +29,22 @@ constexpr int kLcdSpiHz = 80000000;
 enum class Look { Retro, Classic, Minimal, Motorsport, Modern };
 constexpr Look kLook = Look::Retro;
 
+// --- What the gauge shows ------------------------------------------------------
+// The reading: Boost, Coolant (engine coolant temperature), IntakeAir (intake air temperature) or
+// Voltage (battery voltage). Only the chosen one is read from the car. Retro and Modern are
+// pictures of a psi boost dial, so a non-boost channel needs Classic, Minimal or Motorsport
+// (checked at build time in main.cpp).
+constexpr gauge::ChannelKind kChannel = gauge::ChannelKind::Boost;
+
 // --- Gauge profile -----------------------------------------------------------
-// What the gauge shows and where its zones start: the unit (psi, bar or kPa), the scale's range
-// and the amber and red points. The default is psi, -15 to +25, red from 20: a stock turbo
-// like the F56's. `GaugeProfile::bar()` and `GaugeProfile::kpa()` are metric equivalents, and
-// every field can be set for a car with more or less boost, e.g.
+// The unit, the scale's range and where the amber and red zones start, for the channel above. The
+// default is the channel's own: for boost, psi from -15 to +25 with red from 20, which suits a
+// stock turbo like the F56's. Other units: `GaugeProfile::bar()` and `::kpa()` for boost,
+// `::coolantF()` and `::intakeAirF()` for Fahrenheit. Every field can be set for a car with more or
+// less range, e.g.
 //   gauge::GaugeProfile{gauge::Unit::Psi, -15, 35, 5, 25, 30}   // a tuned car
-// Classic, Minimal and Motorsport follow it. Retro and Modern are pictures of a psi dial (see
-// looks/<name>/spec.json).
-inline constexpr gauge::GaugeProfile kProfile = gauge::GaugeProfile::psi();
+// Classic, Minimal and Motorsport follow it.
+inline constexpr gauge::GaugeProfile kProfile = gauge::defaultProfile(kChannel);
 
 // --- PID discovery -----------------------------------------------------------
 // Each time the link comes up the gauge asks the car which mode 01 PIDs it implements. Set this to

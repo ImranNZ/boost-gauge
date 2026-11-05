@@ -71,6 +71,15 @@
       <label class="check"><input type="checkbox" id="crisp"> Show raw pixels</label>
     </div>
     <div class="row">
+      <label for="channel">Shows</label>
+      <select id="channel">
+        <option value="boost" selected>Boost</option>
+        <option value="coolant">Coolant temperature</option>
+        <option value="intake">Intake air temperature</option>
+        <option value="voltage">Battery voltage</option>
+      </select>
+    </div>
+    <div class="row">
       <label for="look">Look</label>
       <select id="look">
         <option value="retro" selected>Retro 60s (cream dial)</option>
@@ -82,12 +91,8 @@
     </div>
     <div class="row">
       <label for="unit">Units</label>
-      <select id="unit">
-        <option value="psi" selected>psi</option>
-        <option value="bar">bar</option>
-        <option value="kpa">kPa</option>
-      </select>
-      <span class="hint" id="unitHint">Retro and Modern are pictures of a psi dial, so they stay psi.</span>
+      <select id="unit"></select>
+      <span class="hint" id="unitHint">Retro and Modern are pictures of a psi boost dial: they show boost only, in psi.</span>
     </div>
     <div class="row">
       <label for="rate">Data rate</label>
@@ -101,7 +106,7 @@
       <span class="hint">The needle eases between readings, so it stays smooth at any rate.</span>
     </div>
     <div class="row">
-      <label for="boost">Hold boost</label>
+      <label for="boost" id="holdLabel">Hold boost</label>
       <input id="boost" type="range" min="-15" max="25" step="0.5" value="0">
       <output id="boostOut" for="boost">0.0 psi</output>
     </div>
@@ -118,36 +123,81 @@
 
   const send = (command) => fetch('/cmd', { method: 'POST', body: command }).catch(() => {});
 
+  // What each channel offers: the units it can be shown in (the first is the default; each is
+  // [name, factor, decimals, offset] from the unit the ECU speaks), and the hold control.
+  const CHANNELS = {
+    boost: { label: 'Hold boost', min: -15, max: 25, step: 0.5, start: 0, command: 'boost',
+             units: { psi: ['psi', 1, 1, 0], bar: ['bar', 1 / 14.503774, 2, 0], kpa: ['kPa', 6.894757, 0, 0] } },
+    coolant: { label: 'Hold coolant', min: 40, max: 140, step: 1, start: 90, command: 'coolant',
+               units: { c: ['\u00b0C', 1, 0, 0], f: ['\u00b0F', 1.8, 0, 32] } },
+    intake: { label: 'Hold intake air', min: -20, max: 80, step: 1, start: 35, command: 'intake',
+              units: { c: ['\u00b0C', 1, 0, 0], f: ['\u00b0F', 1.8, 0, 32] } },
+    voltage: { label: 'Hold voltage', min: 8, max: 16, step: 0.1, start: 14, command: 'volts',
+               units: { v: ['V', 1, 1, 0] } },
+  };
+  // Retro and Modern are pictures of a psi boost dial: boost only, and always psi.
+  const PICTURE = ['retro', 'modern'];
+  const channelSelect = document.getElementById('channel');
+  const lookSelect = document.getElementById('look');
+  const unitSelect = document.getElementById('unit');
+  const unitHint = document.getElementById('unitHint');
+  const holdLabel = document.getElementById('holdLabel');
+
+  const channel = () => CHANNELS[channelSelect.value];
+  const unitInUse = () => (PICTURE.includes(lookSelect.value) ? 'psi' : unitSelect.value);
+
+  function showHold() {
+    const unit = channel().units[unitInUse()] || Object.values(channel().units)[0];
+    sliderOut.textContent = (Number(slider.value) * unit[1] + unit[3]).toFixed(unit[2]) + ' ' + unit[0];
+  }
+
+  function fillUnits() {
+    unitSelect.innerHTML = '';
+    for (const [key, unit] of Object.entries(channel().units)) {
+      unitSelect.add(new Option(unit[0], key));
+    }
+  }
+
+  function updateControls() {
+    const picture = PICTURE.includes(lookSelect.value);
+    unitSelect.disabled = picture || unitSelect.options.length < 2;
+    unitHint.style.visibility = picture ? 'visible' : 'hidden';
+    showHold();
+  }
+
+  document.getElementById('rate').onchange = (event) => send('rate ' + event.target.value);
   document.getElementById('drive').onclick = () => send('drive');
   document.getElementById('offline').onclick = () => send('offline');
   document.getElementById('online').onclick = () => send('online');
-  document.getElementById('rate').onchange = (event) => send('rate ' + event.target.value);
-  document.getElementById('look').onchange = (event) => send('look ' + event.target.value);
-  // Units apply to the code-drawn looks only; Retro and Modern are psi pictures.
-  const unitSelect = document.getElementById('unit');
-  const lookSelect = document.getElementById('look');
-  const unitHint = document.getElementById('unitHint');
-  const PSI_PER = { psi: 1, bar: 1 / 14.503774, kpa: 6.894757 };
-  const DECIMALS = { psi: 1, bar: 2, kpa: 0 };
-  const NAMES = { psi: 'psi', bar: 'bar', kpa: 'kPa' };
-  const unitInUse = () => (['retro', 'modern'].includes(lookSelect.value) ? 'psi' : unitSelect.value);
-  const showBoost = () => {
-    const unit = unitInUse();
-    sliderOut.textContent = (Number(slider.value) * PSI_PER[unit]).toFixed(DECIMALS[unit]) + ' ' + NAMES[unit];
+
+  channelSelect.onchange = () => {
+    const boost = channelSelect.value === 'boost';
+    // Retro and Modern cannot show anything but boost: move to a look that can, before switching.
+    if (!boost && PICTURE.includes(lookSelect.value)) {
+      lookSelect.value = 'minimal';
+      send('look minimal');
+    }
+    for (const option of lookSelect.options) option.disabled = !boost && PICTURE.includes(option.value);
+
+    send('channel ' + channelSelect.value);
+    send('drive');  // let every reading follow its scripted cycle: nothing stays pinned from before
+    const c = channel();
+    fillUnits();
+    slider.min = c.min;
+    slider.max = c.max;
+    slider.step = c.step;
+    slider.value = c.start;
+    holdLabel.textContent = c.label;
+    updateControls();
   };
-  const updateUnits = () => {
-    const picture = ['retro', 'modern'].includes(lookSelect.value);
-    unitSelect.disabled = picture;
-    unitHint.style.visibility = picture ? 'visible' : 'hidden';
-    showBoost();
-  };
-  unitSelect.onchange = () => { send('unit ' + unitSelect.value); showBoost(); };
-  lookSelect.addEventListener('change', updateUnits);
-  updateUnits();
+  lookSelect.onchange = () => { send('look ' + lookSelect.value); updateControls(); };
+  unitSelect.onchange = () => { send('unit ' + unitSelect.value); showHold(); };
   slider.oninput = () => {
-    showBoost();
-    send('boost ' + slider.value);
+    showHold();
+    send(channel().command + ' ' + slider.value);
   };
+  fillUnits();
+  updateControls();
 
   // View options: remembered across reloads, but the page works without storage.
   const sizeSelect = document.getElementById('size');

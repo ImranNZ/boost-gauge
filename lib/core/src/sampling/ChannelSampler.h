@@ -43,9 +43,12 @@ class ChannelSampler {
   ChannelSampler(IObdClient& client, IClock& clock);
   ChannelSampler(IObdClient& client, IClock& clock, const Options& options);
 
-  /// Add a channel to read; it must outlive the sampler. Do this before the first step().
-  /// False if the sampler is full.
+  /// Add a channel to read; it must outlive the sampler. If the link is already up the channel is
+  /// told what the car supports straight away. False if the sampler is full. Not safe to call
+  /// from another thread while stepping: the firmware adds its channel before the task starts.
   bool add(IChannel& channel);
+  /// Forget every channel (the simulator switches what it shows this way).
+  void clear() { count_ = 0; }
   size_t channelCount() const { return count_; }
 
   /// Do one unit of work: bring the link up if needed, then read the channel that is due. False

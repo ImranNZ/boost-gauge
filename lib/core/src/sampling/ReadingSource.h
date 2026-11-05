@@ -30,6 +30,14 @@ class PollingSource : public IReadingSource {
  public:
   PollingSource(ChannelSampler& sampler, size_t channel) : sampler_(sampler), channel_(channel) {}
 
+  /// Follow another channel. What was last read is forgotten, and the sequence moves on so a
+  /// consumer notices the change.
+  void setChannel(size_t channel) {
+    channel_ = channel;
+    last_ = Reading{};
+    ++seq_;
+  }
+
   Sample latest() override {
     ChannelSampler::Step step;
     if (sampler_.step(step) && step.channel == channel_) {

@@ -4,6 +4,7 @@
 //   python tools/preview.py            live animation in your browser
 //
 // Options for the live stream:  --live [--look retro|classic|minimal|motorsport|modern] [--no-pace]
+//                               [--channel boost|coolant|intake|voltage] [--unit psi|bar|kpa|c|f|v]
 
 #include <cstring>
 #include <string_view>
@@ -13,11 +14,15 @@
 int main(int argc, char** argv) {
   bool live = false;
   bool paced = true;
+  std::string_view channel = "boost";
+  std::string_view unit;
   std::string_view look = "retro";
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--live") == 0) live = true;
     if (std::strcmp(argv[i], "--no-pace") == 0) paced = false;
     if (std::strcmp(argv[i], "--look") == 0 && i + 1 < argc) look = argv[++i];
+    if (std::strcmp(argv[i], "--channel") == 0 && i + 1 < argc) channel = argv[++i];
+    if (std::strcmp(argv[i], "--unit") == 0 && i + 1 < argc) unit = argv[++i];
   }
-  return live ? sim::runLive(look, paced) : sim::runSnapshots();
+  return live ? sim::runLive(look, paced, channel, unit) : sim::runSnapshots();
 }

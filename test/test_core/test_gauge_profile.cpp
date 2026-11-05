@@ -99,8 +99,9 @@ TEST_CASE("profile: labels, decimals and unit text for the other channels") {
 }
 
 TEST_CASE("profile: the presets are sensible scales") {
-  for (const GaugeProfile& p : {GaugeProfile::coolant(), GaugeProfile::coolantF(),
-                                GaugeProfile::intakeAir(), GaugeProfile::voltage()}) {
+  for (const GaugeProfile& p :
+       {GaugeProfile::coolant(), GaugeProfile::coolantF(), GaugeProfile::intakeAir(),
+        GaugeProfile::intakeAirF(), GaugeProfile::voltage()}) {
     CAPTURE(p.label);
     CHECK(p.min < p.max);
     CHECK(p.amberFrom <= p.redFrom);

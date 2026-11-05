@@ -48,19 +48,22 @@ void useBinaryStdout() {
 
 namespace {
 
-/// One line from the viewer: an ECU command, a data-rate command, or a look or unit switch.
+/// One line from the viewer: an ECU command, a data-rate command, or a look, unit or channel
+/// switch.
 bool handleCommand(Rig& rig, const std::string& line) {
   std::string word;
   if (gauge::applyEcuCommand(rig.ecu, line)) return true;
   if (gauge::applyRateCommand(rig.link, line)) return true;
   if (gauge::parseLookCommand(line, word)) return rig.selectLook(word);
   if (gauge::parseUnitCommand(line, word)) return rig.selectUnit(word);
+  if (gauge::parseChannelCommand(line, word)) return rig.selectChannel(word);
   return false;
 }
 
 }  // namespace
 
-int runLive(std::string_view initialLook, bool paced) {
+int runLive(std::string_view initialLook, bool paced, std::string_view channel,
+            std::string_view unit) {
   useBinaryStdout();
 
   static CommandQueue commands;  // outlives the detached reader thread
@@ -70,9 +73,18 @@ int runLive(std::string_view initialLook, bool paced) {
   }).detach();
 
   Rig rig;
+  if (!rig.selectChannel(channel)) {
+    std::fprintf(stderr, "unknown channel '%.*s' (use boost, coolant, intake or voltage)\n",
+                 static_cast<int>(channel.size()), channel.data());
+  }
+  if (!unit.empty() && !rig.selectUnit(unit)) {
+    std::fprintf(stderr, "cannot show %s in '%.*s'\n", gauge::channelName(rig.channel),
+                 static_cast<int>(unit.size()), unit.data());
+  }
   if (!rig.selectLook(initialLook)) {
     std::fprintf(stderr,
-                 "unknown look '%.*s' (use retro, classic, minimal, motorsport or modern)\n",
+                 "cannot use look '%.*s' (use retro, classic, minimal, motorsport or modern; "
+                 "retro and modern need the boost channel)\n",
                  static_cast<int>(initialLook.size()), initialLook.data());
   }
   using Clock = std::chrono::steady_clock;

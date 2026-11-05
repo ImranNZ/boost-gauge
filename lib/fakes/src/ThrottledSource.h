@@ -18,6 +18,10 @@ class ThrottledSource : public IReadingSource {
   void setIntervalMs(uint32_t intervalMs) { intervalMs_ = intervalMs; }
   uint32_t intervalMs() const { return intervalMs_; }
 
+  /// Forget the cached sample: the next call fetches a fresh one (for when the inner source
+  /// switched to something else, so the old reading is not served once more).
+  void reset() { primed_ = false; }
+
   Sample latest() override {
     const uint32_t now = clock_.nowMs();
     if (!primed_ || now - lastFetchMs_ >= intervalMs_) {

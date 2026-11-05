@@ -17,6 +17,10 @@ Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
    `obd/PidDecode.h`); a value built from several PIDs gets its own `IChannel` like `BoostChannel`.
    Slow-changing values use a period of about a second so they do not slow the fast channel; the
    `ChannelSampler` schedules them. Add a `GaugeProfile` preset for its scale and zones.
+   To make it selectable, add a `ChannelKind` (`sampling/ChannelKind.h`), an entry in
+   `StandardChannels::get`, and its units in `gauge/ChannelProfile.cpp` (`defaultProfile`,
+   `profileFor`); then a drive profile in `FakeEcu`, a sim command, and a channel/unit case in
+   `tools/check_renders.py` (CASES) and `tools/preview.html` (CHANNELS).
    The car's PID discovery (`obd/PidSupport.h`) says whether it implements the PID: use
    `support.knows(pid) && !support.supports(pid)` to skip a PID the car does not report, and treat
    an unknown one as possibly supported.

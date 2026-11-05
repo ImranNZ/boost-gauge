@@ -51,6 +51,9 @@ struct GaugeProfile {
   static constexpr GaugeProfile intakeAir() {
     return GaugeProfile{Unit::Celsius, -20.0f, 80.0f, 20.0f, 50.0f, 65.0f, "INTAKE", nullptr};
   }
+  static constexpr GaugeProfile intakeAirF() {
+    return GaugeProfile{Unit::Fahrenheit, 0.0f, 180.0f, 20.0f, 120.0f, 150.0f, "INTAKE", nullptr};
+  }
   /// Battery (control module) voltage. No zones: the scale ends where "high" would be bad.
   static constexpr GaugeProfile voltage() {
     return GaugeProfile{Unit::Volt, 8.0f, 16.0f, 2.0f, 16.0f, 16.0f, "BATTERY", nullptr};

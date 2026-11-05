@@ -25,12 +25,17 @@ class GaugeApp {
   void setLook(const ILook& look);
   void setLook(ILook&&) = delete;
 
+  /// Start the displayed value over (peak hold, easing, link state): the channel it shows has
+  /// changed.
+  void reset();
+
   void tick();
 
  private:
   IReadingSource& source_;
   IClock& clock_;
   const ILook* look_;
+  Options options_;
   GaugeModel model_;
   FrameRenderer renderer_;
 };

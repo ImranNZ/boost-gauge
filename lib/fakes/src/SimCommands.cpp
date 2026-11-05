@@ -58,6 +58,20 @@ bool applyEcuCommand(FakeEcu& ecu, std::string_view line) {
     return true;
   }
 
+  float reading = 0.0f;
+  if (parseVerbNumber(line, "coolant", reading)) {
+    ecu.setCoolantC(std::clamp(reading, -40.0f, 215.0f));
+    return true;
+  }
+  if (parseVerbNumber(line, "intake", reading)) {
+    ecu.setIntakeAirC(std::clamp(reading, -40.0f, 215.0f));
+    return true;
+  }
+  if (parseVerbNumber(line, "volts", reading)) {
+    ecu.setVoltage(std::clamp(reading, 0.0f, 65.0f));
+    return true;
+  }
+
   float psi = 0.0f;
   if (parseVerbNumber(line, "boost", psi)) {
     const float kpa = ecu.baroKpa() + psiToKpa(psi);
@@ -90,6 +104,10 @@ bool parseLookCommand(std::string_view line, std::string& name) {
 
 bool parseUnitCommand(std::string_view line, std::string& name) {
   return parseVerbWord(line, "unit", name);
+}
+
+bool parseChannelCommand(std::string_view line, std::string& name) {
+  return parseVerbWord(line, "channel", name);
 }
 
 bool applyRateCommand(ThrottledSource& source, std::string_view line) {

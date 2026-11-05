@@ -235,3 +235,46 @@ TEST_CASE(
   }
   CHECK((order == std::vector<size_t>{0, 1, 0, 1, 0, 1}));
 }
+
+TEST_CASE("channel sampler: a channel added after the link is up is told what the car supports") {
+  Rig rig;
+  rig.ecu.setSupported(obd::kPidCoolantTemp, false);
+  ChannelSampler::Step step;
+  REQUIRE(rig.sampler.step(step));  // the link comes up and the car is discovered
+
+  rig.sampler.clear();
+  CHECK(rig.sampler.channelCount() == 0);
+  CHECK_FALSE(rig.sampler.step(step));  // nothing to read
+
+  REQUIRE(rig.sampler.add(rig.coolant));  // the car has just said it has no coolant PID
+  CHECK(rig.sampler.channelCount() == 1);
+  REQUIRE(rig.sampler.step(step));
+  CHECK(step.channel == 0);
+  CHECK_FALSE(step.reading.valid);
+  CHECK(rig.client.asked[obd::kPidCoolantTemp] == 0);  // so it is not asked
+}
+
+TEST_CASE("channel sampler: a channel added after the link is up is read straight away") {
+  Rig rig;
+  ChannelSampler::Step step;
+  REQUIRE(rig.sampler.step(step));
+  REQUIRE(rig.sampler.step(step));  // both channels read once
+
+  rig.sampler.clear();
+  rig.sampler.add(rig.coolant);  // read a moment ago, but the sampler starts it afresh
+  REQUIRE(rig.sampler.step(step));
+  CHECK(step.reading.valid);
+}
+
+TEST_CASE("polling source: switching channel forgets the old reading") {
+  Rig rig;
+  PollingSource source(rig.sampler, 0);
+  const Sample before = source.latest();
+  REQUIRE(before.reading.valid);
+
+  source.setChannel(1);
+  const Sample after =
+      source.latest();  // that step read coolant... or boost: either way not channel 0
+  CHECK(after.seq != before.seq);
+  CHECK(after.reading.value != doctest::Approx(before.reading.value));
+}

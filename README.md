@@ -152,7 +152,8 @@ Run `tools/coverage.sh` locally before pushing to catch failures early.
 
 ### Render regression
 
-Every look is rendered by the simulator at three moments of the drive cycle and compared with the
+Every look is rendered by the simulator at three moments of the drive cycle (and the code-drawn looks
+also on the other channels and units: coolant, intake air, battery voltage, bar, °F) and compared with the
 stored images in `test/golden/` (`python tools/check_renders.py`). The frames depend only on
 simulated time, so they are identical run to run; a small tolerance absorbs floating-point
 differences between compilers. Move a needle, change a font or shift a label and the check fails,
@@ -212,12 +213,15 @@ read-only mode 01 requests are sent.
 All pins, the BLE dongle name hint, WiFi SSID and the dongle address live in
 [`src/config.h`](src/config.h), and so do:
 
-* **`kProfile`** (a `GaugeProfile`): the unit (psi, bar or kPa), the scale's range, and where the
-  amber and red zones start. The default is the original psi gauge, -15 to +25, red from 20, which
-  suits a stock turbo. `GaugeProfile::bar()` and `::kpa()` are metric equivalents, and every field
-  can be set for a car with more or less boost. There are also presets for other readings
-  (`coolant()`, `coolantF()`, `intakeAir()`, `voltage()`): the groundwork for showing more than boost. Classic, Minimal and Motorsport follow it; Retro and
-  Modern are pictures of a psi dial (see `looks/<name>/spec.json`).
+* **`kChannel`** (a `ChannelKind`): what the gauge shows, one thing per screen: `Boost` (the
+  default), `Coolant`, `IntakeAir` or `Voltage`. Retro and Modern are pictures of a psi boost dial,
+  so they only work with `Boost` (a `static_assert` in `src/main.cpp` says so).
+* **`kProfile`** (a `GaugeProfile`): the unit, the scale's range, and where the amber and red zones
+  start. It defaults to `defaultProfile(kChannel)`: for boost the original psi gauge, -15 to +25,
+  red from 20, which suits a stock turbo. Pick another unit with `GaugeProfile::bar()` / `::kpa()`
+  (boost), `::coolantF()` / `::intakeAirF()` (temperatures in Fahrenheit), or set every field for a
+  car with more or less boost. Classic, Minimal and Motorsport follow it; Retro and Modern are
+  pictures of a psi dial (see `looks/<name>/spec.json`).
 * **`kElmProtocol`**: the dongle's bus protocol (`"6"` is CAN 11-bit 500 kbit/s; `"0"` searches).
 * **`kCanBitrateKbps`**: the bus speed for direct CAN (125, 250, 500 or 1000).
 
@@ -385,6 +389,10 @@ pure decoder in `obd/PidDecode.h`, a factory, a `GaugeProfile` preset for its sc
 
 **Change the look**: edit `lib/core/src/looks/ClassicLook.cpp`, run `python tools/preview.py`, and
 watch it update (stop and re-run after each edit; it rebuilds the sim).
+
+**Show another channel in the simulator**: `python tools/preview.py` has a "Shows" menu (boost,
+coolant, intake air, battery voltage) and per-channel units; the sim takes `--channel` and `--unit`
+and the ECU commands `coolant <C>`, `intake <C>`, `volts <V>` hold a value.
 
 **Add a mock control**: add a command in `lib/fakes/src/SimCommands.cpp` (with a
 test), then a button in `tools/preview.html` that sends it.
