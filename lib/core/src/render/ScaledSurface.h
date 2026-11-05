@@ -44,6 +44,20 @@ class ScaledSurface : public IDrawSurface {
   /// Pixels of a resampled picture handed to the target at a time.
   static constexpr int kBandPixels = 4096;
 
+  /// Where a picture of `width` x `height` design pixels lands, in real pixels.
+  struct Placement {
+    int left = 0;
+    int top = 0;
+    int width = 0;
+    int height = 0;
+  };
+  /// Fill `out`; false if it is too wide for one band to hold (it is then not drawn).
+  bool place(int x, int y, int width, int height, Placement& out) const;
+  /// Resample a source picture into the bands: `fill(index, u, v)` computes one band pixel from
+  /// the two taps, `emit(width, rows, left, top)` hands a finished band to the target.
+  template <typename Fill, typename Emit>
+  void resample(const Placement& at, int srcWidth, int srcHeight, Fill fill, Emit emit);
+
   int mapX(int x) const;
   int mapY(int y) const;
   int mapLength(int length) const;

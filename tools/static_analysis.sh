@@ -13,5 +13,6 @@ exec cppcheck --std=c++17 --language=c++ \
   --inline-suppr --suppress=missingIncludeSystem \
   --error-exitcode=1 --quiet \
   --template='{file}:{line}: ({severity}:{id}) {message}' \
+  -DBOARD_WAVESHARE_LCD_128B -DTRANSPORT_DEMO \
   -I lib/core/src -I lib/fakes/src -I lib/softcanvas/src -I src \
   lib/core/src lib/fakes/src lib/softcanvas/src src/device src/sim src/main.cpp

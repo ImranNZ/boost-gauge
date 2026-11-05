@@ -2,11 +2,12 @@
 
 #include <LovyanGFX.hpp>
 
+#include "boards/Panel.h"
 #include "render/ICanvas.h"
 
 namespace device {
 
-/// ICanvas over the GC9A01 panel via LovyanGFX. Draws into an off-screen
+/// ICanvas over the board's panel (see boards/Board.h) via LovyanGFX. Draws into an off-screen
 /// 16-bit sprite and pushes it in one go, so frames never tear or flicker.
 class LgfxCanvas : public gauge::ICanvas {
  public:
@@ -37,15 +38,13 @@ class LgfxCanvas : public gauge::ICanvas {
   void present() override;
 
  private:
-  class Panel;  // LovyanGFX device config for this board (defined in the .cpp)
-
   uint16_t rgb(gauge::Color c) { return frame_.color565(c.r, c.g, c.b); }
   gauge::Color readColor(int x, int y) {
     const auto p = frame_.readPixelRGB(x, y);
     return gauge::Color{p.R8(), p.G8(), p.B8()};
   }
 
-  Panel* panel_;
+  board::Panel* panel_;
   lgfx::LGFX_Sprite frame_;  // what we draw into; internal RAM for speed
   lgfx::LGFX_Sprite dial_;   // cached static dial; PSRAM (115 KB we cannot spare in DRAM)
   bool dialAllocated_ = false;

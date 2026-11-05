@@ -198,7 +198,7 @@ BOOT, and retry.
 
 | Transceiver  | Goes to                                                     |
 | ------------ | ----------------------------------------------------------- |
-| `TXD`        | ESP32 GPIO15 (`kCanTx` in `src/config.h`)                   |
+| `TXD`        | ESP32 GPIO15 (`kCanTx` in `src/boards/waveshare_lcd_128b/Board.h`) |
 | `RXD`        | ESP32 GPIO16 (`kCanRx`)                                     |
 | `3V3`, `GND` | board 3V3 and GND                                           |
 | `CANH`       | OBD pin 6                                                   |
@@ -210,8 +210,9 @@ read-only mode 01 requests are sent.
 
 ### Settings
 
-All pins, the BLE dongle name hint, WiFi SSID and the dongle address live in
-[`src/config.h`](src/config.h), and so do:
+The board's pins and screen live in [`src/boards/`](src/boards) (one folder per board, picked by a
+`-DBOARD_<NAME>` flag in `platformio.ini`). The BLE dongle name hint, WiFi SSID and dongle address
+live in [`src/config.h`](src/config.h), and so do:
 
 * **`kChannel`** (a `ChannelKind`): what the gauge shows, one thing per screen: `Boost` (the
   default), `Coolant`, `IntakeAir` or `Voltage`. Retro and Modern are pictures of a psi boost dial,
@@ -251,7 +252,8 @@ src/looks/      Per look: generated dial + spec headers and the factory that bui
                 tables; local/ is git-ignored: brand artwork lives only there
 looks/          Look artwork sources: spec.json, dial.svg.in and the fonts, per look
 src/main.cpp    Composition root: wires concrete classes, picks transport
-src/config.h    Pins, SSID, addresses
+src/boards/     One folder per board: screen size, pins, LovyanGFX panel driver
+src/config.h    What is shown, car protocol, SSID, addresses
 test/test_core  doctest suites, one file per unit
 tools/          preview.py + preview.html (live browser preview), make_look.py (dial
                 headers), make_font.py + fonts.json (glyph tables), make_media.py (the
@@ -302,8 +304,9 @@ constructor injection, and doctest is your xUnit/Jest.
   space to the real screen (fitted to the shorter side, centred on the longer one). Shapes stay
   sharp at any size; text and the Retro/Modern pictures are resampled, so a little soft above 1x.
   At 240x240 nothing changes. Try it: `program --live --size 466x466` (the stored renders in
-  `test/golden/` include 466x466, 412x412 and 320x480). Changing `kLcdSize` in `src/config.h` is the
-  only code change a new square panel needs, plus its driver (see `LgfxCanvas`).
+  `test/golden/` include 466x466, 412x412 and 320x480). A new board is a folder under
+  `src/boards/` (its `Board.h` with the screen size and pins, its `Panel.h` with the LovyanGFX driver)
+  and a `-DBOARD_<NAME>` flag; see `src/boards/Board.h`.
 * Shapes are anti-aliased: the PC sim draws at 4x
   and averages down; on the device LovyanGFX does smooth lines/circles and
   `ArcCoverage` blends the dial arcs.
@@ -321,7 +324,7 @@ constructor injection, and doctest is your xUnit/Jest.
   frame (`Easer`, time constant `GaugeApp::Options::smoothingMs`, 80 ms), so motion
   is smooth even when readings arrive at only 5-25 Hz. It is frame-rate independent.
   Try the preview's **Data rate** control.
-* **SPI at 80 MHz** (`kLcdSpiHz` in `src/config.h`): a full frame is about 11 ms
+* **SPI at 80 MHz** (`kLcdSpiHz` in `src/boards/waveshare_lcd_128b/Board.h`): a full frame is about 11 ms
   versus 23 ms at 40 MHz. If the screen shows noise or tearing, drop it to 40 MHz.
 * **fps counter** (`kShowFps`): the measured frame rate is drawn in the bottom
   corner of the dial. Use it at first flash to see the real figure.

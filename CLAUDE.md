@@ -123,7 +123,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * Looks draw in a fixed 240x240 design space whatever the screen is: `FrameRenderer` wraps the canvas
   in a `ScaledSurface` (render/), so `surface.width()` is always 240 inside a look. Never read the
   real canvas size in a look or hard-code a larger screen; use design-space numbers. At 240x240 it is
-  a pass-through, so the 240 goldens do not move. Real screen size lives in `config::kLcdSize`.
+  a pass-through, so the 240 goldens do not move. Real screen size lives in `board::kWidth`/`kHeight` (`src/boards/<name>/Board.h`).
 * Angles: 0 = 3 o'clock, clockwise (screen space), everywhere.
 * `LgfxCanvas.cpp` and the CAN pins have not been run on real hardware yet (see
   README "Not yet verified"). Do not state they are confirmed working.
@@ -161,6 +161,7 @@ upward includes (e.g. `gauge/` must not include `looks/`), and do not put files 
 | New PID / channel | constant and decoder in `obd/PidDecode.h`, a `PidChannel` factory (or an `IChannel` if it needs more than one PID), a `GaugeProfile` preset, `FakeEcu::answer`, tests |
 | Tune the Classic look | `lib/core/src/looks/ClassicLook.cpp`, then run the sim |
 | Tune the Retro look | `looks/retro/spec.json` or `dial.svg.in`, then `python tools/make_look.py retro` |
-| Pins / SSID / BLE name | `src/config.h` |
+| Pins, screen size, panel driver | `src/boards/<name>/` (`Board.h`, `Panel.h`), chosen by `-DBOARD_<NAME>` in `platformio.ini` |
+| SSID / BLE name / protocol / what is shown | `src/config.h` |
 
 Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`).
