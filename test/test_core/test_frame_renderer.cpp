@@ -91,3 +91,41 @@ TEST_CASE("frame renderer: a look is only ever given a drawing surface, not the 
   CHECK(look.dialDraws == 1);
   CHECK(look.dynamicDraws == 1);
 }
+
+namespace {
+
+/// An overlay that paints a white disc in the middle when active.
+class DiscOverlay : public IOverlay {
+ public:
+  bool active() const override { return on; }
+  void draw(IDrawSurface& surface) const override {
+    surface.fillCircle(120, 120, 60, kWhite);
+  }  // design space: the middle
+  bool on = true;
+};
+
+}  // namespace
+
+TEST_CASE("frame renderer: an active overlay is drawn over the look") {
+  SoftCanvas canvas(20, 20);
+  FrameRenderer renderer(canvas);
+  RecordingLook look;
+  DiscOverlay overlay;
+
+  renderer.render(look, GaugeState{}, &overlay);
+  CHECK(same(canvas.image().get(10, 10), kWhite));
+  CHECK(look.dynamicDraws == 1);  // the look still draws underneath
+}
+
+TEST_CASE("frame renderer: an inactive overlay, or none, draws nothing extra") {
+  SoftCanvas canvas(20, 20);
+  FrameRenderer renderer(canvas);
+  RecordingLook look;
+  DiscOverlay overlay;
+  overlay.on = false;
+
+  renderer.render(look, GaugeState{}, &overlay);
+  CHECK(same(canvas.image().get(10, 10), Color{10, 20, 30}));  // just the dial
+  renderer.render(look, GaugeState{}, nullptr);
+  CHECK(same(canvas.image().get(10, 10), Color{10, 20, 30}));
+}

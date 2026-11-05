@@ -5,6 +5,7 @@
 #include "looks/FrameRenderer.h"
 #include "looks/ILook.h"
 #include "render/ICanvas.h"
+#include "render/IOverlay.h"
 #include "sampling/ReadingSource.h"
 
 namespace gauge {
@@ -29,12 +30,17 @@ class GaugeApp {
   /// changed.
   void reset();
 
+  /// Draw `overlay` (a settings menu) over the gauge while it is active. It must outlive the app;
+  /// nullptr removes it.
+  void setOverlay(const IOverlay* overlay) { overlay_ = overlay; }
+
   void tick();
 
  private:
   IReadingSource& source_;
   IClock& clock_;
   const ILook* look_;
+  const IOverlay* overlay_ = nullptr;
   Options options_;
   GaugeModel model_;
   FrameRenderer renderer_;

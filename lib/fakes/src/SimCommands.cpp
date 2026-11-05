@@ -110,6 +110,18 @@ bool parseChannelCommand(std::string_view line, std::string& name) {
   return parseVerbWord(line, "channel", name);
 }
 
+bool parseButtonCommand(std::string_view line, InputEvent& event) {
+  std::string name;
+  if (!parseVerbWord(line, "button", name)) return false;
+  if (name == "next")
+    event = InputEvent::Next;
+  else if (name == "select")
+    event = InputEvent::Select;
+  else
+    return false;
+  return true;
+}
+
 bool applyRateCommand(ThrottledSource& source, std::string_view line) {
   float hz = 0.0f;
   if (!parseVerbNumber(trim(line), "rate", hz)) return false;

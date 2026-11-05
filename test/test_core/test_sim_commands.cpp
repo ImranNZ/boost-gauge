@@ -170,3 +170,18 @@ TEST_CASE("parseChannelCommand recognises 'channel <name>'") {
   CHECK_FALSE(parseChannelCommand("channel two words", name));
   CHECK_FALSE(parseChannelCommand("look coolant", name));
 }
+
+TEST_CASE("parseButtonCommand recognises 'button next' and 'button select'") {
+  InputEvent event = InputEvent::None;
+  CHECK(parseButtonCommand("button next", event));
+  CHECK(event == InputEvent::Next);
+  CHECK(parseButtonCommand("  button   select \r\n", event));
+  CHECK(event == InputEvent::Select);
+
+  event = InputEvent::None;
+  CHECK_FALSE(parseButtonCommand("button", event));
+  CHECK_FALSE(parseButtonCommand("button back", event));
+  CHECK_FALSE(parseButtonCommand("buttons next", event));
+  CHECK_FALSE(parseButtonCommand("look next", event));
+  CHECK(event == InputEvent::None);
+}

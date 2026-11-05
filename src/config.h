@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gauge/ChannelProfile.h"
+#include "looks/LookId.h"
 #include "sampling/ChannelKind.h"
 
 // Deployment settings: what the gauge shows, and how it reaches the car (protocol, SSID, address).
@@ -14,7 +15,7 @@ namespace config {
 // Minimal: no needle, a thin glowing arc around a big number.
 // Motorsport: segmented bar that lights up, with a shift-light rim past 20 psi.
 // Modern: black dial in a chrome ring with an orange needle (the F56 interior).
-enum class Look { Retro, Classic, Minimal, Motorsport, Modern };
+using Look = gauge::LookId;  // Retro, Classic, Minimal, Motorsport or Modern
 constexpr Look kLook = Look::Retro;
 
 // --- What the gauge shows ------------------------------------------------------

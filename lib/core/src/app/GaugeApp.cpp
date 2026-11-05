@@ -23,7 +23,7 @@ void GaugeApp::reset() {
 
 void GaugeApp::tick() {
   model_.update(source_.latest(), clock_.nowMs());
-  renderer_.render(*look_, model_.state());
+  renderer_.render(*look_, model_.state(), overlay_);
 }
 
 }  // namespace gauge

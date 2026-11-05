@@ -5,6 +5,7 @@
 
 #include "FakeEcu.h"
 #include "ThrottledSource.h"
+#include "app/IInput.h"
 
 namespace gauge {
 
@@ -35,5 +36,9 @@ bool parseUnitCommand(std::string_view line, std::string& name);
 
 /// Recognise "channel <name>" (boost, coolant, intake or voltage), likewise.
 bool parseChannelCommand(std::string_view line, std::string& name);
+
+/// Recognise "button <next|select>": a press of the gauge's button, as an input event. False if
+/// the line is anything else.
+bool parseButtonCommand(std::string_view line, InputEvent& event);
 
 }  // namespace gauge

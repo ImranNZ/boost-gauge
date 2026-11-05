@@ -95,6 +95,12 @@
       <span class="hint" id="unitHint">Retro and Modern are pictures of a psi boost dial: they show boost only, in psi.</span>
     </div>
     <div class="row">
+      <label>Button</label>
+      <button id="buttonNext">Next</button>
+      <button id="buttonSelect">Select</button>
+      <span class="hint">The gauge's settings menu: Select opens it and moves on, Next changes the value. The controls above do not follow what you pick here.</span>
+    </div>
+    <div class="row">
       <label for="rate">Data rate</label>
       <select id="rate">
         <option value="30">30 Hz (every frame)</option>
@@ -169,6 +175,8 @@
   document.getElementById('drive').onclick = () => send('drive');
   document.getElementById('offline').onclick = () => send('offline');
   document.getElementById('online').onclick = () => send('online');
+  document.getElementById('buttonNext').onclick = () => send('button next');
+  document.getElementById('buttonSelect').onclick = () => send('button select');
 
   channelSelect.onchange = () => {
     const boost = channelSelect.value === 'boost';

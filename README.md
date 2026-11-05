@@ -350,8 +350,8 @@ state each frame and it draws. Five exist today:
 **The pictures** above are recorded from the simulator by `python tools/make_media.py` (a still and a 10 s drive-cycle animation per look, in `docs/media/`). It uses a `sim-media` build that leaves the Cooper S badge out, because the badge is brand artwork and this repo is public. Re-run it after changing a look.
 
 Pick one for the firmware with `config::kLook` in `src/config.h` (`Look::Retro`, `Look::Classic`, `Look::Minimal`, `Look::Motorsport` or `Look::Modern`). In the
-preview, use the **Look** menu to switch live (that is the switcher the board
-will get once it has an input method).
+preview, use the **Look** menu to switch live, or the **Button** row to use the gauge's own
+settings menu (below).
 
 **How the Retro look is built.** `looks/retro/spec.json` is the single source of truth
 for the scale and pointer geometry (scale range, tick radii, needle length, hub size).
@@ -404,6 +404,14 @@ watch it update (stop and re-run after each edit; it rebuilds the sim).
 coolant, intake air, battery voltage) and per-channel units; the sim takes `--channel` and `--unit`
 and the ECU commands `coolant <C>`, `intake <C>`, `volts <V>` hold a value.
 
+**Settings menu.** The gauge can change its own look, reading and unit: a `SettingsMenu`
+overlay driven by an `IInput` (a short press is `Next`, a long press `Select`) and saved through an
+`ISettingsStore`. `Select` opens it and steps look, gauge, unit; `Next` changes the value; the last
+`Select` closes it and, if anything changed, saves and applies it. In the preview use the Button row;
+the sim takes `--menu look|gauge|unit` to start with it open and the command `button next|select`.
+The firmware does not use it yet: it needs the board's button adapter and a flash-backed
+`ISettingsStore` (see "Known MVP limits").
+
 **Add a mock control**: add a command in `lib/fakes/src/SimCommands.cpp` (with a
 test), then a button in `tools/preview.html` that sends it.
 
@@ -454,6 +462,8 @@ These can only be confirmed with the board and car:
 
 ## Known MVP limits
 
+* The settings menu works in the simulator only: the firmware has no button adapter or flash store yet,
+  and switching channel on the device needs the sampler task to be told (it owns the car link).
 * PID `0B` has 1 kPa resolution (about 0.15 psi steps); needle easing smooths it.
 * The sampler task and the display are untested together on real hardware
   (task stack size, core pinning, and BLE/WiFi behaviour on core 0 are unverified).
