@@ -22,6 +22,11 @@ class ScaledSurface : public IDrawSurface {
   /// The size the looks are drawn for.
   static constexpr int kDesignSize = 240;
 
+  /// Real pixels per design pixel for a `width` x `height` surface: fitted to the shorter side.
+  static constexpr float scaleFor(int width, int height) {
+    return static_cast<float>(width < height ? width : height) / static_cast<float>(kDesignSize);
+  }
+
   explicit ScaledSurface(IDrawSurface& target);
 
   /// Always kDesignSize: what a look sees.

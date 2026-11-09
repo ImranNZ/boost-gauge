@@ -31,6 +31,15 @@ struct FontFace {
   float resolution = 1.0f;
 };
 
+/// Whether a font profile whose largest face is `maxResolution` covers `surfaceScale` without
+/// upscaling. Font picks the smallest face at least the scale, so a bigger face is only shrunk;
+/// only a screen beyond the largest face is stretched. The slack matches Font::faceFor, so a face
+/// generated for exactly this scale is not missed by float rounding. The firmware asserts this for
+/// its board (see src/main.cpp); a font profile is generated per display class (tools/fonts.json).
+constexpr bool fontCoversScale(float maxResolution, float surfaceScale) {
+  return maxResolution + 0.001f >= surfaceScale;
+}
+
 /// A font whose glyphs were rendered ahead of time from a TrueType file (see
 /// tools/make_font.py), at one or more sizes. The tables live in flash and are never copied; this
 /// just reads them and draws through IDrawSurface::drawMask, so it works on any canvas.

@@ -69,6 +69,15 @@ class RecordingSurface : public IDrawSurface {
 
 }  // namespace
 
+TEST_CASE("scaled surface: the scale is the shorter side over the design size") {
+  CHECK(ScaledSurface::scaleFor(240, 240) == 1.0f);
+  CHECK(ScaledSurface::scaleFor(466, 466) == doctest::Approx(466.0f / 240.0f));
+  CHECK(ScaledSurface::scaleFor(720, 720) == 3.0f);
+  // A portrait or landscape screen is still fitted to its shorter side.
+  CHECK(ScaledSurface::scaleFor(320, 480) == doctest::Approx(320.0f / 240.0f));
+  CHECK(ScaledSurface::scaleFor(480, 320) == doctest::Approx(320.0f / 240.0f));
+}
+
 TEST_CASE("scaled surface: a look always sees the 240x240 design space") {
   RecordingSurface big(466, 466);
   ScaledSurface surface(big);

@@ -57,10 +57,8 @@ gauge::ModernLook modernLook = looks::makeModern();
 
 // A face must exist at the board's scale. Without one, Font falls back to its biggest face and
 // ScaledSurface upscales it: the text goes soft while the shapes stay crisp (see looks/Fonts.h).
-constexpr float kBoardScale =
-    static_cast<float>(board::kWidth < board::kHeight ? board::kWidth : board::kHeight) /
-    static_cast<float>(gauge::ScaledSurface::kDesignSize);
-static_assert(looks::fonts::kMaxResolution + 0.001f >= kBoardScale,
+constexpr float kBoardScale = gauge::ScaledSurface::scaleFor(board::kWidth, board::kHeight);
+static_assert(gauge::fontCoversScale(looks::fonts::kMaxResolution, kBoardScale),
               "the font profile has no face for this board's scale: add it to tools/fonts.json "
               "and regenerate (see src/looks/Fonts.h)");
 
