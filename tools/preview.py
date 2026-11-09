@@ -25,7 +25,6 @@ from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "tools" / "preview.html"
-DEFAULT_SIZE = (240, 240)
 MAX_SIDE = 1000  # the biggest screen the page may ask for
 
 
