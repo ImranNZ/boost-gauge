@@ -3,10 +3,12 @@
 
     python tools/preview.py            # builds the sim, serves http://localhost:8765
     python tools/preview.py --port 9000 --no-browser
+    python tools/preview.py --size 466x466   # start on another screen (the page can switch too)
 
-The sim (`program --live`) streams raw 240x240 RGB frames on stdout; this script
+The sim (`program --live`) streams raw RGB frames on stdout; this script
 turns each into a PNG and serves the newest one to preview.html, and forwards
 button/slider commands to the sim's stdin (see lib/fakes/src/SimCommands.h).
+The page's Screen menu restarts the sim at another screen size (`POST /screen WxH`).
 """
 import argparse
 import os
@@ -23,20 +25,19 @@ from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 PAGE = ROOT / "tools" / "preview.html"
-SIZE = 240
-FRAME_BYTES = SIZE * SIZE * 3
+MAX_SIDE = 1000  # the biggest screen the page may ask for
 
 
-def png_bytes(rgb: bytes) -> bytes:
-    """Encode a SIZE x SIZE RGB frame as PNG (level-1 zlib: fast, plenty small)."""
-    stride = SIZE * 3
-    raw = b"".join(b"\x00" + rgb[y * stride:(y + 1) * stride] for y in range(SIZE))
+def png_bytes(rgb: bytes, width: int, height: int) -> bytes:
+    """Encode a width x height RGB frame as PNG (level-1 zlib: fast, plenty small)."""
+    stride = width * 3
+    raw = b"".join(b"\x00" + rgb[y * stride:(y + 1) * stride] for y in range(height))
 
     def chunk(kind: bytes, body: bytes) -> bytes:
         crc = zlib.crc32(kind + body) & 0xFFFFFFFF
         return struct.pack(">I", len(body)) + kind + body + struct.pack(">I", crc)
 
-    header = struct.pack(">IIBBBBB", SIZE, SIZE, 8, 2, 0, 0, 0)
+    header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
     return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header)
             + chunk(b"IDAT", zlib.compress(raw, 1)) + chunk(b"IEND", b""))
 
@@ -106,22 +107,80 @@ def build_sim():
                  "compiler on PATH? See README step 1. Use --no-build to skip building.")
 
 
-def read_frames(proc, frames: Frames, server):
-    while True:
-        buf = b""
-        while len(buf) < FRAME_BYTES:
-            part = proc.stdout.read(FRAME_BYTES - len(buf))
-            if not part:
-                print("sim exited", file=sys.stderr)
-                server.shutdown()
-                return
-            buf += part
-        frames.publish(png_bytes(buf))
+def parse_size(text: str):
+    """"466x466" -> (466, 466); None if it is not a sane screen size."""
+    try:
+        width, height = (int(part) for part in text.lower().split("x"))
+    except ValueError:
+        return None
+    return (width, height) if 1 <= width <= MAX_SIDE and 1 <= height <= MAX_SIDE else None
 
 
-def make_handler(frames: Frames, proc):
-    stdin_lock = threading.Lock()
+class Sim:
+    """The running simulator. restart() swaps it for one drawing a screen of another size."""
 
+    def __init__(self, frames: Frames, server_ref, size):
+        self.frames = frames
+        self.server_ref = server_ref  # a one-item list holding the server, filled in once it exists
+        self.lock = threading.Lock()
+        self.proc = None
+        self.retired = set()  # processes we stopped on purpose: their ending is not a crash
+        self.size = size
+        self.start(size)
+
+    def start(self, size):
+        width, height = size
+        # The sim links MinGW's runtime DLLs dynamically, so it needs the compiler's
+        # bin directory on PATH to start, same as the build does.
+        proc = subprocess.Popen([str(sim_path()), "--live", "--size", f"{width}x{height}"],
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                env=env_with_compiler())
+        with self.lock:
+            self.proc = proc
+            self.size = size
+        threading.Thread(target=self._read_frames, args=(proc, size), daemon=True).start()
+
+    def restart(self, size):
+        with self.lock:
+            old = self.proc
+            self.retired.add(old)
+        old.kill()
+        old.wait()
+        self.start(size)
+
+    def send(self, command: str):
+        with self.lock:
+            proc = self.proc
+        try:
+            proc.stdin.write((command + "\n").encode())
+            proc.stdin.flush()
+        except OSError:
+            pass  # it is being replaced; the page re-sends its settings to the new one
+
+    def stop(self):
+        with self.lock:
+            self.proc.terminate()
+
+    def _read_frames(self, proc, size):
+        width, height = size
+        frame_bytes = width * height * 3
+        while True:
+            buf = b""
+            while len(buf) < frame_bytes:
+                part = proc.stdout.read(frame_bytes - len(buf))
+                if not part:
+                    with self.lock:
+                        replaced = proc in self.retired
+                    if not replaced:  # it died by itself, not because we replaced it
+                        print("sim exited", file=sys.stderr)
+                        if self.server_ref[0] is not None:
+                            self.server_ref[0].shutdown()
+                    return
+                buf += part
+            self.frames.publish(png_bytes(buf, width, height))
+
+
+def make_handler(frames: Frames, sim: Sim):
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"  # keep-alive: one connection for the whole stream
 
@@ -159,7 +218,8 @@ def make_handler(frames: Frames, proc):
                 self._send(404)
 
         def do_POST(self):
-            if urlparse(self.path).path != "/cmd":
+            path = urlparse(self.path).path
+            if path not in ("/cmd", "/screen"):
                 self._send(404)
                 return
             length = int(self.headers.get("Content-Length", 0))
@@ -167,9 +227,15 @@ def make_handler(frames: Frames, proc):
             if not command or "\n" in command:
                 self._send(400)
                 return
-            with stdin_lock:
-                proc.stdin.write((command + "\n").encode())
-                proc.stdin.flush()
+            if path == "/screen":
+                size = parse_size(command)
+                if size is None:
+                    self._send(400)
+                    return
+                if size != sim.size:
+                    sim.restart(size)
+            else:
+                sim.send(command)
             self._send(204)
 
     return Handler
@@ -180,18 +246,19 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--no-browser", action="store_true")
     parser.add_argument("--no-build", action="store_true", help="reuse the existing sim binary")
+    parser.add_argument("--size", default="240x240", help="screen size to start with, e.g. 466x466")
     args = parser.parse_args()
+    size = parse_size(args.size)
+    if size is None:
+        sys.exit(f"--size wants WIDTHxHEIGHT (each 1 to {MAX_SIDE}), e.g. 466x466")
 
     if not args.no_build:
         build_sim()
-    # The sim links MinGW's runtime DLLs dynamically, so it needs the compiler's
-    # bin directory on PATH to start, same as the build does.
-    proc = subprocess.Popen([str(sim_path()), "--live"], stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, env=env_with_compiler())
-
     frames = Frames()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(frames, proc))
-    threading.Thread(target=read_frames, args=(proc, frames, server), daemon=True).start()
+    server_ref = [None]
+    sim = Sim(frames, server_ref, size)
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(frames, sim))
+    server_ref[0] = server
 
     # 127.0.0.1, not "localhost": on Windows, localhost tries IPv6 first and each
     # request stalls waiting for the IPv4 fallback.
@@ -204,7 +271,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        proc.terminate()
+        sim.stop()
 
 
 if __name__ == "__main__":

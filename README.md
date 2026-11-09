@@ -406,6 +406,12 @@ watch it update (stop and re-run after each edit; it rebuilds the sim).
 coolant, intake air, battery voltage) and per-channel units; the sim takes `--channel` and `--unit`
 and the ECU commands `coolant <C>`, `intake <C>`, `volts <V>` hold a value.
 
+**Try another screen size.** The preview's **Screen** menu restarts the simulator at the size of
+each board you might use (240 round, 466 round, 412 round, 320x480 portrait); it keeps your channel,
+look and unit. `python tools/preview.py --size 466x466` starts on one, and the sim takes `--size WxH`.
+The looks are drawn for 240x240 and scaled (see `ScaledSurface`), so a tall or wide screen leaves
+room unused until there are layouts for it.
+
 **Settings menu.** The gauge can change its own look, reading and unit: a `SettingsMenu`
 overlay driven by an `IInput` (a short press is `Next`, a long press `Select`) and saved through an
 `ISettingsStore`. `Select` opens it and steps look, gauge, unit; `Next` changes the value; the last
