@@ -179,8 +179,9 @@ GaugeApp (core 1) ── GaugeModel ── FrameRenderer ── ILook     app/ g
   the goal.
 * Match the surrounding style: Google-ish, 2-space indent, `namespace gauge` for core and
   `namespace device` for adapters, `kConstantName`, trailing-underscore members.
-* Project skills live in `.claude/skills/` (`check`, `add-look`, `add-pid`,
-  `add-transport`); read the relevant `SKILL.md` directly before starting that kind of task.
+* Project skills live in `.claude/skills/` for Claude Code and `.dsh/skills/` for this harness (same four:
+  `check`, `add-look`, `add-pid`, `add-transport`). Keep the copies in sync, and read the relevant
+  `SKILL.md` before starting that kind of task.
 
 ## Git and CI
 

@@ -185,4 +185,5 @@ upward includes (e.g. `gauge/` must not include `looks/`), and do not put files 
 | A button, touch or tilt to drive the settings menu | an `IInput` adapter in `src/device/` (turns the hardware into `Next` / `Select`), wired in `src/main.cpp` |
 | Where the chosen setup is kept across power cycles | an `ISettingsStore` adapter in `src/device/` (`encodeSetup` / `decodeSetup` give it one word) |
 
-Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`).
+Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`); these are
+mirrored into `.dsh/skills/` for DeepSeek Harness, so keep the two copies in sync.
