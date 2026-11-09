@@ -12,8 +12,9 @@ namespace gauge {
 /// The looks draw in a fixed "design" space of kDesignSize pixels (a circle of radius 120 around
 /// (120, 120)). This surface sits between a look and the real surface and maps that space onto the
 /// real one: scaled to fit the shorter side and centred on the longer. Shapes keep their
-/// proportions and stay sharp at any size; text and pictures are resampled (bilinear), so they are
-/// a little soft above 1x. At exactly 240x240 every call passes straight through.
+/// proportions and stay sharp at any size. Text (a bitmap made for this scale, see Font) is drawn
+/// as it is; other bitmaps and pictures are resampled (bilinear), so they are a little soft above
+/// 1x. At exactly 240x240 every call passes straight through.
 ///
 /// It owns a small scratch buffer for resampling, so make one per display, not per frame.
 class ScaledSurface : public IDrawSurface {
@@ -28,7 +29,7 @@ class ScaledSurface : public IDrawSurface {
   int height() const override { return kDesignSize; }
 
   /// Real pixels per design pixel.
-  float scale() const { return scale_; }
+  float scale() const override { return scale_; }
 
   void clear(Color color) override;
   void fillCircle(int cx, int cy, int radius, Color color) override;
@@ -38,13 +39,16 @@ class ScaledSurface : public IDrawSurface {
   void drawLine(int x0, int y0, int x1, int y1, int thickness, Color color) override;
   void drawText(int x, int y, const char* text, int scale, TextAlign align, Color color) override;
   void drawImage(const ImageView& image, int x, int y) override;
-  void drawMask(const MaskView& mask, int x, int y, Color color) override;
+  void drawMask(const MaskView& mask, float x, float y, Color color) override;
 
  private:
   /// Pixels of a resampled picture handed to the target at a time.
   static constexpr int kBandPixels = 4096;
+  /// How close a bitmap's resolution must be to the scale to be drawn without resampling.
+  static constexpr float kSameResolution = 0.001f;
 
-  /// Where a picture of `width` x `height` design pixels lands, in real pixels.
+  /// Where a picture of `width` x `height` design pixels lands, in real pixels. The extents may be
+  /// fractional (a bitmap rendered at twice the resolution is half as many design pixels).
   struct Placement {
     int left = 0;
     int top = 0;
@@ -52,14 +56,14 @@ class ScaledSurface : public IDrawSurface {
     int height = 0;
   };
   /// Fill `out`; false if it is too wide for one band to hold (it is then not drawn).
-  bool place(int x, int y, int width, int height, Placement& out) const;
+  bool place(float x, float y, float width, float height, Placement& out) const;
   /// Resample a source picture into the bands: `fill(index, u, v)` computes one band pixel from
   /// the two taps, `emit(width, rows, left, top)` hands a finished band to the target.
   template <typename Fill, typename Emit>
   void resample(const Placement& at, int srcWidth, int srcHeight, Fill fill, Emit emit);
 
-  int mapX(int x) const;
-  int mapY(int y) const;
+  int mapX(float x) const;
+  int mapY(float y) const;
   int mapLength(int length) const;
   /// A length that must not vanish (a line's thickness, text scale): at least 1.
   int mapSize(int size) const;

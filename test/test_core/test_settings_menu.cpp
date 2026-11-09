@@ -31,7 +31,7 @@ void drawOnto(const SettingsMenu& menu, SoftCanvas& canvas) { menu.draw(canvas);
 }  // namespace
 
 TEST_CASE("menu: closed, it ignores everything but Select, and draws nothing") {
-  SettingsMenu menu(Setup{});
+  SettingsMenu menu(Setup{}, menuFonts());
   CHECK_FALSE(menu.active());
   CHECK_FALSE(menu.handle(InputEvent::None));
   CHECK_FALSE(menu.handle(InputEvent::Next));
@@ -45,12 +45,12 @@ TEST_CASE("menu: closed, it ignores everything but Select, and draws nothing") {
 }
 
 TEST_CASE("menu: a setup that cannot exist is repaired when the menu is given it") {
-  SettingsMenu menu(Setup{LookId::Retro, ChannelKind::Coolant, Unit::Psi});
+  SettingsMenu menu(Setup{LookId::Retro, ChannelKind::Coolant, Unit::Psi}, menuFonts());
   CHECK(menu.setup() == Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius});
 }
 
 TEST_CASE("menu: Next steps through the looks and wraps") {
-  SettingsMenu menu(Setup{});  // Retro on boost
+  SettingsMenu menu(Setup{}, menuFonts());  // Retro on boost
   openOn(menu, 0);
   for (int i = 0; i < kLookIdCount; ++i) menu.handle(InputEvent::Next);  // all the way round
   menu.handle(InputEvent::Select);
@@ -61,7 +61,7 @@ TEST_CASE("menu: Next steps through the looks and wraps") {
 }
 
 TEST_CASE("menu: on another channel the looks skip the pictures of a boost dial") {
-  SettingsMenu menu(Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius});
+  SettingsMenu menu(Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius}, menuFonts());
   openOn(menu, 0);
   menu.handle(InputEvent::Next);  // Minimal
   menu.handle(InputEvent::Next);  // Motorsport
@@ -73,7 +73,7 @@ TEST_CASE("menu: on another channel the looks skip the pictures of a boost dial"
 }
 
 TEST_CASE("menu: choosing another gauge repairs the look and the unit") {
-  SettingsMenu menu(Setup{LookId::Retro, ChannelKind::Boost, Unit::Kpa});
+  SettingsMenu menu(Setup{LookId::Retro, ChannelKind::Boost, Unit::Kpa}, menuFonts());
   openOn(menu, 1);                // the gauge
   menu.handle(InputEvent::Next);  // coolant
   menu.handle(InputEvent::Select);
@@ -82,7 +82,7 @@ TEST_CASE("menu: choosing another gauge repairs the look and the unit") {
 }
 
 TEST_CASE("menu: the gauges go round: boost, coolant, intake, volts, boost") {
-  SettingsMenu menu(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi});
+  SettingsMenu menu(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi}, menuFonts());
   openOn(menu, 1);
   menu.handle(InputEvent::Next);
   menu.handle(InputEvent::Next);
@@ -99,20 +99,20 @@ TEST_CASE("menu: the gauges go round: boost, coolant, intake, volts, boost") {
 }
 
 TEST_CASE("menu: the units go round those the channel can be shown in") {
-  SettingsMenu boost(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi});
+  SettingsMenu boost(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi}, menuFonts());
   openOn(boost, 2);
   boost.handle(InputEvent::Next);  // bar
   boost.handle(InputEvent::Next);  // kpa
   CHECK(boost.handle(InputEvent::Select));
   CHECK(boost.setup().unit == Unit::Kpa);
 
-  SettingsMenu coolant(Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius});
+  SettingsMenu coolant(Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius}, menuFonts());
   openOn(coolant, 2);
   coolant.handle(InputEvent::Next);
   CHECK(coolant.handle(InputEvent::Select));
   CHECK(coolant.setup().unit == Unit::Fahrenheit);
 
-  SettingsMenu volts(Setup{LookId::Classic, ChannelKind::Voltage, Unit::Volt});
+  SettingsMenu volts(Setup{LookId::Classic, ChannelKind::Voltage, Unit::Volt}, menuFonts());
   openOn(volts, 2);
   volts.handle(InputEvent::Next);  // the only one: stays
   CHECK_FALSE(volts.handle(InputEvent::Select));
@@ -120,14 +120,14 @@ TEST_CASE("menu: the units go round those the channel can be shown in") {
 }
 
 TEST_CASE("menu: None while open changes nothing") {
-  SettingsMenu menu(Setup{});
+  SettingsMenu menu(Setup{}, menuFonts());
   openOn(menu, 0);
   CHECK_FALSE(menu.handle(InputEvent::None));
   CHECK(menu.active());
 }
 
 TEST_CASE("menu: setCurrent shows a setup chosen elsewhere the next time it opens") {
-  SettingsMenu menu(Setup{});
+  SettingsMenu menu(Setup{}, menuFonts());
   menu.setCurrent(Setup{LookId::Motorsport, ChannelKind::IntakeAir, Unit::Fahrenheit});
   CHECK(menu.setup() == Setup{LookId::Motorsport, ChannelKind::IntakeAir, Unit::Fahrenheit});
   menu.setCurrent(Setup{LookId::Modern, ChannelKind::Voltage, Unit::Volt});  // impossible
@@ -136,7 +136,7 @@ TEST_CASE("menu: setCurrent shows a setup chosen elsewhere the next time it open
 
 TEST_CASE("menu: it covers the gauge with a panel and lights the dot of the choice being set") {
   for (int field = 0; field < 3; ++field) {
-    SettingsMenu menu(Setup{});
+    SettingsMenu menu(Setup{}, menuFonts());
     openOn(menu, field);
     SoftCanvas canvas(240, 240);
     drawOnto(menu, canvas);
@@ -156,33 +156,33 @@ TEST_CASE("menu: every look, gauge and unit has a label") {
     return valuePixels(canvas) > 0;
   };
 
-  SettingsMenu looks(Setup{});
+  SettingsMenu looks(Setup{}, menuFonts());
   openOn(looks, 0);
   for (int i = 0; i < kLookIdCount; ++i) {
     CHECK(shows(looks));
     looks.handle(InputEvent::Next);
   }
 
-  SettingsMenu gauges(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi});
+  SettingsMenu gauges(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi}, menuFonts());
   openOn(gauges, 1);
   for (size_t i = 0; i < kChannelKindCount; ++i) {
     CHECK(shows(gauges));
     gauges.handle(InputEvent::Next);
   }
 
-  SettingsMenu boostUnits(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi});
+  SettingsMenu boostUnits(Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi}, menuFonts());
   openOn(boostUnits, 2);
   for (int i = 0; i < 3; ++i) {  // psi, bar, kpa
     CHECK(shows(boostUnits));
     boostUnits.handle(InputEvent::Next);
   }
-  SettingsMenu tempUnits(Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius});
+  SettingsMenu tempUnits(Setup{LookId::Classic, ChannelKind::Coolant, Unit::Celsius}, menuFonts());
   openOn(tempUnits, 2);
   for (int i = 0; i < 2; ++i) {  // celsius, fahrenheit
     CHECK(shows(tempUnits));
     tempUnits.handle(InputEvent::Next);
   }
-  SettingsMenu voltUnits(Setup{LookId::Classic, ChannelKind::Voltage, Unit::Volt});
+  SettingsMenu voltUnits(Setup{LookId::Classic, ChannelKind::Voltage, Unit::Volt}, menuFonts());
   openOn(voltUnits, 2);
   CHECK(shows(voltUnits));
 }

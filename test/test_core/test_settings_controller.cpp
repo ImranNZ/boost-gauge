@@ -20,7 +20,7 @@ struct RecordingTarget : ISetupTarget {
 struct Fixture {
   ScriptedInput input;
   MemorySettingsStore store;
-  SettingsMenu menu{Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi}};
+  SettingsMenu menu{Setup{LookId::Classic, ChannelKind::Boost, Unit::Psi}, menuFonts()};
   RecordingTarget target;
   SettingsController controller{input, menu, store, target};
 

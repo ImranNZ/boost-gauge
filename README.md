@@ -302,8 +302,9 @@ constructor injection, and doctest is your xUnit/Jest.
 * **Screen size.** Looks are drawn for a 240x240 screen (a circle of radius 120 about (120, 120)).
   `FrameRenderer` puts a `ScaledSurface` between a look and the canvas, which scales that design
   space to the real screen (fitted to the shorter side, centred on the longer one). Shapes stay
-  sharp at any size; text and the Retro/Modern pictures are resampled, so a little soft above 1x.
-  At 240x240 nothing changes. Try it: `program --live --size 466x466` (the stored renders in
+  sharp at any size. Text stays sharp too: every font is pre-rendered at the size of each board we
+  know (see "Fonts" below) and drawn from the face closest to the screen. The Retro/Modern dial
+  pictures are still resampled, so a little soft above 1x. At 240x240 nothing changes. Try it: `program --live --size 466x466` (the stored renders in
   `test/golden/` include 466x466, 412x412 and 320x480). A new board is a folder under
   `src/boards/` (its `Board.h` with the screen size and pins, its `Panel.h` with the LovyanGFX driver)
   and a `-DBOARD_<NAME>` flag; see `src/boards/Board.h`.
@@ -314,9 +315,10 @@ constructor injection, and doctest is your xUnit/Jest.
   draw it once and the canvas caches it (`IFrameCache`; on the device the cache lives
   in PSRAM). Each frame only draws the needle and readout. A look never knows about
   the cache. If the cache is unavailable the dial is simply redrawn every frame.
-* Text drawn live (the Classic look's readout, NO LINK, fps) still uses the built-in
-  5x7 bitmap font. The Retro look's numerals and labels are part of its dial
-  picture, so they are proper Jost lettering.
+* All text the looks and the settings menu draw uses real typefaces (Barlow for Classic and the menu,
+  Jost for Retro's NO LINK and fps, Outfit, Saira and Barlow for the others). The Retro look's
+  numerals and labels are part of its dial picture, so they are proper Jost lettering. The built-in
+  5x7 bitmap font is only left in the canvases as a low-level fallback.
 * **The screen never waits on the car.** Sampling runs on its own task and the
   render loop just reads the latest value from the mailbox, so a slow dongle or a
   dropped link cannot lower the frame rate or freeze the display.
@@ -345,7 +347,7 @@ state each frame and it draws. Five exist today:
 | <img src="docs/media/motorsport.webp" alt="motorsport look, animated" width="140"> | **Motorsport** (`MotorsportLook`) | A 40-segment bar (one per psi) that lights up through blue, teal, lime, amber and red, a bold readout, and a rim that pulses red past 20 psi like a shift light. Drawn in code. |
 | <img src="docs/media/classic.webp" alt="classic look, animated" width="140"> | **Classic** (`ClassicLook`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
 
-**Fonts.** Minimal and Motorsport draw their text with real typefaces (Outfit; Saira Condensed, both SIL OFL) instead of the board's 6x8 pixel font. `tools/fonts.json` lists each font, size, weight and characters; `python tools/make_font.py` renders them with FreeType into anti-aliased glyph tables in `src/looks/fonts/` (committed, never hand-edited). A look draws them through `Font::draw`, which uses the `IDrawSurface::drawMask` primitive, so the PC sim and the LCD agree. Add a font by adding an entry to `tools/fonts.json` and re-running the script (needs `pip install pillow`).
+**Fonts.** The looks draw their text with real typefaces (Outfit, Saira Condensed, Barlow and Jost, all SIL OFL) instead of the board's 6x8 pixel font. `tools/fonts.json` lists each font, size, weight and characters; `python tools/make_font.py` renders them with FreeType into anti-aliased glyph tables in `src/looks/fonts/` (committed, never hand-edited). Each font is rendered at several sizes (`scales` in `fonts.json`: 1x for the 240 design, then the sizes of the 320, 412 and 466 pixel screens), and `Font::draw` picks the face that matches the screen (`IDrawSurface::scale()`), so text is never stretched; on a screen with no matching face it shrinks the next one up. A look draws through `Font::draw`, which uses the `IDrawSurface::drawMask` primitive, so the PC sim and the LCD agree. Add a font by adding an entry to `tools/fonts.json` and re-running the script (needs `pip install "pillow>=10.1"`, for fractional sizes); a new board size is one more entry in `scales`.
 
 **The pictures** above are recorded from the simulator by `python tools/make_media.py` (a still and a 10 s drive-cycle animation per look, in `docs/media/`). It uses a `sim-media` build that leaves the Cooper S badge out, because the badge is brand artwork and this repo is public. Re-run it after changing a look.
 

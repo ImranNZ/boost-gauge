@@ -26,17 +26,22 @@ constexpr float kCounterweightRadius = 3.4f;
 constexpr float kFlagBaseRadius = 3.6f;
 constexpr float kFlagTipRadius = 0.5f;
 
-// Offsets from the dial centre, in pixels.
-constexpr int kNoLinkOffsetY = 14;
-constexpr int kFpsOffsetY = 68;
+// Text baselines, in pixels below the dial centre.
+constexpr int kNoLinkBaselineY = 28;
+constexpr int kFpsBaselineY = 75;
 
 }  // namespace
 
-RetroLook::RetroLook(ImageView dial, Spec spec)
-    : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi} {}
+RetroLook::RetroLook(ImageView dial, Spec spec, const Fonts& fonts)
+    : dial_(dial), spec_(spec), fonts_(fonts), scale_{spec.minPsi, spec.maxPsi} {}
 
-RetroLook::RetroLook(ImageView dial, Spec spec, const Badge& badge)
-    : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, badge_(badge), hasBadge_(true) {}
+RetroLook::RetroLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge& badge)
+    : dial_(dial),
+      spec_(spec),
+      fonts_(fonts),
+      scale_{spec.minPsi, spec.maxPsi},
+      badge_(badge),
+      hasBadge_(true) {}
 
 void RetroLook::drawDial(IDrawSurface& c) const {
   c.drawImage(dial_, 0, 0);
@@ -56,12 +61,14 @@ void RetroLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
   }
   drawHub(c, cx, cy);
 
-  if (!state.linked) c.drawText(cx, cy + kNoLinkOffsetY, "NO LINK", 2, TextAlign::Center, kNoLink);
+  if (!state.linked) {
+    fonts_.notice.draw(c, cx, cy + kNoLinkBaselineY, "NO LINK", TextAlign::Center, kNoLink);
+  }
 
   if (state.fps > 0) {
     char text[16];
     std::snprintf(text, sizeof(text), "%d FPS", state.fps);
-    c.drawText(cx, cy + kFpsOffsetY, text, 1, TextAlign::Center, kDimInk);
+    fonts_.small.draw(c, cx, cy + kFpsBaselineY, text, TextAlign::Center, kDimInk);
   }
 }
 

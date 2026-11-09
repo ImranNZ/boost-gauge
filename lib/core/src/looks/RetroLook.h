@@ -5,6 +5,7 @@
 #include "looks/PointerSpec.h"
 #include "render/Badge.h"
 #include "render/Color.h"
+#include "render/Font.h"
 #include "render/IDrawSurface.h"
 #include "render/ImageView.h"
 
@@ -21,8 +22,15 @@ class RetroLook : public ILook {
   static constexpr Color kNeedleRed{200, 40, 30};
   static constexpr Color kInk{28, 26, 22};
 
-  RetroLook(ImageView dial, Spec spec);
-  RetroLook(ImageView dial, Spec spec, const Badge& badge);
+  /// The two typefaces it needs, for the NO LINK notice and the small frame-rate text
+  /// (capitals, digits, "-", "+" and "."). The numerals are part of the dial picture.
+  struct Fonts {
+    Font notice;
+    Font small;
+  };
+
+  RetroLook(ImageView dial, Spec spec, const Fonts& fonts);
+  RetroLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge& badge);
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
@@ -35,6 +43,7 @@ class RetroLook : public ILook {
 
   ImageView dial_;
   Spec spec_;
+  Fonts fonts_;
   GaugeScale scale_;
   Badge badge_;
   bool hasBadge_ = false;

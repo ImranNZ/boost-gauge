@@ -10,9 +10,9 @@ TEST_CASE("app eases the needle between sparse readings") {
   SoftCanvas canvas(240, 240);
   GaugeApp::Options options;
   options.smoothingMs = 100.0f;
-  ClassicLook look;
+  ClassicLook look = testClassic();
   GaugeApp app(source, canvas, clock, look, options);
-  ClassicLook view;
+  ClassicLook view = testClassic();
 
   source.publish(0.0f);
   app.tick();  // snaps to 0
@@ -41,9 +41,9 @@ TEST_CASE("app ignores repeated samples and invalid readings") {
   SoftCanvas canvas(240, 240);
   GaugeApp::Options options;
   options.smoothingMs = 0.0f;
-  ClassicLook look;
+  ClassicLook look = testClassic();
   GaugeApp app(source, canvas, clock, look, options);
-  ClassicLook view;
+  ClassicLook view = testClassic();
 
   source.publish(10.0f);
   app.tick();
@@ -69,7 +69,7 @@ TEST_CASE("app: fps overlay appears only when enabled") {
     SoftCanvas canvas(240, 240);
     GaugeApp::Options options;
     options.showFps = showFps;
-    ClassicLook look;
+    ClassicLook look = testClassic();
     GaugeApp app(source, canvas, clock, look, options);
     source.publish(5.0f);
     for (int i = 0; i < 40; ++i) {  // ~1.3 s at 33 ms: the first fps window completes
@@ -93,7 +93,7 @@ TEST_CASE("app: never-connected shows NO LINK and still presents frames") {
   BoostRig rig(client, clock);
   PollingSource source(rig.channels(), 0);
   SoftCanvas canvas(240, 240);
-  ClassicLook look;
+  ClassicLook look = testClassic();
   GaugeApp app(source, canvas, clock, look, GaugeApp::Options{});
 
   for (int i = 0; i < 3; ++i) {
@@ -116,7 +116,7 @@ TEST_CASE("app: custom look and options are honoured") {
   GaugeApp::Options options;
   options.smoothingMs = 0.0f;
   options.staleAfterMs = 10;
-  ClassicLook look(profile);
+  ClassicLook look = testClassic(profile);
   GaugeApp app(source, canvas, clock, look, options);
 
   app.tick();
@@ -135,7 +135,7 @@ TEST_CASE("app goes NO LINK when the ECU disappears") {
   BoostRig rig(client, clock);
   PollingSource source(rig.channels(), 0);
   SoftCanvas canvas(240, 240);
-  ClassicLook view;
+  ClassicLook view = testClassic();
   GaugeApp app(source, canvas, clock, view, GaugeApp::Options{});
 
   app.tick();
@@ -155,8 +155,8 @@ TEST_CASE("app can switch look at run time") {
   FixedSource source;
   SoftCanvas canvas(240, 240);
   FlatDial dial(kCream);
-  RetroLook retro(dial.view(), kRetroSpec);
-  ClassicLook classic;
+  RetroLook retro(dial.view(), kRetroSpec, retroFonts());
+  ClassicLook classic = testClassic();
   GaugeApp app(source, canvas, clock, classic, GaugeApp::Options{});
 
   app.tick();
@@ -173,7 +173,7 @@ TEST_CASE("app can be constructed with an explicit look") {
   FixedSource source;
   SoftCanvas canvas(240, 240);
   FlatDial dial(kCream);
-  RetroLook retro(dial.view(), kRetroSpec);
+  RetroLook retro(dial.view(), kRetroSpec, retroFonts());
   GaugeApp app(source, canvas, clock, retro, GaugeApp::Options{});
 
   app.tick();
@@ -186,7 +186,7 @@ TEST_CASE("app: reset starts the displayed value over, forgetting the peak") {
   SoftCanvas canvas(240, 240);
   GaugeApp::Options options;
   options.smoothingMs = 0.0f;
-  ClassicLook look;
+  ClassicLook look = testClassic();
   GaugeApp app(source, canvas, clock, look, options);
   const Color white{255, 255, 255};  // the peak marker
 
@@ -217,7 +217,7 @@ TEST_CASE("app: draws its overlay over the gauge until it is removed") {
   ManualClock clock;
   FixedSource source;
   SoftCanvas canvas(240, 240);
-  ClassicLook look;
+  ClassicLook look = testClassic();
   DotOverlay overlay;
   GaugeApp app(source, canvas, clock, look, GaugeApp::Options{});
 
