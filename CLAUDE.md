@@ -186,4 +186,5 @@ upward includes (e.g. `gauge/` must not include `looks/`), and do not put files 
 | Where the chosen setup is kept across power cycles | an `ISettingsStore` adapter in `src/device/` (`encodeSetup` / `decodeSetup` give it one word) |
 
 Project skills live in `.claude/skills/` (`check`, `add-transport`, `add-pid`, `add-look`); these are
-mirrored into `.dsh/skills/` for DeepSeek Harness, so keep the two copies in sync.
+mirrored into `.dsh/skills/` for DeepSeek Harness and `.agents/skills/` for Kimi Code, so keep all
+three copies in sync.

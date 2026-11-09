@@ -8,13 +8,12 @@ description: Add another OBD-II value to the boost gauge (e.g. intake air temp, 
 Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 
 1. **Constant**: add `kPid<Name>` in the `obd` namespace in
-   `lib/core/src/obd/IObdClient.h` with a comment giving the unit/scaling.
+   `lib/core/src/obd/PidDecode.h` with a comment giving the unit/scaling.
 2. **Decode**: put the formula (e.g. `A - 40` for coolant °C, `(256A+B)/4` for
-   RPM) in a small pure function in `lib/core/src` (a header like `obd/Units.h`, or a
-   new one). `ObdData` holds up to 4 data bytes (`bytes[0]` = A).
+   RPM) in a small pure function in `obd/PidDecode.h`.
+   `ObdData` holds up to 4 data bytes (`bytes[0]` = A).
 3. **Channel**: a value to show is an `IChannel` (`sampling/Channel.h`). One PID decoded by a pure
-   function is a `PidChannel` (add a factory next to `coolant()`; the decoder goes in
-   `obd/PidDecode.h`); a value built from several PIDs gets its own `IChannel` like `BoostChannel`.
+   function is a `PidChannel` (add a factory next to `coolant()`); a value built from several PIDs gets its own `IChannel` like `BoostChannel`.
    Slow-changing values use a period of about a second so they do not slow the fast channel; the
    `ChannelSampler` schedules them. Add a `GaugeProfile` preset for its scale and zones.
    To make it selectable, add a `ChannelKind` (`sampling/ChannelKind.h`), an entry in
@@ -29,7 +28,7 @@ Read-only mode 01 PIDs only. Never add writes, actuator tests or UDS services.
 5. **Tests** (`test/test_core/`): decode formula incl. edge values, supported and
    unsupported paths, and throttling. Then `tools/coverage.sh` must stay at 100%.
 6. **Display** (if shown): change `GaugeState` / the look(s). Only use glyphs in
-   `SoftCanvas` (`0-9 - + . space A B C E F I K L M N O P S T U V`) or add new ones to
+   `SoftCanvas` (`0-9 - + . space A B C D E F G H I K L M N O P R S T U V`) or add new ones to
    `kGlyphs`. Run `pio run -e sim -t exec` and inspect `out/sheet.png`.
 7. Confirm the F56 actually answers that PID before trusting it (an ELM327 app,
    `01xx`); say it is unverified until then.
