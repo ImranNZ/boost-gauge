@@ -8,9 +8,8 @@
 // exists and is picked up here automatically; otherwise the dial is used without it.
 
 #include "gauge/GaugeScale.h"
+#include "looks/Fonts.h"
 #include "looks/RetroLook.h"
-#include "looks/fonts/JostMedium10.h"
-#include "looks/fonts/JostMedium20.h"
 #include "looks/retro/RetroDial.h"
 #include "looks/retro/RetroSpec.h"
 

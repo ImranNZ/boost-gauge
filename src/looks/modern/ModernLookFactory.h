@@ -8,9 +8,8 @@
 // artwork and is never committed.
 
 #include "gauge/GaugeScale.h"
+#include "looks/Fonts.h"
 #include "looks/ModernLook.h"
-#include "looks/fonts/BarlowCondensed11.h"
-#include "looks/fonts/BarlowSemiBold21.h"
 #include "looks/modern/ModernDial.h"
 #include "looks/modern/ModernSpec.h"
 

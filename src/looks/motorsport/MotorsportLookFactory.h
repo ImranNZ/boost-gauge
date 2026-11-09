@@ -6,10 +6,8 @@
 // RetroLookFactory.h) when src/looks/local/BadgeLight.h (the light variant, for dark dials) exists;
 // the badge is brand artwork and is never committed.
 
+#include "looks/Fonts.h"
 #include "looks/MotorsportLook.h"
-#include "looks/fonts/SairaBold70.h"
-#include "looks/fonts/SairaSemiBold12.h"
-#include "looks/fonts/SairaSemiBold14.h"
 
 #if __has_include("looks/local/BadgeLight.h") && !defined(BOOST_GAUGE_NO_BADGE)
 #include "looks/local/BadgeLight.h"

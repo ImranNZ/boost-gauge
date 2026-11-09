@@ -61,7 +61,8 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   `drawDial` (static, cached by `FrameRenderer`) and `drawDynamic` (every frame). `GaugeApp`
   keeps a reference to the look, so it must outlive the app; passing a temporary is a
   compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
-* Generated files: `src/looks/fonts/*.h` come from `tools/fonts.json` via `python tools/make_font.py`
+* Generated files: `src/looks/fonts/<profile>/*.h` come from `tools/fonts.json` via
+  `python tools/make_font.py --profile <profile>`
   (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
   `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
   hand-edit them, regenerate. `src/looks/retro/RetroDial.h` is big (~470 KB): avoid reading it.
@@ -110,13 +111,16 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
 * Every look and the settings menu draw text with a `Font` (`lib/core/src/render/Font.h`) through `Font::draw`;
-  no look uses `drawText` any more. A font has several faces (`tools/fonts.json` `scales`): `Font::draw`
-  picks the face closest to `IDrawSurface::scale()` and lays the text out in that face's own pixels, so on
-  a board whose scale has a face it is drawn 1:1 (crisp). `drawMask` takes a fractional position and a
-  `MaskView::resolution` (pixels per design pixel); `ScaledSurface` passes a mask of the exact scale through
-  and resamples any other. A new board size means adding its scale (`min(w, h) / 240`) to `scales` and
-  re-running `python tools/make_font.py`. A font only has the characters listed for it, so a new string
-  may need more `chars`.
+  no look uses `drawText` any more. A font has several faces, generated per **font profile**
+  (`tools/fonts.json` `profiles`: the resolutions one display class ships). `src/looks/Fonts.h` picks the
+  profile (`FONT_PROFILE_*`); `Font::draw` picks the face closest to `IDrawSurface::scale()` and lays the text
+  out in that face's own pixels, so on a board whose scale has a face it is drawn 1:1 (crisp).
+  `drawMask` takes a fractional position and a `MaskView::resolution` (pixels per design pixel);
+  `ScaledSurface` passes a mask of the exact scale through and resamples any other. A new display class means
+  a profile in `fonts.json`, `python tools/make_font.py --profile <name>`, a branch in `src/looks/Fonts.h`,
+  and the build flag that selects it; `src/main.cpp` asserts that the profile's `kMaxResolution` covers
+  `min(board width, height) / 240`, so a board cannot silently render text upscaled from a smaller face.
+  A font only has the characters listed for it, so a new string may need more `chars`.
 * Only the built-in bitmap font below (used by tests and as a canvas fallback) is limited to its glyph list.
 * The built-in `SoftCanvas` font only covers `0-9 - + . space A B C D E F G H I K L M N O P R S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the
@@ -175,6 +179,7 @@ upward includes (e.g. `gauge/` must not include `looks/`), and do not put files 
 | New PID / channel | constant and decoder in `obd/PidDecode.h`, a `PidChannel` factory (or an `IChannel` if it needs more than one PID), a `GaugeProfile` preset, `FakeEcu::answer`, tests |
 | Tune the Classic look | `lib/core/src/looks/ClassicLook.cpp`, then run the sim |
 | Tune the Retro look | `looks/retro/spec.json` or `dial.svg.in`, then `python tools/make_look.py retro` |
+| A new screen size or font quality | a profile in `tools/fonts.json` + `python tools/make_font.py --profile <name>` + a branch in `src/looks/Fonts.h`; the screen size and pins stay in `src/boards/<name>/Board.h` |
 | Pins, screen size, panel driver | `src/boards/<name>/` (`Board.h`, `Panel.h`), chosen by `-DBOARD_<NAME>` in `platformio.ini` |
 | SSID / BLE name / protocol / what is shown | `src/config.h` |
 | A button, touch or tilt to drive the settings menu | an `IInput` adapter in `src/device/` (turns the hardware into `Next` / `Select`), wired in `src/main.cpp` |

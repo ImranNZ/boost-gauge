@@ -1,6 +1,10 @@
 {
-  "_comment": "Fonts the looks draw text with. python tools/make_font.py turns each entry into src/looks/fonts/<name>.h (anti-aliased glyph tables, sized in pixels on the 240 px dial). Variable fonts take a weight (wght); skew leans the glyphs right by that many degrees. Every font is rendered at each of 'scales' times its size: 1 is the design size, and the others are the screens we know (a 240 px design on 320, 412 and 466 px screens), so text is drawn at the size it appears and stays sharp.",
-  "scales": [1.0, 1.3333, 1.7167, 1.9417],
+  "_comment": "Fonts the looks draw text with. python tools/make_font.py --profile s3 turns each entry into src/looks/fonts/s3/<name>.h (anti-aliased glyph tables, sized in pixels on the 240 px dial). Variable fonts take a weight (wght); skew leans the glyphs right by that many degrees. 'profiles' names the resolutions one display class ships: 1 is the design size the looks are laid out at, and the rest are the real pixels per design pixel on its screens (240 -> 1x, 320 -> 1.3333x, 412 -> 1.7167x, 466 -> 1.9417x). Every profile starts at 1.0: layout and ascent are defined in design pixels. A new board either uses an existing profile or adds one and regenerates; the build asserts that the selected profile covers the board's scale (see src/main.cpp). s3 is the committed profile; p4-720 and all are generated when their board is added.",
+  "profiles": {
+    "s3": [1.0, 1.3333, 1.7167, 1.9417],
+    "p4-720": [1.0, 3.0],
+    "all": [1.0, 1.3333, 1.7167, 1.9417, 3.0]
+  },
   "fonts": [
     {"name": "OutfitLight62", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 300, "size": 62, "chars": "0123456789-+."},
     {"name": "OutfitMedium12", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 500, "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
