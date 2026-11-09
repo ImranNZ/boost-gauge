@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 #include "render/Color.h"
@@ -7,7 +8,8 @@
 
 namespace gauge {
 
-/// One character of a pre-rendered font: an 8-bit coverage bitmap and where it sits.
+/// One character of a pre-rendered font: an 8-bit coverage bitmap and where it sits. All sizes
+/// are in the pixels of the face the glyph belongs to.
 struct Glyph {
   char ch;
   uint8_t width;
@@ -15,21 +17,42 @@ struct Glyph {
   int8_t xOffset;   // pixels from the pen position to the bitmap's left edge
   int8_t yOffset;   // pixels from the baseline to the bitmap's top edge (negative = above)
   uint8_t advance;  // pixels the pen moves on after this glyph
-  uint32_t offset;  // where its width * height coverage bytes start in the font's array
+  uint32_t offset;  // where its width * height coverage bytes start in the face's array
+};
+
+/// The glyphs of one font rendered at one size. `resolution` is how many of its pixels make one
+/// design-space pixel: 1 for the size the looks are designed at (240x240), about 1.94 for a
+/// 466-pixel screen, and so on. `ascent` is in this face's pixels.
+struct FontFace {
+  const Glyph* glyphs = nullptr;
+  int count = 0;
+  const uint8_t* alpha = nullptr;
+  int ascent = 0;
+  float resolution = 1.0f;
 };
 
 /// A font whose glyphs were rendered ahead of time from a TrueType file (see
-/// tools/make_font.py). The tables live in flash and are never copied; this just
-/// reads them and draws through IDrawSurface::drawMask, so it works on any canvas.
+/// tools/make_font.py), at one or more sizes. The tables live in flash and are never copied; this
+/// just reads them and draws through IDrawSurface::drawMask, so it works on any canvas.
+///
+/// Text is laid out in design pixels, but drawn with the face closest to the size it will appear
+/// at (IDrawSurface::scale()), so it stays sharp on a bigger screen instead of being stretched.
 class Font {
  public:
-  Font(const Glyph* glyphs, int count, const uint8_t* alpha, int ascent)
-      : glyphs_(glyphs), count_(count), alpha_(alpha), ascent_(ascent) {}
+  static constexpr int kMaxFaces = 6;
 
-  /// Height of a capital or digit above the baseline, to centre text vertically.
-  int ascent() const { return ascent_; }
+  /// A font with one face, at the design resolution.
+  Font(const Glyph* glyphs, int count, const uint8_t* alpha, int ascent);
 
-  /// Width of `text` in pixels, with `tracking` extra pixels between characters.
+  /// A font with several faces, in order of increasing resolution (the first is the design size).
+  /// Faces beyond kMaxFaces are ignored.
+  Font(const FontFace* faces, int count);
+
+  /// Height of a capital or digit above the baseline, in design pixels, to centre text
+  /// vertically.
+  int ascent() const;
+
+  /// Width of `text` in design pixels, with `tracking` extra pixels between characters.
   /// Characters the font does not have take no space.
   int width(const char* text, int tracking = 0) const;
 
@@ -39,12 +62,15 @@ class Font {
             Color color, int tracking = 0) const;
 
  private:
-  const Glyph* find(char ch) const;
+  /// The smallest face at least `scale` big (so it is only ever shrunk, which stays sharper than
+  /// stretching), or the biggest there is.
+  const FontFace& faceFor(float scale) const;
+  static const Glyph* find(const FontFace& face, char ch);
+  /// Width of `text` in `face`'s pixels, with `tracking` face pixels between characters.
+  static float widthIn(const FontFace& face, const char* text, float tracking);
 
-  const Glyph* glyphs_;
-  int count_;
-  const uint8_t* alpha_;
-  int ascent_;
+  std::array<FontFace, kMaxFaces> faces_{};
+  int count_ = 0;
 };
 
 }  // namespace gauge

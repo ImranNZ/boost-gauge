@@ -6,7 +6,7 @@ using namespace support;
 
 TEST_CASE("retro look: draws the dial picture once, then restores it") {
   FlatDial dial(kCream);
-  RetroLook look(dial.view(), kRetroSpec);
+  RetroLook look(dial.view(), kRetroSpec, retroFonts());
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
@@ -22,7 +22,7 @@ TEST_CASE("retro look: draws the dial picture once, then restores it") {
 
 TEST_CASE("retro look: needle follows the pressure, with a tail and a hub") {
   FlatDial dial(kCream);
-  RetroLook look(dial.view(), kRetroSpec);
+  RetroLook look(dial.view(), kRetroSpec, retroFonts());
 
   for (float psi : {-12.0f, 0.0f, 9.0f, 20.0f}) {
     SoftCanvas canvas(240, 240);
@@ -44,7 +44,7 @@ TEST_CASE("retro look: needle follows the pressure, with a tail and a hub") {
 
 TEST_CASE("retro look: peak flag only above zero and only while linked") {
   FlatDial dial(kCream);
-  RetroLook look(dial.view(), kRetroSpec);
+  RetroLook look(dial.view(), kRetroSpec, retroFonts());
 
   SoftCanvas withPeak(240, 240);
   GaugeState state;
@@ -62,7 +62,7 @@ TEST_CASE("retro look: peak flag only above zero and only while linked") {
 
 TEST_CASE("retro look: unlinked hides the needle and says NO LINK") {
   FlatDial dial(kCream);
-  RetroLook look(dial.view(), kRetroSpec);
+  RetroLook look(dial.view(), kRetroSpec, retroFonts());
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = false;
@@ -76,7 +76,7 @@ TEST_CASE("retro look: unlinked hides the needle and says NO LINK") {
 
 TEST_CASE("retro look: fps label only for a positive value") {
   FlatDial dial(kCream);
-  RetroLook look(dial.view(), kRetroSpec);
+  RetroLook look(dial.view(), kRetroSpec, retroFonts());
   const auto lit = [&look](int fps) {
     SoftCanvas canvas(240, 240);
     GaugeState state;
@@ -97,7 +97,7 @@ TEST_CASE("retro look: optional badge is laid over the dial") {
   badge.image = {2, 2, px, alpha};
   badge.x = 20;
   badge.y = 30;
-  RetroLook look(dial.view(), kRetroSpec, badge);
+  RetroLook look(dial.view(), kRetroSpec, retroFonts(), badge);
 
   SoftCanvas canvas(240, 240);
   drawFrame(look, canvas, GaugeState{});

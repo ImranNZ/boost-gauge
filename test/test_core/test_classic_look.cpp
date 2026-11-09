@@ -5,7 +5,7 @@
 using namespace support;
 
 TEST_CASE("gauge angles: min bottom-left, max bottom-right, mid at top") {
-  ClassicLook view;
+  ClassicLook view = testClassic();
   CHECK(view.angleFor(-15.0f) == doctest::Approx(135.0f));
   CHECK(view.angleFor(5.0f) == doctest::Approx(270.0f));
   CHECK(view.angleFor(25.0f) == doctest::Approx(405.0f));
@@ -13,7 +13,7 @@ TEST_CASE("gauge angles: min bottom-left, max bottom-right, mid at top") {
 }
 
 TEST_CASE("needle is drawn along the angle for the value") {
-  ClassicLook view;
+  ClassicLook view = testClassic();
   for (float psi : {-12.0f, 0.0f, 8.0f, 18.0f}) {
     SoftCanvas canvas(240, 240);
     drawFrame(view, canvas, {psi, 0.0f, true});
@@ -23,14 +23,14 @@ TEST_CASE("needle is drawn along the angle for the value") {
 }
 
 TEST_CASE("no needle and no link banner when unlinked") {
-  ClassicLook view;
+  ClassicLook view = testClassic();
   SoftCanvas canvas(240, 240);
   drawFrame(view, canvas, {10.0f, 0.0f, false});
   CHECK_FALSE(same(pixelOnNeedle(canvas, view, 10.0f, 60), ClassicLook::kNeedle));
 }
 
 TEST_CASE("classic look draws the fps label only for a positive value") {
-  ClassicLook view;
+  ClassicLook view = testClassic();
   const auto lit = [&view](int fps) {
     SoftCanvas canvas(240, 240);
     GaugeState state;
@@ -48,7 +48,7 @@ TEST_CASE("classic look draws the fps label only for a positive value") {
 
 TEST_CASE("classic look: a bar profile moves the needle and the zones with it") {
   const GaugeProfile profile = GaugeProfile::bar();
-  ClassicLook look(profile);
+  ClassicLook look = testClassic(profile);
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;
@@ -64,7 +64,7 @@ TEST_CASE("classic look: a bar profile moves the needle and the zones with it") 
 
 TEST_CASE("classic look: the unit label follows the profile") {
   const auto draw = [](const GaugeProfile& profile) {
-    ClassicLook look(profile);
+    ClassicLook look = testClassic(profile);
     SoftCanvas canvas(240, 240);
     GaugeState state;
     state.linked = true;
@@ -80,16 +80,17 @@ TEST_CASE("classic look: the unit label follows the profile") {
         if (!same(a.image().get(x, y), b.image().get(x, y))) ++n;
     return n;
   };
+  // The test font draws every letter as the same box, so only the label's length shows.
   const SoftCanvas psi = draw(GaugeProfile::psi());
-  const SoftCanvas bar = draw(GaugeProfile::bar());
-  const SoftCanvas kpa = draw(GaugeProfile::kpa());
-  CHECK(differing(psi, bar) > 0);  // "PSI" vs "BAR" in the unit row
-  CHECK(differing(bar, kpa) > 0);  // "BAR" vs "KPA"
+  const SoftCanvas celsius = draw(GaugeProfile::coolant());
+  const SoftCanvas volts = draw(GaugeProfile::voltage());
+  CHECK(differing(psi, celsius) > 0);  // "PSI" vs "C" in the unit row
+  CHECK(differing(psi, volts) > 0);    // "PSI" vs "V"
 }
 
 TEST_CASE("classic look: a Fahrenheit profile converts the reading before drawing it") {
   const GaugeProfile profile = GaugeProfile::coolantF();
-  ClassicLook look(profile);
+  ClassicLook look = testClassic(profile);
   SoftCanvas canvas(240, 240);
   GaugeState state;
   state.linked = true;

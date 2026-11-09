@@ -109,8 +109,15 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   re-sends its settings; a stopped old sim must be marked retired or its reader shuts the server. The sim's stdout is binary frame data, so log to stderr only. Stop
   `program.exe`/`preview.py` before rebuilding the sim, or the link step fails on Windows.
 
-* Looks that need nice type take a `Font` (`lib/core/src/render/Font.h`) and draw with `Font::draw`; only
-  the built-in bitmap font below is limited to its glyph list.
+* Every look and the settings menu draw text with a `Font` (`lib/core/src/render/Font.h`) through `Font::draw`;
+  no look uses `drawText` any more. A font has several faces (`tools/fonts.json` `scales`): `Font::draw`
+  picks the face closest to `IDrawSurface::scale()` and lays the text out in that face's own pixels, so on
+  a board whose scale has a face it is drawn 1:1 (crisp). `drawMask` takes a fractional position and a
+  `MaskView::resolution` (pixels per design pixel); `ScaledSurface` passes a mask of the exact scale through
+  and resamples any other. A new board size means adding its scale (`min(w, h) / 240`) to `scales` and
+  re-running `python tools/make_font.py`. A font only has the characters listed for it, so a new string
+  may need more `chars`.
+* Only the built-in bitmap font below (used by tests and as a canvas fallback) is limited to its glyph list.
 * The built-in `SoftCanvas` font only covers `0-9 - + . space A B C D E F G H I K L M N O P R S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the
   glyph to `kGlyphs` in `SoftCanvas.cpp` first.
@@ -127,7 +134,7 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   a pass-through, so the 240 goldens do not move. Real screen size lives in `board::kWidth`/`kHeight` (`src/boards/<name>/Board.h`).
 * Settings menu (`app/SettingsMenu`, `SettingsController`): the choice is a `Setup` (look, channel, unit),
   always repaired by `normalised()` (a boost-dial look cannot show another channel). The menu is an
-  `IOverlay` drawn by `FrameRenderer` over the look in design space; it uses only the built-in font.
+  `IOverlay` drawn by `FrameRenderer` over the look in design space; its fonts are given at construction (`looks::menuFonts()`).
   What applies a new `Setup` is an `ISetupTarget` per composition root (`sim::Rig` does). **On the
   device, a new channel means the sampler must switch, and the sampler only runs on core 0**: do not
   call `ChannelSampler::clear/add` from the render path; hand the sampler task the request.

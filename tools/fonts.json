@@ -1,5 +1,6 @@
 {
-  "_comment": "Fonts the code-drawn looks use. python tools/make_font.py turns each entry into src/looks/fonts/<name>.h (anti-aliased glyph tables, sized in pixels on the 240 px dial). Variable fonts take a weight (wght); skew leans the glyphs right by that many degrees.",
+  "_comment": "Fonts the looks draw text with. python tools/make_font.py turns each entry into src/looks/fonts/<name>.h (anti-aliased glyph tables, sized in pixels on the 240 px dial). Variable fonts take a weight (wght); skew leans the glyphs right by that many degrees. Every font is rendered at each of 'scales' times its size: 1 is the design size, and the others are the screens we know (a 240 px design on 320, 412 and 466 px screens), so text is drawn at the size it appears and stays sharp.",
+  "scales": [1.0, 1.3333, 1.7167, 1.9417],
   "fonts": [
     {"name": "OutfitLight62", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 300, "size": 62, "chars": "0123456789-+."},
     {"name": "OutfitMedium12", "file": "looks/minimal/fonts/Outfit-Variable.ttf", "wght": 500, "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
@@ -7,6 +8,12 @@
     {"name": "SairaSemiBold12", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 12, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
     {"name": "SairaSemiBold14", "file": "looks/motorsport/fonts/SairaCondensed-SemiBold.ttf", "size": 14, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
     {"name": "BarlowSemiBold21", "file": "looks/modern/fonts/Barlow-SemiBold.ttf", "size": 21, "chars": "0123456789-+."},
-    {"name": "BarlowCondensed11", "file": "looks/modern/fonts/BarlowCondensed-SemiBold.ttf", "size": 11, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
+    {"name": "BarlowCondensed11", "file": "looks/modern/fonts/BarlowCondensed-SemiBold.ttf", "size": 11, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "BarlowSemiBold40", "file": "looks/modern/fonts/Barlow-SemiBold.ttf", "size": 40, "chars": "0123456789-+."},
+    {"name": "BarlowSemiBold30", "file": "looks/modern/fonts/Barlow-SemiBold.ttf", "size": 30, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "BarlowSemiBold18", "file": "looks/modern/fonts/Barlow-SemiBold.ttf", "size": 18, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "BarlowSemiBold10", "file": "looks/modern/fonts/Barlow-SemiBold.ttf", "size": 10, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "JostMedium20", "file": "looks/retro/fonts/Jost-Medium.ttf", "size": 20, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    {"name": "JostMedium10", "file": "looks/retro/fonts/Jost-Medium.ttf", "size": 10, "chars": "0123456789-+. ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
   ]
 }

@@ -48,12 +48,12 @@ ScaledSurface::ScaledSurface(IDrawSurface& target) : target_(target) {
   originY_ = (static_cast<float>(h) - static_cast<float>(kDesignSize) * scale_) * 0.5f;
 }
 
-int ScaledSurface::mapX(int x) const {
-  return static_cast<int>(std::lround(originX_ + static_cast<float>(x) * scale_));
+int ScaledSurface::mapX(float x) const {
+  return static_cast<int>(std::lround(originX_ + x * scale_));
 }
 
-int ScaledSurface::mapY(int y) const {
-  return static_cast<int>(std::lround(originY_ + static_cast<float>(y) * scale_));
+int ScaledSurface::mapY(float y) const {
+  return static_cast<int>(std::lround(originY_ + y * scale_));
 }
 
 int ScaledSurface::mapLength(int length) const {
@@ -90,7 +90,7 @@ void ScaledSurface::drawText(int x, int y, const char* text, int scale, TextAlig
   target_.drawText(mapX(x), mapY(y), text, mapSize(scale), align, color);
 }
 
-bool ScaledSurface::place(int x, int y, int width, int height, Placement& out) const {
+bool ScaledSurface::place(float x, float y, float width, float height, Placement& out) const {
   // Size from the mapped edges, not the mapped size, so a glyph's bottom lands on the same
   // row as its neighbours' (the baseline) whatever the rounding.
   out.left = mapX(x);
@@ -123,7 +123,10 @@ void ScaledSurface::drawImage(const ImageView& image, int x, int y) {
     return;
   }
   Placement at;
-  if (!place(x, y, image.width, image.height, at)) return;
+  if (!place(static_cast<float>(x), static_cast<float>(y), static_cast<float>(image.width),
+             static_cast<float>(image.height), at)) {
+    return;
+  }
 
   const size_t w = static_cast<size_t>(image.width);
   resample(
@@ -156,14 +159,20 @@ void ScaledSurface::drawImage(const ImageView& image, int x, int y) {
       });
 }
 
-void ScaledSurface::drawMask(const MaskView& mask, int x, int y, Color color) {
+void ScaledSurface::drawMask(const MaskView& mask, float x, float y, Color color) {
   if (mask.alpha == nullptr) return;
-  if (scale_ == 1.0f) {
-    target_.drawMask(mask, mapX(x), mapY(y), color);
+  // A bitmap rendered at exactly this surface's resolution is drawn as it is: crisp, and every
+  // glyph of a line keeps the spacing it was laid out with.
+  if (std::fabs(mask.resolution - scale_) < kSameResolution) {
+    target_.drawMask(mask, static_cast<float>(mapX(x)), static_cast<float>(mapY(y)), color);
     return;
   }
   Placement at;
-  if (!place(x, y, mask.width, mask.height, at)) return;
+  const float perDesign = 1.0f / mask.resolution;  // design pixels per bitmap pixel
+  if (!place(x, y, static_cast<float>(mask.width) * perDesign,
+             static_cast<float>(mask.height) * perDesign, at)) {
+    return;
+  }
 
   const size_t w = static_cast<size_t>(mask.width);
   resample(

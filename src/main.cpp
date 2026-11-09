@@ -18,6 +18,7 @@
 #include "looks/MinimalLook.h"
 #include "looks/ModernLook.h"
 #include "looks/MotorsportLook.h"
+#include "looks/classic/ClassicLookFactory.h"
 #include "looks/minimal/MinimalLookFactory.h"
 #include "looks/modern/ModernLookFactory.h"
 #include "looks/motorsport/MotorsportLookFactory.h"
@@ -45,7 +46,7 @@ gauge::SamplerLoop samplerLoop(sampler, mailboxes);
 device::SamplerTask samplerTask(samplerLoop);
 
 // Looks (the app keeps a reference, so they live for the whole run).
-gauge::ClassicLook classicLook(config::kProfile);
+gauge::ClassicLook classicLook = looks::makeClassic(config::kProfile);
 gauge::RetroLook retroLook = looks::makeRetro();
 gauge::MinimalLook minimalLook = looks::makeMinimal(config::kProfile);
 gauge::MotorsportLook motorsportLook = looks::makeMotorsport(config::kProfile);

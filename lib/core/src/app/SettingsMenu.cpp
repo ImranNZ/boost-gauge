@@ -10,6 +10,8 @@ constexpr Color kDotOn{255, 176, 32};
 constexpr Color kDotOff{70, 76, 84};
 
 constexpr int kCentre = 120;
+constexpr int kTitleBaseline = 84;
+constexpr int kValueBaseline = 129;
 constexpr int kDots = 3;
 
 const char* lookLabel(LookId look) {
@@ -139,8 +141,8 @@ void SettingsMenu::draw(IDrawSurface& surface) const {
     title = "GAUGE";
     value = channelLabel(working_.channel);
   }
-  surface.drawText(kCentre, 70, title, 2, TextAlign::Center, kTitle);
-  surface.drawText(kCentre, 108, value, 3, TextAlign::Center, kValue);
+  fonts_.title.draw(surface, kCentre, kTitleBaseline, title, TextAlign::Center, kTitle);
+  fonts_.value.draw(surface, kCentre, kValueBaseline, value, TextAlign::Center, kValue);
 
   // One dot per choice; the one being set is lit.
   const int lit = static_cast<int>(field_);

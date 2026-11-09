@@ -1,5 +1,7 @@
 #include "device/LgfxCanvas.h"
 
+#include <cmath>
+
 #include "render/ArcCoverage.h"
 
 namespace device {
@@ -98,7 +100,9 @@ void LgfxCanvas::drawImage(const gauge::ImageView& image, int x, int y) {
   }
 }
 
-void LgfxCanvas::drawMask(const gauge::MaskView& mask, int x, int y, gauge::Color color) {
+void LgfxCanvas::drawMask(const gauge::MaskView& mask, float xPos, float yPos, gauge::Color color) {
+  const int x = static_cast<int>(std::lround(xPos));
+  const int y = static_cast<int>(std::lround(yPos));
   if (mask.alpha == nullptr) return;
 
   for (int iy = 0; iy < mask.height; ++iy) {

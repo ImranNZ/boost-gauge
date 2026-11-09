@@ -38,7 +38,7 @@ class RecordingSurface : public IDrawSurface {
       if (image.alpha != nullptr) imageAlpha.push_back(image.alpha[i]);
     }
   }
-  void drawMask(const MaskView& mask, int x, int y, Color) override {
+  void drawMask(const MaskView& mask, float x, float y, Color) override {
     ++masks;
     maskAt = {x, y};
     maskSize = {mask.width, mask.height};
@@ -58,7 +58,7 @@ class RecordingSurface : public IDrawSurface {
   std::vector<uint16_t> imagePixels;
   std::vector<uint8_t> imageAlpha;
   int masks = 0;
-  std::array<int, 2> maskAt{};
+  std::array<float, 2> maskAt{};
   std::array<int, 2> maskSize{};
   std::vector<uint8_t> maskPixels;
 
@@ -103,7 +103,7 @@ TEST_CASE("scaled surface: at 240x240 every call passes straight through") {
   CHECK(real.imageAt == std::array<int, 2>{7, 8});
   CHECK(real.imageSize == std::array<int, 2>{1, 1});
   CHECK(real.imageHadAlpha);
-  CHECK(real.maskAt == std::array<int, 2>{9, 10});
+  CHECK(real.maskAt == std::array<float, 2>{9.0f, 10.0f});
 }
 
 TEST_CASE("scaled surface: shapes are scaled about the centre of the screen") {
@@ -186,7 +186,7 @@ TEST_CASE("scaled surface: a mask is resampled and drawn where the scaled text w
   const uint8_t alpha[2] = {0, 255};
   surface.drawMask(MaskView{2, 1, alpha}, 5, 6, kWhite);
 
-  CHECK(real.maskAt == std::array<int, 2>{10, 12});
+  CHECK(real.maskAt == std::array<float, 2>{10.0f, 12.0f});
   CHECK(real.maskSize == std::array<int, 2>{4, 2});
   REQUIRE(real.maskPixels.size() == 8);
   CHECK(real.maskPixels[0] == 0);
@@ -209,7 +209,8 @@ TEST_CASE("scaled surface: a picture's bottom edge lands where the scaled baseli
   // Three glyphs of different heights all ending on design row 100.
   for (int h = 1; h <= 3; ++h) {
     surface.drawMask(MaskView{1, h, alpha}, 0, 100 - h, kWhite);
-    CHECK(real.maskAt[1] + real.maskSize[1] == static_cast<int>(std::lround(100 * 466.0 / 240.0)));
+    CHECK(static_cast<int>(real.maskAt[1]) + real.maskSize[1] ==
+          static_cast<int>(std::lround(100 * 466.0 / 240.0)));
   }
 }
 
