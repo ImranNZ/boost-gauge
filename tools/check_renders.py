@@ -29,8 +29,8 @@ from make_media import FRAME_MS, build, sim_exe  # noqa: E402
 from preview import ROOT, env_with_compiler  # noqa: E402
 
 # (look, channel, unit, screen, menu): every look on boost in psi, then the code-drawn looks on the other
-# channels and units, then a few on the other screen sizes (466x466 and 412x412 are round AMOLED/LCD
-# boards, 320x480 a portrait one), then the settings menu open on each of its choices. Retro and Modern
+# channels and units, then other screen sizes (466x466, 720x720 and 412x412 are round boards,
+# 320x480 a portrait one), then the settings menu open on each of its choices. Retro and Modern
 # are pictures of a psi boost dial, so only boost.
 CASES = [(look, "boost", "", (240, 240), "") for look in ("modern", "retro", "minimal", "motorsport", "classic")] + [
     ("classic", "boost", "bar", (240, 240), ""),
@@ -41,6 +41,8 @@ CASES = [(look, "boost", "", (240, 240), "") for look in ("modern", "retro", "mi
     ("classic", "boost", "", (466, 466), ""),
     ("minimal", "boost", "", (466, 466), ""),
     ("retro", "boost", "", (466, 466), ""),
+    ("retro", "boost", "", (720, 720), ""),
+    ("minimal", "boost", "", (720, 720), ""),
     ("motorsport", "coolant", "", (412, 412), ""),
     ("minimal", "boost", "", (320, 480), ""),
     ("retro", "boost", "", (240, 240), "look"),

@@ -8,10 +8,9 @@
 // exists and is picked up here automatically; otherwise the dial is used without it.
 
 #include "gauge/GaugeScale.h"
+#include "looks/Dials.h"
+#include "looks/Fonts.h"
 #include "looks/RetroLook.h"
-#include "looks/fonts/JostMedium10.h"
-#include "looks/fonts/JostMedium20.h"
-#include "looks/retro/RetroDial.h"
 #include "looks/retro/RetroSpec.h"
 
 #if __has_include("looks/local/Badge.h") && !defined(BOOST_GAUGE_NO_BADGE)
@@ -28,8 +27,8 @@ static_assert(looks::retro::kSweepDeg == gauge::GaugeScale::kSweepDeg,
 
 namespace looks {
 
-inline gauge::ImageView retroDial() {
-  return {retro::kDialWidth, retro::kDialHeight, retro::kDialRgb565, nullptr};
+inline gauge::Picture retroDial() {
+  return gauge::Picture(retro::kDialFaces, retro::kDialFaceCount);
 }
 
 inline gauge::RetroLook::Spec retroSpec() {
@@ -45,7 +44,7 @@ inline gauge::RetroLook::Fonts retroFonts() {
 inline gauge::RetroLook makeRetro() {
 #ifdef BOOST_GAUGE_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge::kWidth, badge::kHeight, badge::kRgb565, badge::kAlpha};
+  overlay.picture = gauge::Picture(badge::kFaces, badge::kFaceCount);
   overlay.x = 120 - badge::kWidth / 2;  // centred under the 5 psi numeral
   overlay.y = 80 - badge::kHeight / 2;
   return gauge::RetroLook(retroDial(), retroSpec(), retroFonts(), overlay);

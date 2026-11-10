@@ -83,10 +83,16 @@ namespace {
 // Two sizes of the same boxes: 6x10 for the design size, and 12x20 for a screen twice as big.
 const SolidFont kSmallFace(6, 10, 8);
 const SolidFont kBigFace(12, 20, 16);
+const SolidFont kHugeFace(24, 40, 32);
 
 Font twoFaces() {
   const FontFace faces[] = {kSmallFace.face(1.0f), kBigFace.face(2.0f)};
   return Font(faces, 2);
+}
+
+Font threeFaces() {
+  const FontFace faces[] = {kSmallFace.face(1.0f), kBigFace.face(2.0f), kHugeFace.face(3.0f)};
+  return Font(faces, 3);
 }
 
 /// Draw "A" through a ScaledSurface on a square canvas `side` pixels across: the surface's scale
@@ -115,6 +121,18 @@ TEST_CASE("font: draws with the smallest face that is at least as big as the scr
 
 TEST_CASE("font: on a screen bigger than any face, the biggest is stretched") {
   CHECK(inkedPixels(twoFaces(), 720) == 18 * 30);  // 3x from the 2x face
+}
+
+TEST_CASE("font: a face generated for a 3x screen is used at 3x") {
+  CHECK(inkedPixels(threeFaces(), 720) == 24 * 40);  // the 3x face, as it is
+}
+
+TEST_CASE("font: a profile covers a screen up to its largest face") {
+  CHECK(fontCoversScale(1.9417f, 1.0f));
+  CHECK(fontCoversScale(1.9417f, 1.9417f));
+  CHECK(fontCoversScale(1.9417f, 1.9417f + 0.0005f));  // the same float-rounding slack
+  CHECK_FALSE(fontCoversScale(1.9417f, 3.0f));         // what a 720 screen needs
+  CHECK(fontCoversScale(3.0f, 3.0f));
 }
 
 TEST_CASE("font: a face of the exact size is used unstretched, spacing included") {

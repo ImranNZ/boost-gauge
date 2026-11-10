@@ -3,8 +3,7 @@
 // The typefaces for the on-gauge settings menu. Shared by the firmware and the PC sim.
 
 #include "app/SettingsMenu.h"
-#include "looks/fonts/BarlowSemiBold18.h"
-#include "looks/fonts/BarlowSemiBold30.h"
+#include "looks/Fonts.h"
 
 namespace looks {
 

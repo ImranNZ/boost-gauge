@@ -15,7 +15,7 @@ struct Glyph {
   uint8_t width;
   uint8_t height;
   int8_t xOffset;   // pixels from the pen position to the bitmap's left edge
-  int8_t yOffset;   // pixels from the baseline to the bitmap's top edge (negative = above)
+  int16_t yOffset;  // pixels from the baseline to the bitmap's top edge (negative = above)
   uint8_t advance;  // pixels the pen moves on after this glyph
   uint32_t offset;  // where its width * height coverage bytes start in the face's array
 };
@@ -30,6 +30,15 @@ struct FontFace {
   int ascent = 0;
   float resolution = 1.0f;
 };
+
+/// Whether a font profile whose largest face is `maxResolution` covers `surfaceScale` without
+/// upscaling. Font picks the smallest face at least the scale, so a bigger face is only shrunk;
+/// only a screen beyond the largest face is stretched. The slack matches Font::faceFor, so a face
+/// generated for exactly this scale is not missed by float rounding. The firmware asserts this for
+/// its board (see src/main.cpp); a font profile is generated per display class (tools/fonts.json).
+constexpr bool fontCoversScale(float maxResolution, float surfaceScale) {
+  return maxResolution + 0.001f >= surfaceScale;
+}
 
 /// A font whose glyphs were rendered ahead of time from a TrueType file (see
 /// tools/make_font.py), at one or more sizes. The tables live in flash and are never copied; this

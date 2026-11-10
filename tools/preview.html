@@ -69,8 +69,8 @@
       <label for="size">View</label>
       <select id="size">
         <option value="fit">Fit to page</option>
-        <option value="native">1:1 (240 px)</option>
-        <option value="real">Real size (32.5 mm display)</option>
+        <option value="native">1:1 (actual pixels)</option>
+        <option value="real">Real size</option>
       </select>
       <label class="check"><input type="checkbox" id="crisp"> Show raw pixels</label>
     </div>
@@ -80,6 +80,7 @@
         <option value="240x240">Round 240 (Waveshare 1.28&Prime;)</option>
         <option value="466x466">Round 466 (AMOLED 1.43&Prime;)</option>
         <option value="412x412">Round 412 (LCD 1.46&Prime;)</option>
+        <option value="720x720">Round 720 (Waveshare 4&Prime;)</option>
         <option value="320x480">Portrait 320&times;480 (LCD 3.5&Prime;)</option>
       </select>
       <span class="hint">Restarts the simulator at that size. The looks are drawn for 240&times;240 and scaled, so a tall screen leaves room unused.</span>
@@ -236,6 +237,7 @@
     '240x240': { mm: 32.5, fit: 420 },
     '466x466': { mm: 36.3, fit: 420 },
     '412x412': { mm: 37.1, fit: 420 },
+    '720x720': { mm: 101.52, fit: 420 },  // Waveshare 4C active display diameter
     '320x480': { mm: 49.4, fit: 260 },
   };
   const screenSelect = document.getElementById('screen-size');

@@ -36,8 +36,8 @@ constexpr int kFpsBaseline = 214;
 }  // namespace
 
 void ModernLook::drawDial(IDrawSurface& c) const {
-  c.drawImage(dial_, 0, 0);
-  if (badge_) c.drawImage(badge_->image, badge_->x, badge_->y);
+  dial_.draw(c, 0, 0);
+  if (badge_) badge_->picture.draw(c, badge_->x, badge_->y);
 }
 
 void ModernLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {

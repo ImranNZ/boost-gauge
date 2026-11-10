@@ -10,7 +10,7 @@
 #include "render/Color.h"
 #include "render/Font.h"
 #include "render/IDrawSurface.h"
-#include "render/ImageView.h"
+#include "render/Picture.h"
 
 namespace gauge {
 
@@ -31,9 +31,9 @@ class ModernLook : public ILook {
   static constexpr Color kNeedle{255, 90, 31};
   static constexpr Color kFlag{244, 241, 234};
 
-  ModernLook(ImageView dial, Spec spec, const Fonts& fonts)
+  ModernLook(Picture dial, Spec spec, const Fonts& fonts)
       : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, fonts_(fonts) {}
-  ModernLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge& badge)
+  ModernLook(Picture dial, Spec spec, const Fonts& fonts, const Badge& badge)
       : dial_(dial), spec_(spec), scale_{spec.minPsi, spec.maxPsi}, fonts_(fonts), badge_(badge) {}
 
   void drawDial(IDrawSurface& c) const override;
@@ -46,7 +46,7 @@ class ModernLook : public ILook {
   void drawHub(IDrawSurface& c, int cx, int cy) const;
   void drawReadout(IDrawSurface& c, const GaugeState& state) const;
 
-  ImageView dial_;
+  Picture dial_;
   Spec spec_;
   GaugeScale scale_;
   Fonts fonts_;

@@ -17,7 +17,8 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
    from the spec (see `looks/retro/`). Fonts are static TTFs under `looks/<name>/fonts/`
    (SIL OFL only; ship the licence). Keep it free of trademarked artwork. For code-drawn text in a real typeface, add the TTF
    (SIL OFL) under `looks/<name>/fonts/`, list it in `tools/fonts.json`, run
-   `python tools/make_font.py`, and pass the resulting `Font`s to the look (see `MinimalLook`).
+   `python tools/make_font.py --profile s3` and `python tools/make_font.py --profile all`, then pass
+   the resulting `Font`s to the look (see `MinimalLook`).
 2. **Generate.** Add a `<name>` command to `tools/make_look.py` (copy `retro`) that writes
    `src/looks/<name>/<Name>Dial.h` and `<Name>Spec.h` from the spec. The picture and the
    code must read the same numbers: never hard-code geometry in the look class. Commit the
@@ -25,10 +26,10 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
 3. **Look class** in `lib/core/src/looks/<Name>Look.h/.cpp`, `namespace gauge`, no hardware
    headers. Use only `IDrawSurface` primitives so the PC sim and the board match. Needles
    are `drawWedge` with float coordinates; pictures go through `drawImage`. Use
-   `GaugeScale` for pressure -> angle.
+   `GaugeScale` for value -> angle.
    A code-drawn look takes a `GaugeProfile` (`gauge/GaugeProfile.h`) and uses it for the scale
    range, zone thresholds, unit label and number formatting instead of hard-coding psi numbers (see
-   `MinimalLook`); convert `state.psi` with `profile.toDisplay()` once, then work in that unit.
+   `MinimalLook`); convert `state.value` with `profile.toDisplay()` once, then work in that unit.
 4. **Factory** in `src/looks/<name>/<Name>LookFactory.h` that wraps the generated arrays in
    `ImageView`s and fills the look's `Spec`, shared by `src/main.cpp` and the sim. Add
    `static_assert`s for anything the C++ also hard-codes (see `src/looks/retro/RetroLookFactory.h`).

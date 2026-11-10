@@ -18,8 +18,9 @@ A transport is an adapter behind an existing interface. `lib/core` should not ch
 3. **Register the build** in `platformio.ini`: copy `[env:device-wifi]`, new
    `-DTRANSPORT_<NAME>` flag, and `build_src_filter = ${device.build_src_filter} +<device/<Name>.cpp>`
    so other environments don't compile it. Add extra `lib_deps` only in that env.
-4. **Wire it** in `src/main.cpp`: an `#elif defined(TRANSPORT_<NAME>)` in the
-   include block and in the object block. Update the `#error` message.
+4. **Wire it** in `src/device/Transport.h`: add an
+   `#elif defined(TRANSPORT_<NAME>)` branch whose `Transport` owns the adapter and OBD client.
+   Update the `#error` message. `src/main.cpp` stays transport-independent.
 5. **Test the logic you can.** Hardware calls can't run on a PC, so keep the
    adapter thin; anything with logic (framing, retries, parsing) belongs in
    `lib/core` behind an interface with tests and keeps the 100% gate.

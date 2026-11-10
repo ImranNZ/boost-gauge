@@ -12,15 +12,20 @@ namespace gauge {
 /// The looks draw in a fixed "design" space of kDesignSize pixels (a circle of radius 120 around
 /// (120, 120)). This surface sits between a look and the real surface and maps that space onto the
 /// real one: scaled to fit the shorter side and centred on the longer. Shapes keep their
-/// proportions and stay sharp at any size. Text (a bitmap made for this scale, see Font) is drawn
-/// as it is; other bitmaps and pictures are resampled (bilinear), so they are a little soft above
-/// 1x. At exactly 240x240 every call passes straight through.
+/// proportions and stay sharp at any size. Text and pictures made for this scale (see Font and
+/// Picture) pass through as they are; other bitmaps are resampled bilinearly. At 240x240 the
+/// original design-resolution assets pass straight through.
 ///
 /// It owns a small scratch buffer for resampling, so make one per display, not per frame.
 class ScaledSurface : public IDrawSurface {
  public:
   /// The size the looks are drawn for.
   static constexpr int kDesignSize = 240;
+
+  /// Real pixels per design pixel for a `width` x `height` surface: fitted to the shorter side.
+  static constexpr float scaleFor(int width, int height) {
+    return static_cast<float>(width < height ? width : height) / static_cast<float>(kDesignSize);
+  }
 
   explicit ScaledSurface(IDrawSurface& target);
 

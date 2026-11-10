@@ -3,9 +3,7 @@
 // Builds the Classic look. Shared by the firmware and the PC sim.
 
 #include "looks/ClassicLook.h"
-#include "looks/fonts/BarlowSemiBold10.h"
-#include "looks/fonts/BarlowSemiBold18.h"
-#include "looks/fonts/BarlowSemiBold40.h"
+#include "looks/Fonts.h"
 
 namespace looks {
 

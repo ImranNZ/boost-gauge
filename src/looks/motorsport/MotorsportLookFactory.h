@@ -6,10 +6,8 @@
 // RetroLookFactory.h) when src/looks/local/BadgeLight.h (the light variant, for dark dials) exists;
 // the badge is brand artwork and is never committed.
 
+#include "looks/Fonts.h"
 #include "looks/MotorsportLook.h"
-#include "looks/fonts/SairaBold70.h"
-#include "looks/fonts/SairaSemiBold12.h"
-#include "looks/fonts/SairaSemiBold14.h"
 
 #if __has_include("looks/local/BadgeLight.h") && !defined(BOOST_GAUGE_NO_BADGE)
 #include "looks/local/BadgeLight.h"
@@ -25,8 +23,7 @@ inline gauge::MotorsportLook::Fonts motorsportFonts() {
 inline gauge::MotorsportLook makeMotorsport(const gauge::GaugeProfile& profile = {}) {
 #ifdef BOOST_GAUGE_MOTORSPORT_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
-                   badge_light::kAlpha};
+  overlay.picture = gauge::Picture(badge_light::kFaces, badge_light::kFaceCount);
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above the BOOST label
   overlay.y = 64 - badge_light::kHeight / 2;
   return gauge::MotorsportLook(motorsportFonts(), profile, overlay);

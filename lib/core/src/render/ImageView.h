@@ -9,11 +9,14 @@ namespace gauge {
 /// A read-only picture held elsewhere (typically a generated array in flash).
 /// Pixels are row-major RGB565; `alpha`, when present, is one byte per pixel
 /// (255 = opaque) so artwork such as a badge can have soft edges.
+/// `resolution` is how many of its pixels make one design-space pixel: 1 for a picture made for a
+/// 240x240 screen, 3 for one rendered at 720x720. A plain canvas ignores it; ScaledSurface uses it.
 struct ImageView {
   int width = 0;
   int height = 0;
   const uint16_t* rgb565 = nullptr;
   const uint8_t* alpha = nullptr;  // optional
+  float resolution = 1.0f;
 };
 
 /// A read-only 8-bit coverage bitmap (255 = fully covered), one byte per pixel,

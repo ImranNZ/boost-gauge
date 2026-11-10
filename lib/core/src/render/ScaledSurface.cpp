@@ -43,7 +43,7 @@ uint16_t packRgb565(int r, int g, int b) {
 ScaledSurface::ScaledSurface(IDrawSurface& target) : target_(target) {
   const int w = target.width();
   const int h = target.height();
-  scale_ = static_cast<float>(std::min(w, h)) / static_cast<float>(kDesignSize);
+  scale_ = scaleFor(w, h);
   originX_ = (static_cast<float>(w) - static_cast<float>(kDesignSize) * scale_) * 0.5f;
   originY_ = (static_cast<float>(h) - static_cast<float>(kDesignSize) * scale_) * 0.5f;
 }
@@ -118,13 +118,16 @@ void ScaledSurface::resample(const Placement& at, int srcWidth, int srcHeight, F
 
 void ScaledSurface::drawImage(const ImageView& image, int x, int y) {
   if (image.rgb565 == nullptr) return;
-  if (scale_ == 1.0f) {
+  // Artwork rendered at exactly this resolution needs no resampling, whatever the screen size.
+  if (std::fabs(image.resolution - scale_) < kSameResolution) {
     target_.drawImage(image, mapX(x), mapY(y));
     return;
   }
+  const float perDesign = 1.0f / image.resolution;
   Placement at;
-  if (!place(static_cast<float>(x), static_cast<float>(y), static_cast<float>(image.width),
-             static_cast<float>(image.height), at)) {
+  if (!place(static_cast<float>(x), static_cast<float>(y),
+             static_cast<float>(image.width) * perDesign,
+             static_cast<float>(image.height) * perDesign, at)) {
     return;
   }
 

@@ -6,9 +6,8 @@
 // see RetroLookFactory.h) when src/looks/local/BadgeLight.h (the light variant, for dark dials)
 // exists; the badge is brand artwork and is never committed.
 
+#include "looks/Fonts.h"
 #include "looks/MinimalLook.h"
-#include "looks/fonts/OutfitLight62.h"
-#include "looks/fonts/OutfitMedium12.h"
 
 #if __has_include("looks/local/BadgeLight.h") && !defined(BOOST_GAUGE_NO_BADGE)
 #include "looks/local/BadgeLight.h"
@@ -24,8 +23,7 @@ inline gauge::MinimalLook::Fonts minimalFonts() {
 inline gauge::MinimalLook makeMinimal(const gauge::GaugeProfile& profile = {}) {
 #ifdef BOOST_GAUGE_MINIMAL_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
-                   badge_light::kAlpha};
+  overlay.picture = gauge::Picture(badge_light::kFaces, badge_light::kFaceCount);
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above the mode label
   overlay.y = 62 - badge_light::kHeight / 2;
   return gauge::MinimalLook(minimalFonts(), profile, overlay);

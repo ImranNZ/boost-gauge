@@ -8,6 +8,7 @@
 #include <Arduino.h>
 
 #include "app/GaugeApp.h"
+#include "boards/Board.h"
 #include "config.h"
 #include "device/ArduinoClock.h"
 #include "device/LgfxCanvas.h"
@@ -15,6 +16,7 @@
 #include "device/SamplerTask.h"
 #include "device/Transport.h"
 #include "looks/ClassicLook.h"
+#include "looks/Fonts.h"
 #include "looks/MinimalLook.h"
 #include "looks/ModernLook.h"
 #include "looks/MotorsportLook.h"
@@ -23,6 +25,7 @@
 #include "looks/modern/ModernLookFactory.h"
 #include "looks/motorsport/MotorsportLookFactory.h"
 #include "looks/retro/RetroLookFactory.h"
+#include "render/ScaledSurface.h"
 #include "sampling/ChannelSampler.h"
 #include "sampling/ReadingMailbox.h"
 #include "sampling/SamplerLoop.h"
@@ -51,6 +54,13 @@ gauge::RetroLook retroLook = looks::makeRetro();
 gauge::MinimalLook minimalLook = looks::makeMinimal(config::kProfile);
 gauge::MotorsportLook motorsportLook = looks::makeMotorsport(config::kProfile);
 gauge::ModernLook modernLook = looks::makeModern();
+
+// A face must exist at the board's scale. Without one, Font falls back to its biggest face and
+// ScaledSurface upscales it: the text goes soft while the shapes stay crisp (see looks/Fonts.h).
+constexpr float kBoardScale = gauge::ScaledSurface::scaleFor(board::kWidth, board::kHeight);
+static_assert(gauge::fontCoversScale(looks::fonts::kMaxResolution, kBoardScale),
+              "the font profile has no face for this board's scale: add it to tools/fonts.json "
+              "and regenerate (see src/looks/Fonts.h)");
 
 // Retro and Modern are pictures of a psi boost dial: they cannot show another channel.
 static_assert(config::kChannel == gauge::ChannelKind::Boost ||

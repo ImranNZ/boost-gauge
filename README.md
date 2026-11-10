@@ -113,9 +113,9 @@ page has controls to drive the mock:
 * **Data rate**: how often fresh readings arrive (30 / 25 / 10 / 5 / 2 Hz), to see how
   the needle behaves with a fast CAN link versus a slow dongle
 
-The **View** menu switches between fit-to-page, 1:1 (240 px) and **real size**
-(the actual 32.5 mm display, which is how pixelated it will really look); "Show
-raw pixels" turns off the browser's smooth scaling.
+The **View** menu switches between fit-to-page, 1:1 actual pixels and **real size**
+(using the selected panel's physical dimensions, which is how pixelated it will really look);
+"Show raw pixels" turns off the browser's smooth scaling.
 
 Options: `--port 9000`, `--no-browser`, `--no-build` (reuse the last build).
 Press Ctrl+C to stop. Needs only Python 3 and the tools from step 1.
@@ -302,10 +302,11 @@ constructor injection, and doctest is your xUnit/Jest.
 * **Screen size.** Looks are drawn for a 240x240 screen (a circle of radius 120 about (120, 120)).
   `FrameRenderer` puts a `ScaledSurface` between a look and the canvas, which scales that design
   space to the real screen (fitted to the shorter side, centred on the longer one). Shapes stay
-  sharp at any size. Text stays sharp too: every font is pre-rendered at the size of each board we
-  know (see "Fonts" below) and drawn from the face closest to the screen. The Retro/Modern dial
-  pictures are still resampled, so a little soft above 1x. At 240x240 nothing changes. Try it: `program --live --size 466x466` (the stored renders in
-  `test/golden/` include 466x466, 412x412 and 320x480). A new board is a folder under
+  sharp at any size. Text and the Retro/Modern dial pictures have pre-rendered faces for each
+  resolution in the build's display profile; `Font` and `Picture` choose the closest face at or
+  above the screen's scale, and exact matches pass through without resampling. At 240x240 the
+  original face is used. Try it: `program --live --size 720x720` (the stored renders in
+  `test/golden/` include 466x466, 720x720, 412x412 and 320x480). A new board is a folder under
   `src/boards/` (its `Board.h` with the screen size and pins, its `Panel.h` with the LovyanGFX driver)
   and a `-DBOARD_<NAME>` flag; see `src/boards/Board.h`.
 * Shapes are anti-aliased: the PC sim draws at 4x
@@ -347,7 +348,7 @@ state each frame and it draws. Five exist today:
 | <img src="docs/media/motorsport.webp" alt="motorsport look, animated" width="140"> | **Motorsport** (`MotorsportLook`) | A 40-segment bar (one per psi) that lights up through blue, teal, lime, amber and red, a bold readout, and a rim that pulses red past 20 psi like a shift light. Drawn in code. |
 | <img src="docs/media/classic.webp" alt="classic look, animated" width="140"> | **Classic** (`ClassicLook`) | Dark dial drawn entirely in code, coloured zones, big digital readout. |
 
-**Fonts.** The looks draw their text with real typefaces (Outfit, Saira Condensed, Barlow and Jost, all SIL OFL) instead of the board's 6x8 pixel font. `tools/fonts.json` lists each font, size, weight and characters; `python tools/make_font.py` renders them with FreeType into anti-aliased glyph tables in `src/looks/fonts/` (committed, never hand-edited). Each font is rendered at several sizes (`scales` in `fonts.json`: 1x for the 240 design, then the sizes of the 320, 412 and 466 pixel screens), and `Font::draw` picks the face that matches the screen (`IDrawSurface::scale()`), so text is never stretched; on a screen with no matching face it shrinks the next one up. A look draws through `Font::draw`, which uses the `IDrawSurface::drawMask` primitive, so the PC sim and the LCD agree. Add a font by adding an entry to `tools/fonts.json` and re-running the script (needs `pip install "pillow>=10.1"`, for fractional sizes); a new board size is one more entry in `scales`.
+**Fonts.** The looks draw their text with real typefaces (Outfit, Saira Condensed, Barlow and Jost, all SIL OFL) instead of the board's 6x8 pixel font. `tools/fonts.json` lists each font, size, weight and characters, plus the **font profiles**: the resolutions one display class ships (the `s3` profile has 1x for the 240 design, then the sizes of the 320, 412 and 466 pixel screens; `all` adds 720). `python tools/make_font.py --profile <name>` renders them with FreeType into anti-aliased glyph tables under `src/looks/fonts/<name>/` (committed, never hand-edited). Firmware uses `s3`; the simulator uses `all`, so after changing fonts generate both profiles. `src/looks/Fonts.h` picks the profile for the build; `Font::draw` then picks the smallest face at least as large as the screen (`IDrawSurface::scale()`), so text is only shrunk when a larger face exists. A firmware build asserts that its profile covers the board's scale, so a new screen cannot silently render upscaled, soft text. A look draws through `Font::draw`, which uses the `IDrawSurface::drawMask` primitive, so the PC sim and the LCD agree. Add a font by adding an entry to `tools/fonts.json` and re-running the script (needs `pip install "pillow>=10.1"`, for fractional sizes); a new display class is a profile in `fonts.json`, `make_font.py --profile <name>`, a branch in `src/looks/Fonts.h`, and the build flag that selects it.
 
 **The pictures** above are recorded from the simulator by `python tools/make_media.py` (a still and a 10 s drive-cycle animation per look, in `docs/media/`). It uses a `sim-media` build that leaves the Cooper S badge out, because the badge is brand artwork and this repo is public. Re-run it after changing a look.
 
@@ -358,12 +359,13 @@ settings menu (below).
 **How the Retro look is built.** `looks/retro/spec.json` is the single source of truth
 for the scale and pointer geometry (scale range, tick radii, needle length, hub size).
 `tools/make_look.py retro` uses it twice: it fills the graduations, numerals and red
-band into `looks/retro/dial.svg.in`, renders that with resvg and dithers it to RGB565
-(`src/looks/retro/RetroDial.h`, a 115 KB array in flash), and it writes the same numbers
-to `src/looks/retro/RetroSpec.h`, which `RetroLook` draws the needle with. So the picture
+band into `looks/retro/dial.svg.in`, renders that with resvg at each resolution in the `s3` and
+`all` profiles, and dithers the pictures to RGB565 (`src/looks/retro/RetroDial.h` and
+`src/looks/retro/all/RetroDial.h`). It also writes the same geometry to
+`src/looks/retro/RetroSpec.h`, which `RetroLook` draws the needle with. So the pictures
 and the code cannot drift apart; a `static_assert` in the factory also checks the
-start angle and sweep against `GaugeScale`. At run time the picture is drawn once, the
-canvas caches it, and each frame only the needle, flag and hub are drawn on top.
+start angle and sweep against `GaugeScale`. At run time `Picture` selects the face for the screen,
+the canvas caches it, and each frame only the needle, flag and hub are drawn on top.
 
 ```bash
 pip install resvg-py pillow fonttools
@@ -407,8 +409,9 @@ coolant, intake air, battery voltage) and per-channel units; the sim takes `--ch
 and the ECU commands `coolant <C>`, `intake <C>`, `volts <V>` hold a value.
 
 **Try another screen size.** The preview's **Screen** menu restarts the simulator at the size of
-each board you might use (240 round, 466 round, 412 round, 320x480 portrait); it keeps your channel,
-look and unit. `python tools/preview.py --size 466x466` starts on one, and the sim takes `--size WxH`.
+each board you might use (240 round, 466 round, 412 round, 720 round Waveshare 4C,
+320x480 portrait); it keeps your channel, look and unit. `python tools/preview.py --size 720x720`
+starts on one, and the sim takes `--size WxH`.
 The looks are drawn for 240x240 and scaled (see `ScaledSurface`), so a tall or wide screen leaves
 room unused until there are layouts for it.
 

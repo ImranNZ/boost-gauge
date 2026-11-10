@@ -112,10 +112,11 @@ GaugeApp (core 1) ── GaugeModel ── FrameRenderer ── ILook     app/ g
 * **No Boost C++ libraries**; C++17 standard library only.
 * **Read-only OBD.** Only mode 01 requests. Never add anything that writes to the car's bus
   (modes 04/08/2x/3x, UDS writes, ...) unless the owner explicitly asks.
-* **Never hand-edit generated files**: `src/looks/fonts/*.h` comes from `tools/fonts.json` via
-  `python tools/make_font.py`; `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
-  `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`.
-  Geometry shared by art and code has one source (`spec.json`); do not hard-code it in C++.
+* **Never hand-edit generated files**: `src/looks/fonts/<profile>/*.h` comes from `tools/fonts.json`
+  via `python tools/make_font.py --profile <profile>`; Retro/Modern dial and spec headers come from
+  `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern` (which builds
+  the `s3` and `all` display profiles). Geometry shared by art and code has one source (`spec.json`);
+  do not hard-code it in C++.
 * **Brand artwork is never committed.** The Cooper S badge lives only in `assets/` and
   `src/looks/local/` (both git-ignored), included via `__has_include`. Never `git add -f`,
   copy it into tracked folders or upload it; the GitHub repo is public.
@@ -142,9 +143,12 @@ GaugeApp (core 1) ── GaugeModel ── FrameRenderer ── ILook     app/ g
   The built-in `SoftCanvas` bitmap fallback only has
   `0-9 - + . space A B C D E F G H I K L M N O P R S T U V`; add a glyph to `kGlyphs` before
   using another character in a look. (Real looks use generated `Font` faces instead; list new
-  characters in `tools/fonts.json` and re-run `make_font.py`.)
-* A new board size means adding its scale (`min(w, h) / 240`) to `fonts.json` `scales` and
-  regenerating fonts. Screen size and pins live in `src/boards/<name>/Board.h`.
+  characters in `tools/fonts.json` and regenerate the `s3` and `all` profiles with `make_font.py`.)
+* Font quality is a build-time profile, not runtime scaling: a display class is a profile in
+  `fonts.json` (its resolutions), generated with `make_font.py --profile <name>` and selected in
+  `src/looks/Fonts.h`. `src/main.cpp` asserts the profile covers `min(w, h) / 240`, so a board
+  cannot silently render text upscaled from a smaller face. Screen size and pins live in
+  `src/boards/<name>/Board.h`.
 * `ManualClock::delayMs` advances time (that is what makes timeout loops terminate in tests);
   do not make a fake clock's `delayMs` a no-op.
 * `fillArc` wraps its sweep at 360, so a full circle draws nothing; draw two half arcs.
@@ -163,6 +167,7 @@ GaugeApp (core 1) ── GaugeModel ── FrameRenderer ── ILook     app/ g
 | New PID / channel | constant and decoder in `obd/PidDecode.h`, a `PidChannel` factory (or an `IChannel` if it needs several PIDs), a `GaugeProfile` preset, `FakeEcu::answer`, tests |
 | Tune the Classic look | `lib/core/src/looks/ClassicLook.cpp`, then run the sim |
 | Tune the Retro/Modern look | `looks/<name>/spec.json` or `dial.svg.in`, then `python tools/make_look.py <name>` |
+| New display class / asset quality | a profile in `tools/fonts.json`, `python tools/make_font.py --profile <name>`, `python tools/make_look.py retro|modern --profile <name>`, and branches in `src/looks/Fonts.h` and `src/looks/Dials.h` |
 | Pins, screen size, panel driver | `src/boards/<name>/` (`Board.h`, `Panel.h`), chosen by `-DBOARD_<NAME>` in `platformio.ini` |
 | SSID / BLE name / protocol / what is shown | `src/config.h` |
 | Button, touch or tilt input | an `IInput` adapter in `src/device/`, wired in `src/main.cpp` |
@@ -175,8 +180,10 @@ GaugeApp (core 1) ── GaugeModel ── FrameRenderer ── ILook     app/ g
   the goal.
 * Match the surrounding style: Google-ish, 2-space indent, `namespace gauge` for core and
   `namespace device` for adapters, `kConstantName`, trailing-underscore members.
-* Project skills live in `.claude/skills/` (`check`, `add-look`, `add-pid`,
-  `add-transport`); read the relevant `SKILL.md` directly before starting that kind of task.
+* Project skills live in `.claude/skills/` for Claude Code, `.dsh/skills/` for DeepSeek Harness,
+  and `.agents/skills/` for Kimi Code (the same four: `check`, `add-look`, `add-pid`,
+  `add-transport`). Keep the copies in sync, and read the relevant `SKILL.md` before starting that
+  kind of task.
 
 ## Git and CI
 

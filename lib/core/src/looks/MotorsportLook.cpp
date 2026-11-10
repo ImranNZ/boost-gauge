@@ -107,7 +107,7 @@ void MotorsportLook::drawDial(IDrawSurface& c) const {
   fonts_.caption.draw(c, kCx, kUnitBaseline, profile_.unitLabel(), TextAlign::Center, kLabel,
                       kUnitTracking);
 
-  if (badge_) c.drawImage(badge_->image, badge_->x, badge_->y);
+  if (badge_) badge_->picture.draw(c, badge_->x, badge_->y);
 }
 
 void MotorsportLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
