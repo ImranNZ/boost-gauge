@@ -63,9 +63,10 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   compile error on purpose. `setLook()` discards the cached dial. See the `add-look` skill.
 * Generated files: `src/looks/fonts/<profile>/*.h` come from `tools/fonts.json` via
   `python tools/make_font.py --profile <profile>`
-  (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). `src/looks/{Retro,Modern}Dial.h` and `*Spec.h` come from
-  `looks/<name>/spec.json` + `dial.svg.in` via `python tools/make_look.py retro|modern`; never
-  hand-edit them, regenerate. `src/looks/retro/RetroDial.h` is big (~470 KB): avoid reading it.
+  (never hand-edit; the TTFs live under `looks/*/fonts/` with their OFL licences). Retro/Modern
+  dial and spec headers come from `looks/<name>/spec.json` + `dial.svg.in` via
+  `python tools/make_look.py retro|modern` (which builds the `s3` and `all` display profiles);
+  never hand-edit them, regenerate. The generated dial headers are several MB: avoid reading them.
 * `GaugeState::value` is a reading in its channel's canonical unit (psi for pressure, degrees Celsius
   for a temperature, volts); a look converts it with `GaugeProfile::toDisplay()`. Never compare it
   against a profile's range without converting.
@@ -113,14 +114,17 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
 * Every look and the settings menu draw text with a `Font` (`lib/core/src/render/Font.h`) through `Font::draw`;
   no look uses `drawText` any more. A font has several faces, generated per **font profile**
   (`tools/fonts.json` `profiles`: the resolutions one display class ships). `src/looks/Fonts.h` picks the
-  profile (`FONT_PROFILE_*`); `Font::draw` picks the face closest to `IDrawSurface::scale()` and lays the text
-  out in that face's own pixels, so on a board whose scale has a face it is drawn 1:1 (crisp).
+  profile (`FONT_PROFILE_*`); `Font::draw` picks the smallest face at least as large as
+  `IDrawSurface::scale()` and lays the text out in that face's own pixels, so an exact face is drawn 1:1.
   `drawMask` takes a fractional position and a `MaskView::resolution` (pixels per design pixel);
-  `ScaledSurface` passes a mask of the exact scale through and resamples any other. A new display class means
-  a profile in `fonts.json`, `python tools/make_font.py --profile <name>`, a branch in `src/looks/Fonts.h`,
-  and the build flag that selects it; `src/main.cpp` asserts that the profile's `kMaxResolution` covers
-  `min(board width, height) / 240`, so a board cannot silently render text upscaled from a smaller face.
-  A font only has the characters listed for it, so a new string may need more `chars`.
+  `ScaledSurface` passes a mask of the exact scale through and resamples any other. `Picture` gives
+  Retro/Modern dial images the same face-selection behaviour through `ImageView::resolution`.
+  Firmware uses `s3`; the sim uses `all`, so font changes need both profiles regenerated. A new display
+  class means a profile in `fonts.json`, `python tools/make_font.py --profile <name>`, branches in
+  `src/looks/Fonts.h` and `src/looks/Dials.h`, and the build flag that selects it; `src/main.cpp` asserts
+  that the profile's `kMaxResolution` covers `min(board width, height) / 240`, so a board cannot silently
+  render text upscaled from a smaller face. A font only has the characters listed for it, so a new string
+  may need more `chars`.
 * Only the built-in bitmap font below (used by tests and as a canvas fallback) is limited to its glyph list.
 * The built-in `SoftCanvas` font only covers `0-9 - + . space A B C D E F G H I K L M N O P R S T U V`. Using
   any other character in a look renders nothing in the sim/tests. Add the

@@ -174,6 +174,30 @@ TEST_CASE("scaled surface: a picture is resampled to the scaled size") {
   CHECK(real.imagePixels[4] == real.imagePixels[0]);  // both rows alike
 }
 
+TEST_CASE("scaled surface: a picture at the surface's native resolution passes straight through") {
+  RecordingSurface real(480, 480);
+  ScaledSurface surface(real);
+  const uint16_t pixels[4] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+  surface.drawImage(ImageView{2, 2, pixels, nullptr, 2.0f}, 7, 8);
+
+  CHECK(real.imageAt == std::array<int, 2>{14, 16});
+  CHECK(real.imageSize == std::array<int, 2>{2, 2});
+  REQUIRE(real.imagePixels.size() == 4);
+  for (uint16_t pixel : real.imagePixels) CHECK(pixel == 0xFFFF);
+}
+
+TEST_CASE("scaled surface: a higher-resolution picture is shrunk in design space") {
+  RecordingSurface real(240, 240);
+  ScaledSurface surface(real);
+  const uint16_t pixels[4] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+  surface.drawImage(ImageView{2, 2, pixels, nullptr, 2.0f}, 10, 20);
+
+  CHECK(real.imageAt == std::array<int, 2>{10, 20});
+  CHECK(real.imageSize == std::array<int, 2>{1, 1});
+  REQUIRE(real.imagePixels.size() == 1);
+  CHECK(real.imagePixels[0] == 0xFFFF);
+}
+
 TEST_CASE("scaled surface: a picture's alpha is resampled with it") {
   RecordingSurface real(480, 480);
   ScaledSurface surface(real);

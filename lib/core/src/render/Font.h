@@ -15,7 +15,7 @@ struct Glyph {
   uint8_t width;
   uint8_t height;
   int8_t xOffset;   // pixels from the pen position to the bitmap's left edge
-  int8_t yOffset;   // pixels from the baseline to the bitmap's top edge (negative = above)
+  int16_t yOffset;  // pixels from the baseline to the bitmap's top edge (negative = above)
   uint8_t advance;  // pixels the pen moves on after this glyph
   uint32_t offset;  // where its width * height coverage bytes start in the face's array
 };

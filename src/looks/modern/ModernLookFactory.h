@@ -8,9 +8,9 @@
 // artwork and is never committed.
 
 #include "gauge/GaugeScale.h"
+#include "looks/Dials.h"
 #include "looks/Fonts.h"
 #include "looks/ModernLook.h"
-#include "looks/modern/ModernDial.h"
 #include "looks/modern/ModernSpec.h"
 
 #if __has_include("looks/local/BadgeLight.h") && !defined(BOOST_GAUGE_NO_BADGE)
@@ -28,8 +28,8 @@ static_assert(looks::modern::kSweepDeg == gauge::GaugeScale::kSweepDeg,
 
 namespace looks {
 
-inline gauge::ImageView modernDial() {
-  return {modern::kDialWidth, modern::kDialHeight, modern::kDialRgb565, nullptr};
+inline gauge::Picture modernDial() {
+  return gauge::Picture(modern::kDialFaces, modern::kDialFaceCount);
 }
 
 inline gauge::ModernLook::Spec modernSpec() {

@@ -8,9 +8,9 @@
 // exists and is picked up here automatically; otherwise the dial is used without it.
 
 #include "gauge/GaugeScale.h"
+#include "looks/Dials.h"
 #include "looks/Fonts.h"
 #include "looks/RetroLook.h"
-#include "looks/retro/RetroDial.h"
 #include "looks/retro/RetroSpec.h"
 
 #if __has_include("looks/local/Badge.h") && !defined(BOOST_GAUGE_NO_BADGE)
@@ -27,8 +27,8 @@ static_assert(looks::retro::kSweepDeg == gauge::GaugeScale::kSweepDeg,
 
 namespace looks {
 
-inline gauge::ImageView retroDial() {
-  return {retro::kDialWidth, retro::kDialHeight, retro::kDialRgb565, nullptr};
+inline gauge::Picture retroDial() {
+  return gauge::Picture(retro::kDialFaces, retro::kDialFaceCount);
 }
 
 inline gauge::RetroLook::Spec retroSpec() {

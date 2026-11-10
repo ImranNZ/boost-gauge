@@ -32,10 +32,10 @@ constexpr int kFpsBaselineY = 75;
 
 }  // namespace
 
-RetroLook::RetroLook(ImageView dial, Spec spec, const Fonts& fonts)
+RetroLook::RetroLook(Picture dial, Spec spec, const Fonts& fonts)
     : dial_(dial), spec_(spec), fonts_(fonts), scale_{spec.minPsi, spec.maxPsi} {}
 
-RetroLook::RetroLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge& badge)
+RetroLook::RetroLook(Picture dial, Spec spec, const Fonts& fonts, const Badge& badge)
     : dial_(dial),
       spec_(spec),
       fonts_(fonts),
@@ -44,7 +44,7 @@ RetroLook::RetroLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge&
       hasBadge_(true) {}
 
 void RetroLook::drawDial(IDrawSurface& c) const {
-  c.drawImage(dial_, 0, 0);
+  dial_.draw(c, 0, 0);
   if (hasBadge_) c.drawImage(badge_.image, badge_.x, badge_.y);
 }
 

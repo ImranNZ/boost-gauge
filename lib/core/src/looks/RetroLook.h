@@ -7,7 +7,7 @@
 #include "render/Color.h"
 #include "render/Font.h"
 #include "render/IDrawSurface.h"
-#include "render/ImageView.h"
+#include "render/Picture.h"
 
 namespace gauge {
 
@@ -29,8 +29,8 @@ class RetroLook : public ILook {
     Font small;
   };
 
-  RetroLook(ImageView dial, Spec spec, const Fonts& fonts);
-  RetroLook(ImageView dial, Spec spec, const Fonts& fonts, const Badge& badge);
+  RetroLook(Picture dial, Spec spec, const Fonts& fonts);
+  RetroLook(Picture dial, Spec spec, const Fonts& fonts, const Badge& badge);
 
   void drawDial(IDrawSurface& c) const override;
   void drawDynamic(IDrawSurface& c, const GaugeState& state) const override;
@@ -41,7 +41,7 @@ class RetroLook : public ILook {
   void drawPeakFlag(IDrawSurface& c, float cx, float cy, float deg) const;
   void drawHub(IDrawSurface& c, int cx, int cy) const;
 
-  ImageView dial_;
+  Picture dial_;
   Spec spec_;
   Fonts fonts_;
   GaugeScale scale_;

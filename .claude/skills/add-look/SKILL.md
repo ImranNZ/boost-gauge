@@ -17,7 +17,8 @@ cache or `present`. Study `RetroLook` (picture dial) and `ClassicLook` / `Minima
    from the spec (see `looks/retro/`). Fonts are static TTFs under `looks/<name>/fonts/`
    (SIL OFL only; ship the licence). Keep it free of trademarked artwork. For code-drawn text in a real typeface, add the TTF
    (SIL OFL) under `looks/<name>/fonts/`, list it in `tools/fonts.json`, run
-   `python tools/make_font.py --profile s3`, and pass the resulting `Font`s to the look (see `MinimalLook`).
+   `python tools/make_font.py --profile s3` and `python tools/make_font.py --profile all`, then pass
+   the resulting `Font`s to the look (see `MinimalLook`).
 2. **Generate.** Add a `<name>` command to `tools/make_look.py` (copy `retro`) that writes
    `src/looks/<name>/<Name>Dial.h` and `<Name>Spec.h` from the spec. The picture and the
    code must read the same numbers: never hard-code geometry in the look class. Commit the

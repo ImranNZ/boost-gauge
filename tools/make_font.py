@@ -69,7 +69,7 @@ def build_face(spec: dict, scale: float):
         image, x_off, y_off, advance = render_glyph(font, ch, skew)
         if ch in "H0":
             ascent = max(ascent, -y_off)
-        if not (-128 <= x_off <= 127 and -128 <= y_off <= 127 and 0 <= advance <= 255
+        if not (-128 <= x_off <= 127 and -32768 <= y_off <= 32767 and 0 <= advance <= 255
                 and image.width <= 255 and image.height <= 255):
             sys.exit(f"{spec['name']} at {scale}x: '{ch}' metrics do not fit the glyph table")
         glyphs.append((ch, image.width, image.height, x_off, y_off, advance, len(alpha)))
