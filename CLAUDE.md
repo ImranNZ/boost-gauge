@@ -118,7 +118,8 @@ Windows: `g++` (WinLibs) and `pio`/`gcovr` (Python `Scripts` dir) may not be on
   `IDrawSurface::scale()` and lays the text out in that face's own pixels, so an exact face is drawn 1:1.
   `drawMask` takes a fractional position and a `MaskView::resolution` (pixels per design pixel);
   `ScaledSurface` passes a mask of the exact scale through and resamples any other. `Picture` gives
-  Retro/Modern dial images the same face-selection behaviour through `ImageView::resolution`.
+  Retro/Modern dial images the same face-selection behaviour through `ImageView::resolution`, and the
+  badge (a `Badge` holds a `Picture`): `make_look.py badge` renders one face per profile resolution.
   Firmware uses `s3`; the sim uses `all`, so font changes need both profiles regenerated. A new display
   class means a profile in `fonts.json`, `python tools/make_font.py --profile <name>`, branches in
   `src/looks/Fonts.h` and `src/looks/Dials.h`, and the build flag that selects it; `src/main.cpp` asserts

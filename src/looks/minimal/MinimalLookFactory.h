@@ -23,8 +23,7 @@ inline gauge::MinimalLook::Fonts minimalFonts() {
 inline gauge::MinimalLook makeMinimal(const gauge::GaugeProfile& profile = {}) {
 #ifdef BOOST_GAUGE_MINIMAL_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
-                   badge_light::kAlpha};
+  overlay.picture = gauge::Picture(badge_light::kFaces, badge_light::kFaceCount);
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above the mode label
   overlay.y = 62 - badge_light::kHeight / 2;
   return gauge::MinimalLook(minimalFonts(), profile, overlay);

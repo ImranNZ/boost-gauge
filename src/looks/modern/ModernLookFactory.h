@@ -45,8 +45,7 @@ inline gauge::ModernLook::Fonts modernFonts() {
 inline gauge::ModernLook makeModern() {
 #ifdef BOOST_GAUGE_MODERN_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
-                   badge_light::kAlpha};
+  overlay.picture = gauge::Picture(badge_light::kFaces, badge_light::kFaceCount);
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above BOOST
   overlay.y = 88 - badge_light::kHeight / 2;
   return gauge::ModernLook(modernDial(), modernSpec(), modernFonts(), overlay);

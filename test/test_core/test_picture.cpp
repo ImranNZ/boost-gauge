@@ -28,6 +28,8 @@ TEST_CASE("picture: a single image is drawn at the design resolution") {
   CHECK(drawnPixels(Picture(ImageView{1, 1, kSmall}), 240) == 1);
 }
 
+TEST_CASE("picture: an empty picture draws nothing") { CHECK(drawnPixels(Picture(), 240) == 0); }
+
 TEST_CASE("picture: chooses the smallest face at least as large as the surface") {
   const Picture picture = twoFaces();
   CHECK(drawnPixels(picture, 240) == 1);  // 1x face, as it is

@@ -122,7 +122,7 @@ void MinimalLook::drawDial(IDrawSurface& c) const {
                       TextAlign::Center, kLabel);
   }
 
-  if (badge_) c.drawImage(badge_->image, badge_->x, badge_->y);
+  if (badge_) badge_->picture.draw(c, badge_->x, badge_->y);
 }
 
 void MinimalLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {

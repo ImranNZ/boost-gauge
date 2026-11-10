@@ -23,8 +23,7 @@ inline gauge::MotorsportLook::Fonts motorsportFonts() {
 inline gauge::MotorsportLook makeMotorsport(const gauge::GaugeProfile& profile = {}) {
 #ifdef BOOST_GAUGE_MOTORSPORT_HAS_BADGE
   gauge::Badge overlay;
-  overlay.image = {badge_light::kWidth, badge_light::kHeight, badge_light::kRgb565,
-                   badge_light::kAlpha};
+  overlay.picture = gauge::Picture(badge_light::kFaces, badge_light::kFaceCount);
   overlay.x = 120 - badge_light::kWidth / 2;  // centred above the BOOST label
   overlay.y = 64 - badge_light::kHeight / 2;
   return gauge::MotorsportLook(motorsportFonts(), profile, overlay);

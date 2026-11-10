@@ -15,12 +15,14 @@ class Picture {
  public:
   static constexpr int kMaxFaces = 6;
 
+  Picture() = default;
   Picture(ImageView image) : images_{image}, count_(1) {}
   Picture(const ImageView* images, int count) : count_(std::min(count, kMaxFaces)) {
     for (int i = 0; i < count_; ++i) images_[static_cast<size_t>(i)] = images[i];
   }
 
   void draw(IDrawSurface& surface, int x, int y) const {
+    if (count_ == 0) return;
     surface.drawImage(faceFor(surface.scale()), x, y);
   }
 

@@ -13,9 +13,12 @@ retro  Builds the Retro 60s dial from looks/retro/spec.json + dial.svg.in: fills
        The spec is the single source of truth: the picture and the code cannot drift.
 modern The same pipeline for the Modern Mini dial (looks/modern/): chrome ring, black
        face, coloured bands. Writes ModernDial.h, all/ModernDial.h and ModernSpec.h.
-badge  Scales a PNG with transparency to its on-screen size and writes RGB565 colour
-       + 8-bit alpha. For brand artwork: write it under src/looks/local/, which is
-       git-ignored, and never commit it.
+badge  Scales a PNG with transparency to its on-screen size at every resolution in the
+       s3 and all display profiles and writes RGB565 colour + 8-bit alpha faces, one per
+       resolution, selected at build time by the same FONT_PROFILE_* flag as the fonts
+       (the looks draw the badge through Picture). Use --profile for just one profile.
+       For brand artwork: write it under src/looks/local/, which is git-ignored, and
+       never commit it.
 
 Needs:  pip install resvg-py pillow
 """
@@ -248,6 +251,22 @@ def cmd_dial(name: str, profile: str | None):
     print(f"wrote {spec_h.relative_to(ROOT)}; preview: out/dial_render.png")
 
 
+def badge_face(pre: Image.Image, width: int) -> tuple[Image.Image, list[int], int]:
+    """One badge face: premultiplied source resized to `width` design pixels."""
+    height = max(1, round(pre.height * width / pre.width))
+    small = pre.resize((width, height), Image.LANCZOS)
+    smp = small.load()
+    colour = Image.new("RGB", small.size)
+    cp = colour.load()
+    alpha = []
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = smp[x, y]
+            alpha.append(a)
+            cp[x, y] = (min(255, r * 255 // a), min(255, g * 255 // a), min(255, b * 255 // a)) if a else (0, 0, 0)
+    return colour, alpha, height
+
+
 def cmd_badge(args):
     src = Image.open(args.src).convert("RGBA")
     height = max(1, round(src.height * args.width / src.width))
@@ -259,27 +278,44 @@ def cmd_badge(args):
         for x in range(src.width):
             r, g, b, a = sp[x, y]
             pp[x, y] = (r * a // 255, g * a // 255, b * a // 255, a)
-    small = pre.resize((args.width, height), Image.LANCZOS)
-    smp = small.load()
-    colour = Image.new("RGB", small.size)
-    cp = colour.load()
-    alpha = []
-    for y in range(height):
-        for x in range(args.width):
-            r, g, b, a = smp[x, y]
-            alpha.append(a)
-            cp[x, y] = (min(255, r * 255 // a), min(255, g * 255 // a), min(255, b * 255 // a)) if a else (0, 0, 0)
 
-    body = (
-        f"inline constexpr int kWidth = {args.width};\n"
-        f"inline constexpr int kHeight = {height};\n\n"
-        + c_array("kRgb565", to_rgb565(colour, dither=False), "uint16_t", 16, 4)
-        + "\n"
-        + c_array("kAlpha", alpha, "uint8_t", 24, 2)
-    )
+    profiles = json.loads((ROOT / "tools" / "fonts.json").read_text(encoding="utf-8"))["profiles"]
+    selected = ["s3", "all"] if args.profile is None else [args.profile]
+    for current in selected:
+        if current not in profiles:
+            sys.exit(f"fonts.json: no profile '{current}'")
+
+    # One branch per profile, picked by the same FONT_PROFILE_* flag as the fonts; with the
+    # default pair the s3 branch is the #else fallback so firmware without a flag compiles.
+    order = [p for p in ("p4-720", "all", "s3") if p in selected]
+    branches = []
+    for current in order:
+        arrays, faces = [], []
+        for index, resolution in enumerate(profiles[current]):
+            width = round(args.width * resolution)
+            colour, alpha, face_height = badge_face(pre, width)
+            arrays.append(c_array(f"kRgb565{index}", to_rgb565(colour, dither=False), "uint16_t", 16, 4))
+            arrays.append(c_array(f"kAlpha{index}", alpha, "uint8_t", 24, 2))
+            faces.append(f"    {{{width}, {face_height}, kRgb565{index}, kAlpha{index}, {cfloat(resolution)}}},")
+        branches.append((current, "\n".join(arrays)
+                         + "\ninline constexpr gauge::ImageView kFaces[] = {\n"
+                         + "\n".join(faces)
+                         + "\n};\n"
+                         + f"inline constexpr int kFaceCount = {len(faces)};\n"))
+
+    body = (f"inline constexpr int kWidth = {args.width};\n"
+            f"inline constexpr int kHeight = {height};\n\n")
+    guarded = [b for b in branches if b[0] != "s3"]
+    plain = [b for b in branches if b[0] == "s3"] or branches[-1:]
+    for i, (current, code) in enumerate(guarded):
+        macro = f"FONT_PROFILE_{current.upper().replace('-', '_')}"
+        body += ("#if" if i == 0 else "#elif") + f" defined({macro})\n" + code
+    body += ("#else\n" if guarded else "") + plain[0][1]
+    body += "#endif\n" if guarded else ""
+
     args.dst.parent.mkdir(parents=True, exist_ok=True)
-    args.dst.write_text(header(f"from {args.src.name} (brand artwork: keep local)", f"looks::{args.namespace}", body))
-    print(f"wrote {args.dst} ({args.width}x{height})")
+    args.dst.write_text(header(f"from {args.src.name} (brand artwork: keep local)", f"looks::{args.namespace}", body, image=True))
+    print(f"wrote {args.dst} ({args.width}x{height} design, profiles: {', '.join(order)})")
 
 
 def main():
@@ -295,6 +331,7 @@ def main():
     badge.add_argument("--width", type=int, default=70, help="on-screen width in pixels")
     badge.add_argument("--namespace", default="badge",
                        help="C++ namespace under looks:: (the light variant uses badge_light so both can be included)")
+    badge.add_argument("--profile", help="display profile to build (default: s3 and all)")
     badge.set_defaults(fn=cmd_badge)
     args = parser.parse_args()
     args.fn(args)

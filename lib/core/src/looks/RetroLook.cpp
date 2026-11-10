@@ -45,7 +45,7 @@ RetroLook::RetroLook(Picture dial, Spec spec, const Fonts& fonts, const Badge& b
 
 void RetroLook::drawDial(IDrawSurface& c) const {
   dial_.draw(c, 0, 0);
-  if (hasBadge_) c.drawImage(badge_.image, badge_.x, badge_.y);
+  if (hasBadge_) badge_.picture.draw(c, badge_.x, badge_.y);
 }
 
 void RetroLook::drawDynamic(IDrawSurface& c, const GaugeState& state) const {
