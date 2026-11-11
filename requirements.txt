@@ -3,4 +3,4 @@
 platformio==6.2.0
 gcovr==8.8
 clang-format==20.1.8   # tools/format.py
-pillow==12.0.0   # tools/check_renders.py (and make_media.py)
+pillow==13.0.0   # tools/check_renders.py (and make_media.py)
